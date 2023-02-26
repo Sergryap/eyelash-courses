@@ -9,16 +9,24 @@ admin.site.empty_value_display = '-empty-'
 
 class ClientInline(admin.TabularInline):
     model = CourseClient
+    fields = ['client']
     extra = 0
 
 
 class CourseInline(admin.TabularInline):
     model = CourseClient
+    fields = ['course']
+    extra = 0
+
+
+class CourseProgramInline(admin.TabularInline):
+    model = Course
     extra = 0
 
 
 @admin.register(Program)
 class ProgramAdmin(admin.ModelAdmin):
+    inlines = [CourseProgramInline]
     list_display = ['title', 'description']
 
 
@@ -38,3 +46,13 @@ class ClientAdmin(admin.ModelAdmin):
 @admin.register(Lecturer)
 class LecturerAdmin(admin.ModelAdmin):
     pass
+
+
+@admin.register(CourseClient)
+class CourseClientAdmin(admin.ModelAdmin):
+    list_display = ['client', 'course', 'course_date']
+    ordering = ['course', 'client']
+
+    @admin.display(description='Дата курса')
+    def course_date(self, obj):
+        return obj.course.scheduled_at
