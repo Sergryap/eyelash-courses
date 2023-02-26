@@ -3,6 +3,7 @@ from django.db.models import UniqueConstraint
 from django.utils import timezone
 from phonenumber_field.modelfields import PhoneNumberField
 from django.contrib import admin
+from tinymce.models import HTMLField
 
 
 class Program(models.Model):
@@ -11,7 +12,7 @@ class Program(models.Model):
         max_length=100,
         unique=True
     )
-    description = models.TextField(
+    description = HTMLField(
         verbose_name='Описание курса',
         blank=True,
         null=True,
@@ -34,7 +35,7 @@ class Lecturer(models.Model):
         verbose_name='Фамилия',
         max_length=50
     )
-    description = models.TextField(
+    description = HTMLField(
         verbose_name='Описание лектора',
         blank=True,
         null=True
