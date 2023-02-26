@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 from phonenumber_field.modelfields import PhoneNumberField
 
 
@@ -14,12 +15,12 @@ class Program(models.Model):
         null=True,
     )
 
+    def __str__(self):
+        return f'{self.title}'
+
     class Meta:
         verbose_name = 'программа'
         verbose_name_plural = 'программы'
-
-    def __str__(self):
-        return self.title
 
 
 class Lecturer(models.Model):
@@ -36,6 +37,9 @@ class Lecturer(models.Model):
         blank=True,
         null=True
     )
+
+    def __str__(self):
+        return f'{self.first_name} {self.last_name}'
 
 
 class Client(models.Model):
@@ -65,11 +69,18 @@ class Client(models.Model):
         null=True,
         blank=True
     )
+    registered_at = models.DateTimeField(
+        verbose_name='Время регистрации',
+        default=timezone.now
+    )
     comment = models.TextField(
         verbose_name='Заметки о клиенте',
         blank=True,
         null=True
     )
+
+    def __str__(self):
+        return f'{self.first_name} {self.last_name}: {self.phone_number}'
 
     class Meta:
         verbose_name = 'клиент'
@@ -97,7 +108,7 @@ class Course(models.Model):
         related_name='courses',
         through='CourseClient'
     )
-    date = models.DateTimeField(
+    scheduled_at = models.DateTimeField(
         verbose_name='Дата и время курса',
     )
     duration = models.DurationField(
@@ -113,9 +124,14 @@ class Course(models.Model):
         verbose_name='Стоимость курса',
     )
 
+    def __str__(self):
+        return f'{self.program}: {self.scheduled_at.strftime("%d.%m.%Y")}'
+
     class Meta:
         verbose_name = 'курс'
         verbose_name_plural = 'курсы'
+        get_latest_by = 'scheduled_at'
+        ordering = ['-scheduled_at']
 
 
 class CourseClient(models.Model):
@@ -136,3 +152,6 @@ class CourseClient(models.Model):
         blank=True,
         null=True
     )
+
+    def __str__(self):
+        return f'{self.course}: {self.client}'
