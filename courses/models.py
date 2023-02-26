@@ -179,6 +179,8 @@ class CourseClient(models.Model):
                 name='unique_client_course',
             )
         ]
+        verbose_name = 'Курс - клиент'
+        verbose_name_plural = 'Курсы по клиентам'
 
     def __str__(self):
-        return f'{self.course}: {self.client}'
+        return f'{self.course}: {self.client.first_name} {self.client.last_name}'
