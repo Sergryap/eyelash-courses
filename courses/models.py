@@ -19,7 +19,7 @@ class Program(models.Model):
         return f'{self.title}'
 
     class Meta:
-        verbose_name = 'программа'
+        verbose_name = 'программу'
         verbose_name_plural = 'программы'
 
 
@@ -40,6 +40,10 @@ class Lecturer(models.Model):
 
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
+
+    class Meta:
+        verbose_name = 'лектора'
+        verbose_name_plural = 'лекторы'
 
 
 class Client(models.Model):
@@ -83,7 +87,7 @@ class Client(models.Model):
         return f'{self.first_name} {self.last_name}: {self.phone_number}'
 
     class Meta:
-        verbose_name = 'клиент'
+        verbose_name = 'клиента'
         verbose_name_plural = 'клиенты'
 
 
