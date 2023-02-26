@@ -1,6 +1,4 @@
 from django.contrib import admin
-from django.utils.safestring import mark_safe
-
 from courses.models import Client, Course, Lecturer, Program, CourseClient
 
 admin.site.site_header = 'Курсы по наращиванию ресниц'   # default: "Django Administration"
