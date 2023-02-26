@@ -1,6 +1,8 @@
 from django.db import models
+from django.db.models import UniqueConstraint
 from django.utils import timezone
 from phonenumber_field.modelfields import PhoneNumberField
+from django.contrib import admin
 
 
 class Program(models.Model):
@@ -83,6 +85,10 @@ class Client(models.Model):
         null=True
     )
 
+    @admin.display(description='Дата регистрации')
+    def get_registry_date(self):
+        return self.registered_at.strftime("%d.%m.%Y")
+
     def __str__(self):
         return f'{self.first_name} {self.last_name}: {self.phone_number}'
 
@@ -125,11 +131,19 @@ class Course(models.Model):
         max_length=100,
     )
     price = models.PositiveIntegerField(
-        verbose_name='Стоимость курса',
+        verbose_name='Стоимость, RUB',
     )
 
+    @admin.display(description='Продолжительность, дней')
+    def get_duration_days(self):
+        return self.duration.days
+
+    @admin.display(description='Количество участников')
+    def get_count_participants(self):
+        return self.clients.count()
+
     def __str__(self):
-        return f'{self.program}: {self.scheduled_at.strftime("%d.%m.%Y")}'
+        return f'{self.program}: {self.scheduled_at.strftime("%d.%m.%Y")}, {self.duration.days} дней'
 
     class Meta:
         verbose_name = 'курс'
@@ -156,6 +170,14 @@ class CourseClient(models.Model):
         blank=True,
         null=True
     )
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(
+                fields=['client', 'course'],
+                name='unique_client_course',
+            )
+        ]
 
     def __str__(self):
         return f'{self.course}: {self.client}'
