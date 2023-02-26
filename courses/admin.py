@@ -45,7 +45,7 @@ class ClientAdmin(admin.ModelAdmin):
 
 @admin.register(Lecturer)
 class LecturerAdmin(admin.ModelAdmin):
-    pass
+    inlines = [CourseProgramInline]
 
 
 @admin.register(CourseClient)
