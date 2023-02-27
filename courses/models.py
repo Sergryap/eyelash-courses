@@ -166,7 +166,8 @@ class CourseImage(models.Model):
     course = models.ForeignKey(
         Course,
         on_delete=models.CASCADE,
-        related_name='images'
+        related_name='images',
+        verbose_name='Курс'
     )
     position = models.IntegerField(default=0)
 
@@ -176,7 +177,7 @@ class CourseImage(models.Model):
         verbose_name_plural = 'Фото к курсу'
 
     def __str__(self):
-        return f'{self.course.name}'
+        return f'{self.course}'
 
 
 class CourseClient(models.Model):
