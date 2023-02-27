@@ -3,3 +3,4 @@ environs[django]==9.5.0
 django-phonenumber-field==7.0.2
 phonenumbers==8.13.6
 django-tinymce==3.5.0
+Pillow==9.4.0

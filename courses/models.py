@@ -17,6 +17,10 @@ class Program(models.Model):
         blank=True,
         null=True,
     )
+    image = models.ImageField(
+        verbose_name='Иллюстрация программы',
+        upload_to='program'
+    )
 
     def __str__(self):
         return f'{self.title}'

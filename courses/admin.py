@@ -1,10 +1,22 @@
 from django.contrib import admin
+from django.utils.html import format_html
+
 from courses.models import Client, Course, Lecturer, Program, CourseClient
 
 admin.site.site_header = 'Курсы по наращиванию ресниц'   # default: "Django Administration"
 admin.site.index_title = 'Управление сайтом'             # default: "Site administration"
 admin.site.site_title = 'Курсы по наращиванию ресниц'    # default: "Django site admin"
 admin.site.empty_value_display = '-empty-'
+
+
+class PreviewMixin:
+    @staticmethod
+    def get_preview(obj):
+        return format_html(
+            '<img style="max-height:{height}" src="{url}"/>',
+            height='200px',
+            url=obj.image.url
+        )
 
 
 class ClientInline(admin.TabularInline):
@@ -25,9 +37,9 @@ class CourseProgramInline(admin.TabularInline):
 
 
 @admin.register(Program)
-class ProgramAdmin(admin.ModelAdmin):
+class ProgramAdmin(admin.ModelAdmin, PreviewMixin):
     inlines = [CourseProgramInline]
-    list_display = ['title', 'description']
+    list_display = ['title', 'description', 'get_preview']
 
 
 @admin.register(Course)
