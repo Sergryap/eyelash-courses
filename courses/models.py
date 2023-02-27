@@ -157,6 +157,28 @@ class Course(models.Model):
         ordering = ['-scheduled_at']
 
 
+class CourseImage(models.Model):
+    image = models.ImageField(
+        upload_to='courses',
+        blank=True,
+        null=True
+    )
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE,
+        related_name='images'
+    )
+    position = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ['position']
+        verbose_name = 'Фото'
+        verbose_name_plural = 'Фото к курсу'
+
+    def __str__(self):
+        return f'{self.course.name}'
+
+
 class CourseClient(models.Model):
     client = models.ForeignKey(
         Client,

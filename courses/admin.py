@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from courses.models import Client, Course, Lecturer, Program, CourseClient
+from courses.models import Client, Course, Lecturer, Program, CourseClient, CourseImage
 
 admin.site.site_header = 'Курсы по наращиванию ресниц'   # default: "Django Administration"
 admin.site.index_title = 'Управление сайтом'             # default: "Site administration"
@@ -31,6 +31,13 @@ class CourseInline(admin.TabularInline):
     extra = 0
 
 
+class CourseImageInline(admin.TabularInline, PreviewMixin):
+    model = CourseImage
+    fields = ['position', 'image', 'get_preview']
+    readonly_fields = ['get_preview']
+    extra = 3
+
+
 class CourseProgramInline(admin.TabularInline):
     model = Course
     extra = 0
@@ -44,7 +51,7 @@ class ProgramAdmin(admin.ModelAdmin, PreviewMixin):
 
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
-    inlines = [ClientInline]
+    inlines = [CourseImageInline, ClientInline]
     list_display = ['__str__', 'price', 'lecture', 'get_count_participants', 'get_duration_days']
     list_editable = ['price']
 
