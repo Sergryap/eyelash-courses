@@ -56,18 +56,21 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
     inlines = [CourseImageInline, ClientInline]
     list_display = ['__str__', 'price', 'lecture', 'get_count_participants', 'get_duration_days']
     list_editable = ['price']
+    list_filter = ['scheduled_at', 'name', 'program', 'clients']
 
 
 @admin.register(CourseImage)
 class ImageAdmin(SortableAdminMixin, admin.ModelAdmin, PreviewMixin):
     list_display = ['id', 'get_preview', 'course', 'position']
     readonly_fields = ['get_preview']
+    list_filter = ['course__program', 'course']
 
 
 @admin.register(Client)
 class ClientAdmin(admin.ModelAdmin):
     inlines = [CourseInline]
     list_display = ['__str__', 'get_registry_date']
+    list_filter = ['courses__program', 'courses', 'registered_at']
 
 
 @admin.register(Lecturer)
@@ -79,6 +82,7 @@ class LecturerAdmin(admin.ModelAdmin):
 class CourseClientAdmin(admin.ModelAdmin):
     list_display = ['client', 'course', 'course_date']
     ordering = ['course', 'client']
+    list_filter = ['course__program', 'course', 'client__registered_at']
 
     @admin.display(description='Дата курса')
     def course_date(self, obj):
