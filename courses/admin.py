@@ -52,17 +52,23 @@ class ParticipantsCountFilter(admin.SimpleListFilter):
 
     def lookups(self, request, model_admin):
         return [
-            (
-                course.clients.count(), _(f'Количество участников: {course.clients.count()}')
-            ) for course in Course.objects.all()
+            ('0_3', _('До 3 чел.')),
+            ('4_10', _('От 4 до 10 чел.')),
+            ('11_100', _('Более 10 чел.'))
         ]
 
     def queryset(self, request, queryset):
+
         if self.value() is not None:
+            min_count, max_count = [int(value) for value in self.value().split('_')]
             return (
                     queryset
                     .annotate(count_participants=Count('clients'))
-                    .filter(count_participants=Value(int(self.value())))
+                    .filter(
+                        count_participants__gte=Value(min_count),
+                        count_participants__lte=Value(max_count)
+                    )
+
             )
 
 
