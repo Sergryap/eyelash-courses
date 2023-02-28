@@ -1,8 +1,9 @@
 from django.contrib import admin
 from django.utils.html import format_html
-
 from courses.models import Client, Course, Lecturer, Program, CourseClient, CourseImage
 from adminsortable2.admin import SortableAdminMixin, SortableTabularInline, SortableAdminBase
+from django.utils.translation import gettext_lazy as _
+from django.db.models import Count, Value
 
 admin.site.site_header = 'Курсы по наращиванию ресниц'   # default: "Django Administration"
 admin.site.index_title = 'Управление сайтом'             # default: "Site administration"
@@ -45,6 +46,26 @@ class CourseProgramInline(admin.TabularInline):
     extra = 0
 
 
+class ParticipantsCountFilter(admin.SimpleListFilter):
+    title = _('Количество участников')
+    parameter_name = 'count_participants'
+
+    def lookups(self, request, model_admin):
+        return [
+            (
+                course.clients.count(), _(f'Количество участников: {course.clients.count()}')
+            ) for course in Course.objects.all()
+        ]
+
+    def queryset(self, request, queryset):
+        if self.value() is not None:
+            return (
+                    queryset
+                    .annotate(count_participants=Count('clients'))
+                    .filter(count_participants=Value(int(self.value())))
+            )
+
+
 @admin.register(Program)
 class ProgramAdmin(admin.ModelAdmin, PreviewMixin):
     inlines = [CourseProgramInline]
@@ -56,7 +77,7 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
     inlines = [CourseImageInline, ClientInline]
     list_display = ['__str__', 'price', 'lecture', 'get_count_participants', 'get_duration_days']
     list_editable = ['price']
-    list_filter = ['scheduled_at', 'name', 'program', 'clients']
+    list_filter = ['scheduled_at', 'name', 'program', 'clients', ParticipantsCountFilter]
 
 
 @admin.register(CourseImage)
