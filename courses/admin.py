@@ -2,7 +2,6 @@ from django.contrib import admin
 from django.utils.html import format_html
 from courses.models import Client, Course, Lecturer, Program, CourseClient, CourseImage
 from adminsortable2.admin import SortableAdminMixin, SortableTabularInline, SortableAdminBase
-from django.utils.translation import gettext_lazy as _
 from django.db.models import Count, Value
 
 admin.site.site_header = 'Курсы по наращиванию ресниц'   # default: "Django Administration"
@@ -47,14 +46,14 @@ class CourseProgramInline(admin.TabularInline):
 
 
 class ParticipantsCountFilter(admin.SimpleListFilter):
-    title = _('Количество участников')
+    title = 'Количество участников'
     parameter_name = 'count_participants'
 
     def lookups(self, request, model_admin):
         return [
-            ('0_3', _('До 3 чел.')),
-            ('4_10', _('От 4 до 10 чел.')),
-            ('11_100', _('Более 10 чел.'))
+            ('0_3', 'До 3 чел.'),
+            ('4_10', 'От 4 до 10 чел.'),
+            ('11_100', 'Более 10 чел.')
         ]
 
     def queryset(self, request, queryset):
