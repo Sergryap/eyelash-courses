@@ -4,7 +4,8 @@ from courses.models import Client, Course, Lecturer, Program, CourseClient, Cour
 from adminsortable2.admin import SortableAdminMixin, SortableTabularInline, SortableAdminBase
 from django.db.models import Count, Value
 from import_export import resources
-from import_export.admin import ImportExportMixin
+from import_export.fields import Field
+from import_export.admin import ExportMixin
 
 admin.site.site_header = 'Курсы по наращиванию ресниц'   # default: "Django Administration"
 admin.site.index_title = 'Управление сайтом'             # default: "Site administration"
@@ -24,6 +25,11 @@ class PreviewMixin:
 
 
 class ClientResource(resources.ModelResource):
+    first_name = Field(attribute='first_name', column_name='Имя')
+    last_name = Field(attribute='last_name', column_name='Фамилия')
+    phone_number = Field(attribute='phone_number', column_name='Телефон')
+    registered_at = Field(attribute='registered_at', column_name='Регистрация')
+    comment = Field(attribute='comment', column_name='Примечание')
 
     class Meta:
         model = Client
@@ -110,7 +116,7 @@ class ImageAdmin(SortableAdminMixin, admin.ModelAdmin, PreviewMixin):
 
 
 @admin.register(Client)
-class ClientAdmin(admin.ModelAdmin, ImportExportMixin):
+class ClientAdmin(ExportMixin, admin.ModelAdmin):
     inlines = [CourseInline]
     list_display = ['__str__', 'get_registry_date']
     list_filter = ['courses__program', 'courses', 'registered_at']
