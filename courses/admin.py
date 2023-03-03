@@ -106,6 +106,7 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
     list_display = ['__str__', 'price', 'lecture', 'get_count_participants', 'get_duration_days']
     list_editable = ['price']
     list_filter = ['scheduled_at', 'name', 'program', 'clients', ParticipantsCountFilter]
+    save_on_top = True
 
 
 @admin.register(CourseImage)
