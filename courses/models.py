@@ -107,11 +107,6 @@ class Course(models.Model):
         verbose_name='Название курса',
         max_length=100,
     )
-    description = HTMLField(
-        verbose_name='Описание курса',
-        blank=True,
-        null=True,
-    )
     program = models.ForeignKey(
         Program,
         on_delete=models.SET_NULL,
@@ -142,6 +137,11 @@ class Course(models.Model):
     )
     price = models.PositiveIntegerField(
         verbose_name='Стоимость, RUB',
+    )
+    description = HTMLField(
+        verbose_name='Описание курса',
+        blank=True,
+        null=True,
     )
 
     @admin.display(description='Продолжительность, дней')

@@ -67,6 +67,8 @@ class CourseImageInline(SortableTabularInline, PreviewMixin):
 
 class CourseProgramInline(admin.TabularInline):
     model = Course
+    fields = ['program', 'name', 'lecture', 'scheduled_at', 'price']
+    readonly_fields = ['program', 'scheduled_at']
     extra = 0
 
 
@@ -100,6 +102,7 @@ class ParticipantsCountFilter(admin.SimpleListFilter):
 class ProgramAdmin(admin.ModelAdmin, PreviewMixin):
     inlines = [CourseProgramInline]
     list_display = ['title', 'description', 'get_preview']
+    readonly_fields = ['get_preview']
 
 
 class CourseForm(forms.ModelForm):
@@ -129,6 +132,7 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
 @admin.register(CourseImage)
 class ImageAdmin(SortableAdminMixin, admin.ModelAdmin, PreviewMixin):
     list_display = ['id', 'get_preview', 'course', 'position']
+    list_display_links = ['course']
     readonly_fields = ['get_preview']
     list_filter = ['course__program', 'course']
 
