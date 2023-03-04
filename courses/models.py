@@ -13,7 +13,7 @@ class Program(models.Model):
         unique=True
     )
     description = HTMLField(
-        verbose_name='Описание курса',
+        verbose_name='Описание программы',
         blank=True,
         null=True,
     )
@@ -103,6 +103,15 @@ class Client(models.Model):
 
 
 class Course(models.Model):
+    name = models.CharField(
+        verbose_name='Название курса',
+        max_length=100,
+    )
+    description = HTMLField(
+        verbose_name='Описание курса',
+        blank=True,
+        null=True,
+    )
     program = models.ForeignKey(
         Program,
         on_delete=models.SET_NULL,
@@ -130,10 +139,6 @@ class Course(models.Model):
         verbose_name='Продолжительность курса',
         blank=True,
         null=True
-    )
-    name = models.CharField(
-        verbose_name='Название курса',
-        max_length=100,
     )
     price = models.PositiveIntegerField(
         verbose_name='Стоимость, RUB',
