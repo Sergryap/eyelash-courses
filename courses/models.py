@@ -148,7 +148,7 @@ class Course(models.Model):
         return self.clients.count()
 
     def __str__(self):
-        return f'{self.program}: {self.scheduled_at.strftime("%d.%m.%Y")}, {self.duration.days} дней'
+        return f'{self.name}: {self.scheduled_at.strftime("%d.%m.%Y")}, {self.duration.days} дней'
 
     class Meta:
         verbose_name = 'курс'

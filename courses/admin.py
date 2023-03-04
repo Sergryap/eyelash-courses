@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django import forms
 from django.utils.html import format_html
 from courses.models import Client, Course, Lecturer, Program, CourseClient, CourseImage
 from adminsortable2.admin import SortableAdminMixin, SortableTabularInline, SortableAdminBase
@@ -6,6 +7,7 @@ from django.db.models import Count, Value
 from import_export import resources
 from import_export.fields import Field
 from import_export.admin import ExportMixin
+from datetime import timedelta
 
 admin.site.site_header = 'Курсы по наращиванию ресниц'   # default: "Django Administration"
 admin.site.index_title = 'Управление сайтом'             # default: "Site administration"
@@ -100,13 +102,28 @@ class ProgramAdmin(admin.ModelAdmin, PreviewMixin):
     list_display = ['title', 'description', 'get_preview']
 
 
+class CourseForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['duration'].help_text = 'Длительность в днях'
+
+    def clean(self):
+        cleaned_data = super().clean()
+        duration = cleaned_data['duration'].seconds
+        day_duration = timedelta(days=int(duration))
+        self.cleaned_data['duration'] = day_duration
+        return self.cleaned_data
+
+
 @admin.register(Course)
 class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
     inlines = [CourseImageInline, ClientInline]
-    list_display = ['__str__', 'price', 'lecture', 'get_count_participants', 'get_duration_days']
+    list_display = ['__str__', 'program', 'price', 'lecture', 'get_count_participants', 'get_duration_days']
     list_editable = ['price']
     list_filter = ['scheduled_at', 'name', 'program', 'clients', ParticipantsCountFilter]
     save_on_top = True
+    form = CourseForm
 
 
 @admin.register(CourseImage)
