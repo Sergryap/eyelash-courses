@@ -90,6 +90,12 @@ class Client(models.Model):
         blank=True,
         null=True
     )
+    bot_state = models.CharField(
+        'Текущее состояние бота',
+        max_length=50,
+        help_text="Стейт-машина бота",
+        default='START'
+    )
 
     @admin.display(description='Дата регистрации')
     def get_registry_date(self):
