@@ -11,7 +11,7 @@ from .mat_filter import MatFilter
 from .handlers import start, storage
 
 
-class VkDialogBot:
+class VkBot:
 
     client_router = DefaultRouter()
     states_functions = {
@@ -28,7 +28,7 @@ class VkDialogBot:
     @staticmethod
     @simple_bot_message_handler(client_router, MatFilter())
     async def basic_send(event: SimpleBotEvent):
-        await VkDialogBot.handle_users_reply(event)
+        await VkBot.handle_users_reply(event)
 
     @classmethod
     async def handle_users_reply(cls, event: SimpleBotEvent):
