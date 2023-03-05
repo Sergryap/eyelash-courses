@@ -12,7 +12,7 @@ from datetime import timedelta
 admin.site.site_header = 'Курсы по наращиванию ресниц'   # default: "Django Administration"
 admin.site.index_title = 'Управление сайтом'             # default: "Site administration"
 admin.site.site_title = 'Курсы по наращиванию ресниц'    # default: "Django site admin"
-admin.site.empty_value_display = '-empty-'
+admin.site.empty_value_display = 'Нет данных'
 
 
 class PreviewMixin:
@@ -55,15 +55,15 @@ class ClientInline(admin.TabularInline):
 
     @admin.display(description='Телефон клиента')
     def get_client_phone(self, obj):
-        return obj.client.phone_number
+        return obj.client.phone_number or 'Нет данных'
 
     @admin.display(description='Telegram Id')
     def get_telegram_id(self, obj):
-        return obj.client.telegram_id
+        return obj.client.telegram_id or 'Нет данных'
 
     @admin.display(description='Профиль ВК')
     def get_vk_profile(self, obj):
-        return obj.client.vk_profile
+        return obj.client.vk_profile or 'Нет данных'
 
     def get_queryset(self, request):
         return (
@@ -74,8 +74,21 @@ class ClientInline(admin.TabularInline):
 
 class CourseInline(admin.TabularInline):
     model = CourseClient
-    fields = ['course']
+    fields = ['course', 'get_lecture',  'get_data', 'get_course_price']
+    readonly_fields = ['get_data',  'get_lecture', 'get_course_price']
     extra = 0
+
+    @admin.display(description='Стоимость курса')
+    def get_course_price(self, obj):
+        return obj.course.price or 'Нет данных'
+
+    @admin.display(description='Дата курса')
+    def get_data(self, obj):
+        return obj.course.scheduled_at.strftime("%d.%m.%Y") or 'Нет данных'
+
+    @admin.display(description='Лектор')
+    def get_lecture(self, obj):
+        return obj.course.lecture or 'Нет данных'
 
     def get_queryset(self, request):
         return (
@@ -173,7 +186,7 @@ class ImageAdmin(SortableAdminMixin, admin.ModelAdmin, PreviewMixin):
 @admin.register(Client)
 class ClientAdmin(ExportMixin, admin.ModelAdmin):
     inlines = [CourseInline]
-    list_display = ['__str__', 'phone_number', 'get_registry_date']
+    list_display = ['__str__', 'phone_number', 'telegram_id', 'vk_profile', 'get_registry_date']
     list_filter = ['courses__program', 'courses', 'registered_at']
     resource_class = ClientResource
     fields = [
