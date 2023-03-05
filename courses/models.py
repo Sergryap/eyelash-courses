@@ -4,6 +4,7 @@ from django.utils import timezone
 from phonenumber_field.modelfields import PhoneNumberField
 from django.contrib import admin
 from tinymce.models import HTMLField
+from django.core.validators import MaxValueValidator
 
 
 class Program(models.Model):
@@ -130,8 +131,9 @@ class Course(models.Model):
     scheduled_at = models.DateTimeField(
         verbose_name='Дата и время курса',
     )
-    duration = models.DurationField(
-        verbose_name='Продолжительность курса',
+    duration = models.PositiveSmallIntegerField(
+        verbose_name='Продолжительность в днях',
+        validators=[MaxValueValidator(limit_value=30)],
         blank=True,
         null=True
     )
@@ -144,16 +146,12 @@ class Course(models.Model):
         null=True,
     )
 
-    @admin.display(description='Продолжительность, дней')
-    def get_duration_days(self):
-        return self.duration.days
-
     @admin.display(description='Количество участников')
     def get_count_participants(self):
         return self.clients.count()
 
     def __str__(self):
-        return f'{self.name}: {self.scheduled_at.strftime("%d.%m.%Y")}, {self.duration.days} дней'
+        return f'{self.name}: {self.scheduled_at.strftime("%d.%m.%Y")}, {self.duration} дней'
 
     class Meta:
         verbose_name = 'курс'
