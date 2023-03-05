@@ -109,24 +109,24 @@ class CourseForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['duration'].help_text = 'Длительность в днях'
-
-    def clean(self):
-        cleaned_data = super().clean()
-        duration = cleaned_data['duration'].seconds
-        day_duration = timedelta(days=int(duration))
-        self.cleaned_data['duration'] = day_duration
-        return self.cleaned_data
+        if 'duration' in self.fields:
+            self.fields['duration'].help_text = 'Длительность в днях'
 
 
 @admin.register(Course)
 class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
     inlines = [CourseImageInline, ClientInline]
-    list_display = ['__str__', 'program', 'price', 'lecture', 'get_count_participants', 'get_duration_days']
-    list_editable = ['price']
+    list_display = ['__str__', 'program', 'price', 'lecture', 'get_count_participants', 'duration']
+    list_editable = ['price', 'program', 'duration']
     list_filter = ['scheduled_at', 'name', 'program', 'clients', ParticipantsCountFilter]
     save_on_top = True
     form = CourseForm
+    fields = [
+        ('name', 'program'),
+        ('scheduled_at', 'price'),
+        ('lecture', 'duration'),
+        'description'
+    ]
 
 
 @admin.register(CourseImage)
