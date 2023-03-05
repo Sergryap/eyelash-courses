@@ -7,7 +7,9 @@ from django.db.models import Count, Value
 from import_export import resources
 from import_export.fields import Field
 from import_export.admin import ExportMixin
-from datetime import timedelta
+from django.db.models import Window
+from django.db.models.functions import DenseRank, Random
+import random
 
 admin.site.site_header = 'Курсы по наращиванию ресниц'   # default: "Django Administration"
 admin.site.index_title = 'Управление сайтом'             # default: "Site administration"
@@ -65,12 +67,6 @@ class ClientInline(admin.TabularInline):
     def get_vk_profile(self, obj):
         return obj.client.vk_profile or 'Нет данных'
 
-    def get_queryset(self, request):
-        return (
-            super().get_queryset(request)
-            .select_related('client')
-        )
-
 
 class CourseInline(admin.TabularInline):
     model = CourseClient
@@ -90,12 +86,6 @@ class CourseInline(admin.TabularInline):
     def get_lecture(self, obj):
         return obj.course.lecture or 'Нет данных'
 
-    def get_queryset(self, request):
-        return (
-            super().get_queryset(request)
-            .select_related('course')
-        )
-
 
 class CourseImageInline(SortableTabularInline, PreviewMixin):
     model = CourseImage
@@ -112,7 +102,7 @@ class CourseProgramInline(admin.TabularInline):
 
 
 class ParticipantsCountFilter(admin.SimpleListFilter):
-    title = 'Количество участников'
+    title = 'Участников'
     parameter_name = 'count_participants'
 
     def lookups(self, request, model_admin):
@@ -155,7 +145,10 @@ class CourseForm(forms.ModelForm):
 @admin.register(Course)
 class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
     inlines = [CourseImageInline, ClientInline]
-    list_display = ['__str__', 'program', 'price', 'lecture', 'get_count_participants', 'duration']
+    list_display = [
+        '__str__', 'program', 'price', 'lecture', 'get_course_preview', 'get_count_participants', 'duration'
+    ]
+    readonly_fields = ['get_course_preview']
     list_editable = ['price', 'program', 'duration']
     list_filter = ['scheduled_at', 'name', 'program', 'clients', ParticipantsCountFilter]
     save_on_top = True
@@ -166,6 +159,24 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
         ('lecture', 'duration'),
         'description'
     ]
+
+    @admin.display(description='Фото из курса')
+    def get_course_preview(self, obj):
+        random_photo = random.choice(obj.images.all() or ['Фото не загружены'])
+        # random_photo = (
+        #     CourseImage.objects
+        #     .filter(course=obj.pk)
+        #     .annotate(number=Window(expression=DenseRank(), order_by=[Random()]))
+        #     .order_by('number')
+        #     .first()
+        # )
+        if random_photo and isinstance(random_photo, CourseImage):
+            return format_html(
+                '<img style="max-height:{height}" src="{url}"/>',
+                height='150px',
+                url=random_photo.image.url
+            )
+        return random_photo
 
     def get_queryset(self, request):
         return (

@@ -132,7 +132,7 @@ class Course(models.Model):
         verbose_name='Дата и время курса',
     )
     duration = models.PositiveSmallIntegerField(
-        verbose_name='Продолжительность в днях',
+        verbose_name='Дней',
         validators=[MaxValueValidator(limit_value=30)],
         blank=True,
         null=True
@@ -146,7 +146,7 @@ class Course(models.Model):
         null=True,
     )
 
-    @admin.display(description='Количество участников')
+    @admin.display(description='Участников')
     def get_count_participants(self):
         return self.clients.count()
 
