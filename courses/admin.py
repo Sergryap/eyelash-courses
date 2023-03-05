@@ -197,14 +197,25 @@ class ImageAdmin(SortableAdminMixin, admin.ModelAdmin, PreviewMixin):
 @admin.register(Client)
 class ClientAdmin(ExportMixin, admin.ModelAdmin):
     inlines = [CourseInline]
-    list_display = ['__str__', 'phone_number', 'telegram_id', 'vk_profile', 'get_registry_date']
+    list_display = ['__str__', 'phone_number', 'telegram_id', 'get_vk_url', 'get_registry_date']
     list_filter = ['courses__program', 'courses', 'registered_at']
+    readonly_fields = ['get_vk_url']
     resource_class = ClientResource
     fields = [
         'first_name', 'last_name', 'phone_number',
         ('telegram_id', 'vk_profile'),
         'registered_at', 'comment'
     ]
+
+    @staticmethod
+    @admin.display(description='Страница VK')
+    def get_vk_url(obj):
+        if obj.vk_profile:
+            return format_html(
+                '<a href="{url}" target="_blank">{url}</a>',
+                url=obj.vk_profile
+            )
+        return 'Нет данных'
 
 
 @admin.register(Lecturer)
