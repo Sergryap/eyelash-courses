@@ -96,7 +96,7 @@ class Client(models.Model):
         return self.registered_at.strftime("%d.%m.%Y")
 
     def __str__(self):
-        return f'{self.first_name} {self.last_name}: {self.phone_number}'
+        return f'{self.first_name} {self.last_name}'#: {self.phone_number}'
 
     class Meta:
         verbose_name = 'клиента'

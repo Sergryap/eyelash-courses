@@ -47,15 +47,41 @@ class ClientResource(resources.ModelResource):
 
 
 class ClientInline(admin.TabularInline):
+
     model = CourseClient
-    fields = ['client']
+    fields = ['client', 'get_client_phone', 'get_telegram_id', 'get_vk_profile']
+    readonly_fields = ['get_client_phone', 'get_telegram_id', 'get_vk_profile']
     extra = 0
+
+    @admin.display(description='Телефон клиента')
+    def get_client_phone(self, obj):
+        return obj.client.phone_number
+
+    @admin.display(description='Telegram Id')
+    def get_telegram_id(self, obj):
+        return obj.client.telegram_id
+
+    @admin.display(description='Профиль ВК')
+    def get_vk_profile(self, obj):
+        return obj.client.vk_profile
+
+    def get_queryset(self, request):
+        return (
+            super().get_queryset(request)
+            .select_related('client')
+        )
 
 
 class CourseInline(admin.TabularInline):
     model = CourseClient
     fields = ['course']
     extra = 0
+
+    def get_queryset(self, request):
+        return (
+            super().get_queryset(request)
+            .select_related('course')
+        )
 
 
 class CourseImageInline(SortableTabularInline, PreviewMixin):
@@ -128,6 +154,13 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
         'description'
     ]
 
+    def get_queryset(self, request):
+        return (
+            super().get_queryset(request)
+            .select_related('program', 'lecture')
+            .prefetch_related('clients', 'images')
+        )
+
 
 @admin.register(CourseImage)
 class ImageAdmin(SortableAdminMixin, admin.ModelAdmin, PreviewMixin):
@@ -140,9 +173,14 @@ class ImageAdmin(SortableAdminMixin, admin.ModelAdmin, PreviewMixin):
 @admin.register(Client)
 class ClientAdmin(ExportMixin, admin.ModelAdmin):
     inlines = [CourseInline]
-    list_display = ['__str__', 'get_registry_date']
+    list_display = ['__str__', 'phone_number', 'get_registry_date']
     list_filter = ['courses__program', 'courses', 'registered_at']
     resource_class = ClientResource
+    fields = [
+        'first_name', 'last_name', 'phone_number',
+        ('telegram_id', 'vk_profile'),
+        'registered_at', 'comment'
+    ]
 
 
 @admin.register(Lecturer)
@@ -156,6 +194,6 @@ class CourseClientAdmin(admin.ModelAdmin):
     ordering = ['course', 'client']
     list_filter = ['course__program', 'course', 'client__registered_at']
 
-    @admin.display(description='Дата курса')
+    @admin.display(description='Дата курса и время')
     def course_date(self, obj):
         return obj.course.scheduled_at
