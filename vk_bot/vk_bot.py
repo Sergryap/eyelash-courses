@@ -6,24 +6,9 @@ from vkwave.bots import (
     simple_bot_message_handler,
 )
 from vkwave.bots.storage.types import Key
-from vkwave.bots.storage.storages import Storage
-
 from courses.models import Client
 from .mat_filter import MatFilter
-
-storage = Storage()
-
-
-async def start(event: SimpleBotEvent):
-    user_id = event.user_id
-    msg = event.text.strip()
-    user_info = {
-        'first_name': await storage.get(Key(f'{user_id}_first_name')),
-        'last_name': await storage.get(Key(f'{user_id}_last_name'))
-    }
-    await event.answer(message=msg)
-
-    return 'START'
+from .handlers import start, storage
 
 
 class VkDialogBot:

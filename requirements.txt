@@ -7,4 +7,5 @@ Pillow==9.4.0
 django-admin-sortable2==2.1.4
 django-import-export==3.1.0
 django_debug_toolbar==3.8.1
+asgiref==3.6.0
 vkwave @ https://github.com/fscdev/vkwave/archive/master.zip
