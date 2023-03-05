@@ -48,6 +48,7 @@ class VkDialogBot:
                 'vk_profile': f'https://vk.com/id{user_id}'
             }
         )
+        await storage.put(Key(f'{user_id}_instance'), user)
 
         if event.text.lower().strip() in ['start', '/start', 'начать', 'старт']:
             user_state = 'START'
