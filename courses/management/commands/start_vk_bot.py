@@ -1,10 +1,6 @@
 from django.conf import settings
 from django.core.management import BaseCommand
-
-from vk_bot.vk_bot import (
-    VkDialogBot,
-    start
-)
+from vk_bot.vk_bot import VkDialogBot
 
 
 class Command(BaseCommand):
@@ -17,9 +13,5 @@ class Command(BaseCommand):
 
 
 def start_vk_bot():
-
-    bot = VkDialogBot(
-        settings.VK_TOKEN,
-        settings.VK_GROUP_ID,
-    )
+    bot = VkDialogBot(settings.VK_TOKEN, settings.VK_GROUP_ID)
     bot.updater.run_forever()
