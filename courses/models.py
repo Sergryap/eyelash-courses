@@ -76,6 +76,11 @@ class Client(models.Model):
         null=True,
         blank=True
     )
+    vk_id = models.PositiveIntegerField(
+        verbose_name='Vk Id',
+        null=True,
+        blank=True
+    )
     vk_profile = models.URLField(
         verbose_name='Профиль ВК',
         null=True,
