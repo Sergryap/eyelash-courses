@@ -3,16 +3,17 @@ from vkwave.bots import SimpleBotEvent
 from vkwave.bots.storage.types import Key
 from vkwave.bots.storage.storages import Storage
 from courses.models import Client
-from . import handlers
 
 
 async def handle_users_reply(event: SimpleBotEvent):
+    """Главный хэндлер для всех сообщений"""
+
     storage = Storage()
     user_id = event.user_id
     api = event.api_ctx
 
     states_functions = {
-        'START': handlers.start,
+        'START': start,
 
 
     }
@@ -41,3 +42,16 @@ async def handle_users_reply(event: SimpleBotEvent):
     state_handler = states_functions[user_state]
     user.bot_state = await state_handler(event, storage)
     await sync_to_async(user.save)()
+
+
+async def start(event: SimpleBotEvent, storage: Storage):
+    user_id = event.user_id
+    msg = event.text.strip()
+    user_instance = await storage.get(Key(f'{user_id}_instance'))
+    user_info = {
+        'first_name': await storage.get(Key(f'{user_id}_first_name')),
+        'last_name': await storage.get(Key(f'{user_id}_last_name'))
+    }
+    await event.answer(message=msg)
+
+    return 'START'
