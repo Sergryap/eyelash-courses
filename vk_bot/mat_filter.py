@@ -15,7 +15,6 @@ class MatFilter(base.BaseFilter):
         set_msg = {i.lower().translate(str.maketrans('', '', string.punctuation)) for i in text.split(' ')}
         with open(os.path.join(os.getcwd(), 'vk_bot', 'cenz.json')) as cenz:
             set_cenz = set(json.load(cenz))
-        # set_cenz = set(json.load(open('cenz.json')))
         verify = bool(set_msg.intersection(set_cenz) == set())
         if not verify:
             return base.FilterResult(False)
