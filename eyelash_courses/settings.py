@@ -19,6 +19,7 @@ DEBUG = env.bool('DEBUG', True)
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', ['127.0.0.1', 'localhost'])
 VK_TOKEN = env.str('VK_TOKEN')
 VK_GROUP_ID = env.str('VK_GROUP')
+ADMIN_IDS = env.list('ADMIN_IDS')
 
 
 INSTALLED_APPS = [
@@ -32,7 +33,8 @@ INSTALLED_APPS = [
     'adminsortable2',
     'tinymce',
     'import_export',
-    'debug_toolbar'
+    'debug_toolbar',
+    'django_async_orm'
 ]
 
 MIDDLEWARE = [
