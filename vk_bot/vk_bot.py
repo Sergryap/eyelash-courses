@@ -46,12 +46,30 @@ async def handle_users_reply(event: SimpleBotEvent):
 
 async def start(event: SimpleBotEvent, storage: Storage):
     user_id = event.user_id
-    msg = event.text.strip()
     user_instance = await storage.get(Key(f'{user_id}_instance'))
     user_info = {
         'first_name': await storage.get(Key(f'{user_id}_first_name')),
         'last_name': await storage.get(Key(f'{user_id}_last_name'))
     }
-    await event.answer(message=msg)
+    msg = f'{user_info["first_name"]}, выберите, чтобы вы хотели:'
+    keyboard = Keyboard(one_time=False, inline=True)
+    buttons = [
+        ('Ваши курсы', 'client_courses'),
+        ('Предстоящие курсы', 'future_courses'),
+        ('Прошедшие курсы', 'past_courses'),
+        ('Написать администратору', 'admin_msg'),
+        ('Как нас найти', 'search_us')
+    ]
+    for i, (btn, payload) in enumerate(buttons, start=1):
+        keyboard.add_text_button(
+            btn,
+            ButtonColor.PRIMARY,
+            payload={'button': payload}
+        )
+        if i != len(buttons):
+            keyboard.add_row()
+    await event.answer(message=msg, keyboard=keyboard.get_keyboard())
+
+    return 'STEP_1'
 
     return 'START'
