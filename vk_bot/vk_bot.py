@@ -1,4 +1,6 @@
 import random
+import aiohttp
+import json
 
 from django.conf import settings
 from asgiref.sync import sync_to_async
@@ -166,23 +168,60 @@ async def handle_step_1(event: SimpleBotEvent, storage: Storage):
 
 
 async def handle_course_info(event: SimpleBotEvent, storage: Storage):
+    api = event.api_ctx
+    user_id = event.user_id
     if event.payload:
         course_pk = event.payload['course_pk']
         course = await Course.objects.async_get(pk=course_pk)
         course_date = await sync_to_async(course.scheduled_at.strftime)("%d.%m.%Y")
         course_images = await sync_to_async(course.images.all)()
+        attachment = None
+
         if await sync_to_async(bool)(course_images):
             random_image = await sync_to_async(random.choice)(course_images)
+            upload = await api.photos.get_messages_upload_server(peer_id=0)
+            image_link = random_image.image.path if settings.DEBUG else random_image.image.url
+
+            with open(image_link, 'rb') as file:
+                async with aiohttp.ClientSession() as session:
+                    async with session.post(upload.response.upload_url, data={'photo': file}) as res:
+                        response = await res.text()
+            upload_photo = await sync_to_async(json.loads)(response)
+
+            photo = await api.photos.save_messages_photo(
+                photo=upload_photo['photo'],
+                server=upload_photo['server'],
+                hash=upload_photo['hash']
+            )
+            if photo.response:
+                attachment = f'photo{photo.response[0].owner_id}_{photo.response[0].id}'
+
         text = f'''            
-            {course.name}:
+            {course.name.upper()}:
+            
             Дата: {course_date}
             Программа: {await sync_to_async(lambda: course.program)()}
             Лектор: {await sync_to_async(lambda: course.lecture)()}            
             Продолжительность: {course.duration} д.
             '''
+        description_text = f'''
+            СОДЕРЖАНИЕ КУРСА:
+            {await sync_to_async(lambda: course.description)()}
+            '''
+        program_text = f'''
+            О ПРОГРАММЕ КУРСА:
+            {await sync_to_async(lambda: course.program.description)()}
+            '''
         await event.answer(
             message=dedent(text),
-            keyboard=await get_button_menu()
+            attachment=attachment
+        )
+        await event.answer(
+            message=dedent(program_text)
+        )
+        await event.answer(
+            message=dedent(description_text),
+            keyboard=await get_button_menu(),
         )
 
     return 'STEP_1'
