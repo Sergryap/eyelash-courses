@@ -89,7 +89,7 @@ async def handle_step_1(event: SimpleBotEvent, storage: Storage):
         'last_name': await storage.get(Key(f'{user_id}_last_name'))
     }
     if event.payload:
-        if event.payload['button'] == 'client_courses':
+        if event.payload.get('button') == 'client_courses':
             client_courses = await sync_to_async(user_instance.courses.all)()
             msg, keyboard = await get_course_msg(
                 client_courses,
@@ -100,7 +100,7 @@ async def handle_step_1(event: SimpleBotEvent, storage: Storage):
 
             return 'COURSE'
 
-        elif event.payload['button'] == 'future_courses':
+        elif event.payload.get('button') == 'future_courses':
             future_courses = await Course.objects.async_filter(scheduled_at__gt=timezone.now())
             msg, keyboard = await get_course_msg(
                 future_courses,
@@ -111,7 +111,7 @@ async def handle_step_1(event: SimpleBotEvent, storage: Storage):
 
             return 'COURSE'
 
-        elif event.payload['button'] == 'past_courses':
+        elif event.payload.get('button') == 'past_courses':
             past_courses = await Course.objects.async_filter(scheduled_at__lte=timezone.now())
             msg, keyboard = await get_course_msg(
                 past_courses,
@@ -122,10 +122,10 @@ async def handle_step_1(event: SimpleBotEvent, storage: Storage):
 
             return 'COURSE'
 
-        elif event.payload['button'] == 'admin_msg':
+        elif event.payload.get('button') == 'admin_msg':
             user_msg = f'{user_info["first_name"]}, введите и отправьте ваше сообщение:'
             await event.answer(message=user_msg)
-        elif event.payload['button'] == 'search_us':
+        elif event.payload.get('button') == 'search_us':
             text = f'''
                  {user_info['first_name']}, мы находимся по адресу:
                  📍 г.Пермь, ул. Тургенева, д. 23.
