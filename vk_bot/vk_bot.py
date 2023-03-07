@@ -87,7 +87,7 @@ async def handle_step_1(event: SimpleBotEvent, storage: Storage):
     if event.payload and event.payload['button'] == 'client_courses':
         client_courses = user_instance.courses.all()
         count_courses = await client_courses.acount()
-        if client_courses:
+        if count_courses:
             msg = 'Курсы, на которые вы записаны или проходили:'
             for i, course in await sync_to_async(enumerate)(client_courses, start=1):
                 keyboard.add_text_button(
@@ -106,7 +106,7 @@ async def handle_step_1(event: SimpleBotEvent, storage: Storage):
     elif event.payload and event.payload['button'] == 'future_courses':
         future_courses = Course.objects.filter(scheduled_at__gt=timezone.now())
         count_courses = await future_courses.acount()
-        if future_courses:
+        if count_courses:
             msg = 'Предстоящие курсы. Выберите для детальной информации'
             for i, course in await sync_to_async(enumerate)(future_courses, start=1):
                 keyboard.add_text_button(
@@ -116,23 +116,29 @@ async def handle_step_1(event: SimpleBotEvent, storage: Storage):
                 )
                 if i != count_courses:
                     keyboard.add_row()
+            keyboard = keyboard.get_keyboard()
         else:
             keyboard = None
             msg = 'Пока нет запланированных курсов:'
-        await event.answer(message=msg, keyboard=keyboard.get_keyboard())
+        await event.answer(message=msg, keyboard=keyboard)
     elif event.payload and event.payload['button'] == 'past_courses':
         past_courses = Course.objects.filter(scheduled_at__lte=timezone.now())
         count_courses = await past_courses.acount()
-        msg = 'Прошедшие курсы. Выберите для детальной информации'
-        for i, course in await sync_to_async(enumerate)(past_courses, start=1):
-            keyboard.add_text_button(
-                course.name,
-                ButtonColor.PRIMARY,
-                payload={'button': course.pk}
-            )
-            if i != count_courses:
-                keyboard.add_row()
-        await event.answer(message=msg, keyboard=keyboard.get_keyboard())
+        if count_courses:
+            msg = 'Прошедшие курсы. Выберите для детальной информации'
+            for i, course in await sync_to_async(enumerate)(past_courses, start=1):
+                keyboard.add_text_button(
+                    course.name,
+                    ButtonColor.PRIMARY,
+                    payload={'button': course.pk}
+                )
+                if i != count_courses:
+                    keyboard.add_row()
+            keyboard = keyboard.get_keyboard()
+        else:
+            keyboard = None
+            msg = 'Еше нет прошедшиз курсов:'
+        await event.answer(message=msg, keyboard=keyboard)
     elif event.payload and event.payload['button'] == 'admin_msg':
         msg = f'{user_info["first_name"]}, введите и отправьте ваше сообщение:'
     elif event.payload and event.payload['button'] == 'search_us':
