@@ -2,7 +2,9 @@ from asgiref.sync import sync_to_async
 from vkwave.bots import SimpleBotEvent
 from vkwave.bots.storage.types import Key
 from vkwave.bots.storage.storages import Storage
-from courses.models import Client
+from courses.models import Client, Course
+from vkwave.bots.utils.keyboards.keyboard import Keyboard, ButtonColor
+from django.utils import timezone
 
 
 async def handle_users_reply(event: SimpleBotEvent):
@@ -14,6 +16,7 @@ async def handle_users_reply(event: SimpleBotEvent):
 
     states_functions = {
         'START': start,
+        'STEP_1': handle_step_1
 
 
     }
@@ -72,4 +75,27 @@ async def start(event: SimpleBotEvent, storage: Storage):
 
     return 'STEP_1'
 
-    return 'START'
+
+async def handle_step_1(event: SimpleBotEvent, storage: Storage):
+    user_id = event.user_id
+    user_instance = await storage.get(Key(f'{user_id}_instance'))
+    user_info = {
+        'first_name': await storage.get(Key(f'{user_id}_first_name')),
+        'last_name': await storage.get(Key(f'{user_id}_last_name'))
+    }
+    keyboard = Keyboard(one_time=False, inline=True)
+    if event.payload and event.payload['button'] == 'client_courses':
+        client_courses = user_instance.courses.all()
+        msg = 'Курсы, на которые вы записаны или проходили:'
+    elif event.payload and event.payload['button'] == 'future_courses':
+        future_courses = Course.objects.filter(scheduled_at__gt=timezone.now())
+        msg = 'Предстоящие курсы. Выберите для детальной информации'
+    elif event.payload and event.payload['button'] == 'past_courses':
+        past_courses = Course.objects.filter(scheduled_at__lte=timezone.now())
+        msg = 'Прошедшие курсы. Выберите для детальной информации'
+    elif event.payload and event.payload['button'] == 'admin_msg':
+        msg = f'{user_info["first_name"]}, введите и отправьте ваше сообщение:'
+    elif event.payload and event.payload['button'] == 'search_us':
+        pass
+
+    return 'STEP_1'
