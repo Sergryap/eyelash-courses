@@ -171,7 +171,8 @@ async def handle_course_info(event: SimpleBotEvent, storage: Storage):
         course = await Course.objects.async_get(pk=course_pk)
         course_date = await sync_to_async(course.scheduled_at.strftime)("%d.%m.%Y")
         course_images = await sync_to_async(course.images.all)()
-        # random_image = await sync_to_async(random.choice)(course_images)
+        if await sync_to_async(bool)(course_images):
+            random_image = await sync_to_async(random.choice)(course_images)
         text = f'''            
             {course.name}:
             Дата: {course_date}
