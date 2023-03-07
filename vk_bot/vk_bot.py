@@ -204,25 +204,32 @@ async def handle_course_info(event: SimpleBotEvent, storage: Storage):
             Лектор: {await sync_to_async(lambda: course.lecture)()}            
             Продолжительность: {course.duration} д.
             '''
-        description_text = f'''
-            СОДЕРЖАНИЕ КУРСА:
-            {await sync_to_async(lambda: course.description)()}
-            '''
         program_text = f'''
             О ПРОГРАММЕ КУРСА:
             {await sync_to_async(lambda: course.program.description)()}
             '''
+        description_text = f'''
+            СОДЕРЖАНИЕ КУРСА:
+            {await sync_to_async(lambda: course.description)()}
+            '''
+
         await event.answer(
             message=dedent(text),
             attachment=attachment
         )
-        await event.answer(
-            message=dedent(program_text)
-        )
-        await event.answer(
-            message=dedent(description_text),
-            keyboard=await get_button_menu(),
-        )
+        if description_text:
+            await event.answer(
+                message=dedent(program_text)
+            )
+            await event.answer(
+                message=dedent(description_text),
+                keyboard=await get_button_menu(),
+            )
+        else:
+            await event.answer(
+                message=dedent(program_text),
+                keyboard=await get_button_menu(),
+            )
 
     return 'STEP_1'
 
