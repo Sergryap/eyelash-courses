@@ -10,7 +10,7 @@ from vkwave.bots.storage.storages import Storage
 from courses.models import Client, Course, Program
 from vkwave.bots.utils.keyboards.keyboard import Keyboard, ButtonColor
 from django.utils import timezone
-from .vk_lib import BUTTONS_START, get_course_msg, get_button_menu
+from .vk_lib import BUTTONS_START, get_course_msg, get_button_menu, get_button_course_menu
 from textwrap import dedent
 
 
@@ -93,6 +93,7 @@ async def handle_step_1(event: SimpleBotEvent, storage: Storage):
             client_courses = await sync_to_async(user_instance.courses.all)()
             msg, keyboard = await get_course_msg(
                 client_courses,
+                back='client_courses',
                 successful_msg='Курсы, на которые вы записаны или проходили:',
                 not_successful_msg='Вы еше не записаны ни на один курс:'
             )
@@ -104,6 +105,7 @@ async def handle_step_1(event: SimpleBotEvent, storage: Storage):
             future_courses = await Course.objects.async_filter(scheduled_at__gt=timezone.now())
             msg, keyboard = await get_course_msg(
                 future_courses,
+                back='future_courses',
                 successful_msg='Предстоящие курсы. Выберите для детальной информации',
                 not_successful_msg='Пока нет запланированных курсов:'
             )
@@ -115,6 +117,7 @@ async def handle_step_1(event: SimpleBotEvent, storage: Storage):
             past_courses = await Course.objects.async_filter(scheduled_at__lte=timezone.now())
             msg, keyboard = await get_course_msg(
                 past_courses,
+                back='future_courses',
                 successful_msg='Прошедшие курсы. Выберите для детальной информации',
                 not_successful_msg='Еше нет прошедших курсов:'
             )
@@ -228,12 +231,12 @@ async def handle_course_info(event: SimpleBotEvent, storage: Storage):
             )
             await event.answer(
                 message=dedent(description_text),
-                keyboard=await get_button_menu(),
+                keyboard=await get_button_course_menu(back=event.payload['button']),
             )
         else:
             await event.answer(
                 message=dedent(program_text),
-                keyboard=await get_button_menu(),
+                keyboard=await get_button_course_menu(back=event.payload['button']),
             )
 
     return 'STEP_1'

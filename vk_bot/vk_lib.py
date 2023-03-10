@@ -11,7 +11,7 @@ BUTTONS_START = [
 ]
 
 
-async def get_course_msg(course_instances, successful_msg, not_successful_msg):
+async def get_course_msg(course_instances, back, successful_msg, not_successful_msg):
     count_courses = await course_instances.acount()
     keyboard = Keyboard(one_time=False, inline=True)
     if count_courses:
@@ -20,13 +20,13 @@ async def get_course_msg(course_instances, successful_msg, not_successful_msg):
             keyboard.add_text_button(
                 course.name,
                 ButtonColor.PRIMARY,
-                payload={'course_pk': course.pk}
+                payload={'course_pk': course.pk, 'button': back}
             )
             keyboard.add_row()
         keyboard.add_text_button('☰ MENU', ButtonColor.SECONDARY, payload={'button': 'start'})
     else:
-        keyboard.add_text_button('☰ MENU', ButtonColor.SECONDARY, payload={'button': 'start'})
         msg = not_successful_msg
+        keyboard.add_text_button('☰ MENU', ButtonColor.SECONDARY, payload={'button': 'start'})
     keyboard = keyboard.get_keyboard()
 
     return msg, keyboard
@@ -36,5 +36,14 @@ async def get_button_menu(inline=True):
     keyboard = Keyboard(one_time=False, inline=inline)
     buttons_color = ButtonColor.SECONDARY
     keyboard.add_text_button('☰ MENU', buttons_color, payload={'button': 'start'})
+
+    return keyboard.get_keyboard()
+
+
+async def get_button_course_menu(back, inline=True):
+    keyboard = Keyboard(one_time=False, inline=inline)
+    keyboard.add_text_button('НАЗАД', ButtonColor.PRIMARY, payload={'button': back})
+    keyboard.add_row()
+    keyboard.add_text_button('☰ MENU', ButtonColor.SECONDARY, payload={'button': 'start'})
 
     return keyboard.get_keyboard()
