@@ -117,7 +117,7 @@ async def handle_step_1(event: SimpleBotEvent, storage: Storage):
             past_courses = await Course.objects.async_filter(scheduled_at__lte=timezone.now())
             msg, keyboard = await get_course_msg(
                 past_courses,
-                back='future_courses',
+                back='past_courses',
                 successful_msg='Прошедшие курсы. Выберите для детальной информации',
                 not_successful_msg='Еше нет прошедших курсов:'
             )
