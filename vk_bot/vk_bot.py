@@ -231,12 +231,12 @@ async def handle_course_info(event: SimpleBotEvent, storage: Storage):
             )
             await event.answer(
                 message=dedent(description_text),
-                keyboard=await get_button_course_menu(back=event.payload['button']),
+                keyboard=await get_button_course_menu(back=event.payload['button'], course_pk=course_pk)
             )
         else:
             await event.answer(
                 message=dedent(program_text),
-                keyboard=await get_button_course_menu(back=event.payload['button']),
+                keyboard=await get_button_course_menu(back=event.payload['button'], course_pk=course_pk)
             )
 
     return 'STEP_1'

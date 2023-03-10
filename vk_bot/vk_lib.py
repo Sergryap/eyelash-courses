@@ -40,10 +40,14 @@ async def get_button_menu(inline=True):
     return keyboard.get_keyboard()
 
 
-async def get_button_course_menu(back, inline=True):
+async def get_button_course_menu(back, course_pk, inline=True):
     keyboard = Keyboard(one_time=False, inline=inline)
+    if back != 'client_courses' and back != 'past_courses':
+        keyboard.add_text_button('ЗАПИСАТЬСЯ НА КУРС', ButtonColor.PRIMARY, payload={'course_pk': course_pk})
+        keyboard.add_row()
     keyboard.add_text_button('НАЗАД', ButtonColor.PRIMARY, payload={'button': back})
     keyboard.add_row()
     keyboard.add_text_button('☰ MENU', ButtonColor.SECONDARY, payload={'button': 'start'})
+
 
     return keyboard.get_keyboard()
