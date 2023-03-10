@@ -20,6 +20,8 @@ ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', ['127.0.0.1', 'localhost'])
 VK_TOKEN = env.str('VK_TOKEN')
 VK_GROUP_ID = env.str('VK_GROUP')
 ADMIN_IDS = env.list('ADMIN_IDS')
+OFFICE_LAT = env.float('OFFICE_LAT')
+OFFICE_LONG = env.float('OFFICE_LONG')
 
 
 INSTALLED_APPS = [

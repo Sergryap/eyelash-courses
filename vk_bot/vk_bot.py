@@ -141,8 +141,8 @@ async def handle_step_1(event: SimpleBotEvent):
                 user_id=user_id,
                 random_id=random.randint(0, 1000),
                 message=dedent(text),
-                lat=58.017794,
-                long=56.293045
+                lat=settings.OFFICE_LAT,
+                long=settings.OFFICE_LONG
             )
             await event.answer(
                 message='В главное меню:',
