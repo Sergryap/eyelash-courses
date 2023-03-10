@@ -49,5 +49,4 @@ async def get_button_course_menu(back, course_pk, inline=True):
     keyboard.add_row()
     keyboard.add_text_button('☰ MENU', ButtonColor.SECONDARY, payload={'button': 'start'})
 
-
     return keyboard.get_keyboard()
