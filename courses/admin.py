@@ -1,5 +1,8 @@
+import random
+
 from django.contrib import admin
 from django import forms
+from django.conf import settings
 from django.utils.html import format_html
 from courses.models import Client, Course, Lecturer, Program, CourseClient, CourseImage
 from adminsortable2.admin import SortableAdminMixin, SortableTabularInline, SortableAdminBase
@@ -9,7 +12,9 @@ from import_export.fields import Field
 from import_export.admin import ExportMixin
 from django.db.models import Window
 from django.db.models.functions import DenseRank, Random
-import random
+from asgiref.sync import sync_to_async, async_to_sync
+from vk_bot.vk_lib import save_image_vk_id
+
 
 admin.site.site_header = 'Курсы по наращиванию ресниц'   # default: "Django Administration"
 admin.site.index_title = 'Управление сайтом'             # default: "Site administration"
@@ -89,8 +94,8 @@ class CourseInline(admin.TabularInline):
 
 class CourseImageInline(SortableTabularInline, PreviewMixin):
     model = CourseImage
-    fields = ['position', 'image', 'get_preview']
-    readonly_fields = ['get_preview']
+    fields = ['position', 'image', 'get_preview', 'image_vk_id']
+    readonly_fields = ['get_preview', 'image_vk_id']
     extra = 3
 
 
@@ -117,12 +122,12 @@ class ParticipantsCountFilter(admin.SimpleListFilter):
         if self.value() is not None:
             min_count, max_count = [int(value) for value in self.value().split('_')]
             return (
-                    queryset
-                    .annotate(count_participants=Count('clients'))
-                    .filter(
-                        count_participants__gte=Value(min_count),
-                        count_participants__lte=Value(max_count)
-                    )
+                queryset
+                .annotate(count_participants=Count('clients'))
+                .filter(
+                    count_participants__gte=Value(min_count),
+                    count_participants__lte=Value(max_count)
+                )
 
             )
 
@@ -185,6 +190,12 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
             .prefetch_related('clients', 'images')
         )
 
+    def save_formset(self, request, form, formset, change):
+        super().save_formset(request, form, formset, change)
+        instances = formset.save(commit=False)
+        for instance in instances:
+            async_to_sync(save_image_vk_id)(instance)
+
 
 @admin.register(CourseImage)
 class ImageAdmin(SortableAdminMixin, admin.ModelAdmin, PreviewMixin):
@@ -192,6 +203,10 @@ class ImageAdmin(SortableAdminMixin, admin.ModelAdmin, PreviewMixin):
     list_display_links = ['course']
     readonly_fields = ['get_preview', 'image_vk_id']
     list_filter = ['course__program', 'course']
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        async_to_sync(save_image_vk_id)(obj)
 
 
 @admin.register(Client)

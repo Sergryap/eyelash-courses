@@ -1,8 +1,14 @@
+import aiohttp
+import json
+
+from django.conf import settings
 from asgiref.sync import sync_to_async
 from vkwave.bots import SimpleBotEvent
 from vkwave.bots.utils.keyboards.keyboard import Keyboard, ButtonColor
 from textwrap import dedent
 from courses.models import Course, CourseClient
+from vkwave.api import API, Token
+from vkwave.api.token.token import UserSyncSingleToken
 
 BUTTONS_START = [
     ('Предстоящие курсы', 'future_courses'),
@@ -83,3 +89,27 @@ async def check_phone_button():
     keyboard.add_text_button('☰ MENU', ButtonColor.SECONDARY, payload={'button': 'start'})
 
     return keyboard.get_keyboard()
+
+
+async def save_image_vk_id(obj):
+    if not obj.image_vk_id:
+        image_link = obj.image.path if settings.DEBUG else obj.image.url
+        token = Token(settings.VK_TOKEN)
+        session = API(tokens=UserSyncSingleToken(token))
+        api = session.get_context()
+        upload = await api.photos.get_messages_upload_server(peer_id=0)
+        with open(image_link, 'rb') as file:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(upload.response.upload_url, data={'photo': file}) as res:
+                    response = await res.text()
+        upload_photo = await sync_to_async(json.loads)(response)
+
+        photo = await api.photos.save_messages_photo(
+            photo=upload_photo['photo'],
+            server=upload_photo['server'],
+            hash=upload_photo['hash']
+        )
+        if photo.response:
+            attachment = f'photo{photo.response[0].owner_id}_{photo.response[0].id}'
+            obj.image_vk_id = attachment
+            await sync_to_async(obj.save)()
