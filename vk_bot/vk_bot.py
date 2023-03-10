@@ -173,6 +173,7 @@ async def handle_step_1(event: SimpleBotEvent, storage: Storage):
 async def handle_course_info(event: SimpleBotEvent, storage: Storage):
     api = event.api_ctx
     user_id = event.user_id
+    user_instance = await storage.get(Key(f'{user_id}_instance'))
     if event.payload:
         course_pk = event.payload['course_pk']
         course = await Course.objects.async_get(pk=course_pk)
@@ -231,12 +232,12 @@ async def handle_course_info(event: SimpleBotEvent, storage: Storage):
             )
             await event.answer(
                 message=dedent(description_text),
-                keyboard=await get_button_course_menu(back=event.payload['button'], course_pk=course_pk)
+                keyboard=await get_button_course_menu(back=event.payload['button'], course_pk=course_pk, user_id=user_id)
             )
         else:
             await event.answer(
                 message=dedent(program_text),
-                keyboard=await get_button_course_menu(back=event.payload['button'], course_pk=course_pk)
+                keyboard=await get_button_course_menu(back=event.payload['button'], course_pk=course_pk, user_id=user_id)
             )
 
     return 'STEP_1'

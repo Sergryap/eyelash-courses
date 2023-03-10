@@ -1,6 +1,7 @@
 from asgiref.sync import sync_to_async
 from vkwave.bots.utils.keyboards.keyboard import Keyboard, ButtonColor
 
+from courses.models import Course, CourseClient
 
 BUTTONS_START = [
     ('Предстоящие курсы', 'future_courses'),
@@ -40,9 +41,11 @@ async def get_button_menu(inline=True):
     return keyboard.get_keyboard()
 
 
-async def get_button_course_menu(back, course_pk, inline=True):
+async def get_button_course_menu(back, course_pk, user_id, inline=True):
     keyboard = Keyboard(one_time=False, inline=inline)
-    if back != 'client_courses' and back != 'past_courses':
+    course_clients = await CourseClient.objects.async_filter(course=course_pk)
+    course_client_ids = [await sync_to_async(lambda: user.client.vk_id)() for user in course_clients]
+    if back != 'client_courses' and back != 'past_courses' and user_id not in course_client_ids:
         keyboard.add_text_button('ЗАПИСАТЬСЯ НА КУРС', ButtonColor.PRIMARY, payload={'course_pk': course_pk})
         keyboard.add_row()
     keyboard.add_text_button('НАЗАД', ButtonColor.PRIMARY, payload={'button': back})
