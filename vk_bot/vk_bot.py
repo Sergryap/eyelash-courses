@@ -31,7 +31,7 @@ async def handle_users_reply(event: SimpleBotEvent):
     api = event.api_ctx
     states_functions = {
         'START': start,
-        'STEP_1': handle_step_1,
+        'MAIN_MENU': main_menu_handler,
         'COURSE': handle_course_info,
         'PHONE': enter_phone,
     }
@@ -82,10 +82,10 @@ async def start(event: SimpleBotEvent):
             keyboard.add_row()
     await event.answer(message=msg, keyboard=keyboard.get_keyboard())
 
-    return 'STEP_1'
+    return 'MAIN_MENU'
 
 
-async def handle_step_1(event: SimpleBotEvent):
+async def main_menu_handler(event: SimpleBotEvent):
     user_id = event.user_id
     api = event.api_ctx
     user_instance = await Client.objects.async_get(vk_id=user_id)
@@ -212,7 +212,7 @@ async def handle_step_1(event: SimpleBotEvent):
             keyboard=await get_button_menu()
         )
 
-    return 'STEP_1'
+    return 'MAIN_MENU'
 
 
 async def handle_course_info(event: SimpleBotEvent):
@@ -289,7 +289,7 @@ async def handle_course_info(event: SimpleBotEvent):
                 )
             )
 
-    return 'STEP_1'
+    return 'MAIN_MENU'
 
 
 async def enter_phone(event: SimpleBotEvent):
@@ -305,7 +305,7 @@ async def enter_phone(event: SimpleBotEvent):
         if event.payload['check_phone'] == 'true':
             await entry_user_to_course(event, user_info, user_instance, course)
             await storage.delete(Key(f'{user_id}_current_course'))
-            return 'STEP_1'
+            return 'MAIN_MENU'
         # если клиент захотел указать другой номер
         else:
             text = f'''
@@ -325,7 +325,7 @@ async def enter_phone(event: SimpleBotEvent):
             norm_phone = ''.join(['+7'] + [i for i in phone if i.isdigit()][-10:])
             await storage.put(Key(f'{user_id}_phone'), norm_phone)
             await entry_user_to_course(event, user_info, user_instance, course)
-            return 'STEP_1'
+            return 'MAIN_MENU'
         else:
             text = '''
             Вы ввели неверный номер телефона.
