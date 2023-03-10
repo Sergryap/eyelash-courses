@@ -89,6 +89,7 @@ async def handle_step_1(event: SimpleBotEvent, storage: Storage):
         'last_name': await storage.get(Key(f'{user_id}_last_name'))
     }
     if event.payload:
+        # отправка курсов пользователя
         if event.payload.get('button') == 'client_courses':
             client_courses = await sync_to_async(user_instance.courses.all)()
             msg, keyboard = await get_course_msg(
@@ -99,8 +100,8 @@ async def handle_step_1(event: SimpleBotEvent, storage: Storage):
             )
             await event.answer(message=msg, keyboard=keyboard)
 
-            return 'COURSE'
-
+            return 'STEP_1'
+        # отправка предстоящих курсов
         elif event.payload.get('button') == 'future_courses':
             future_courses = await Course.objects.async_filter(scheduled_at__gt=timezone.now())
             msg, keyboard = await get_course_msg(
@@ -112,7 +113,7 @@ async def handle_step_1(event: SimpleBotEvent, storage: Storage):
             await event.answer(message=msg, keyboard=keyboard)
 
             return 'COURSE'
-
+        # отправка прошедших курсов
         elif event.payload.get('button') == 'past_courses':
             past_courses = await Course.objects.async_filter(scheduled_at__lte=timezone.now())
             msg, keyboard = await get_course_msg(
@@ -128,6 +129,7 @@ async def handle_step_1(event: SimpleBotEvent, storage: Storage):
         elif event.payload.get('button') == 'admin_msg':
             user_msg = f'{user_info["first_name"]}, введите и отправьте ваше сообщение:'
             await event.answer(message=user_msg)
+        # отправка геолокации
         elif event.payload.get('button') == 'search_us':
             text = f'''
                  {user_info['first_name']}, мы находимся по адресу:
@@ -147,6 +149,45 @@ async def handle_step_1(event: SimpleBotEvent, storage: Storage):
                 message='В главное меню:',
                 keyboard=await get_button_menu()
             )
+        # запись/отмена участия на курсе
+        elif event.payload.get('entry'):
+            course_pk = event.payload.get('entry')
+            course = await Course.objects.async_get(pk=course_pk)
+            if event.payload.get('cancel'):
+                text = f'''
+                     {user_info['first_name']}, вы отменили запись на курс: {course.name}.
+                     Спасибо, что проявили интерес к нашей школе.
+                     Вы всегда можете вернуться снова и выбрать подходящий курс.
+                     '''
+                await event.answer(
+                    message=dedent(text),
+                    keyboard=await get_button_menu()
+                )
+                await sync_to_async(course.clients.remove)(user_instance)
+                await sync_to_async(course.save)()
+            else:
+                if user_instance.phone_number:
+                    text = f'''
+                         {user_info['first_name']}, вы записаны на курс {course.name}.
+                         Спасибо, что выбрали нашу школу.
+                         В ближайшее время мы свяжемся с вами для подтверждения вашего участия.
+                         '''
+                    await event.answer(
+                        message=dedent(text),
+                        keyboard=await get_button_menu()
+                    )
+                    await sync_to_async(course.clients.add)(user_instance)
+                    await sync_to_async(course.save)()
+                else:
+                    text = f'''
+                         {user_info['first_name']}, чтобы записаться на курс, укажите ваш номер телефона.                         
+                         '''
+                    await event.answer(
+                        message=dedent(text),
+                        keyboard=await get_button_menu()
+                    )
+                    return 'PHONE'
+    # обработка произвольного сообщения пользователя
     elif event.text:
         msg = event.text
         vk_profile = user_instance.vk_profile

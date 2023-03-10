@@ -41,12 +41,15 @@ async def get_button_menu(inline=True):
     return keyboard.get_keyboard()
 
 
-async def get_button_course_menu(back, course_pk, user_id, inline=True):
-    keyboard = Keyboard(one_time=False, inline=inline)
+async def get_button_course_menu(back, course_pk, user_id):
+    keyboard = Keyboard(one_time=False, inline=True)
     course_clients = await CourseClient.objects.async_filter(course=course_pk)
     course_client_ids = [await sync_to_async(lambda: user.client.vk_id)() for user in course_clients]
     if back != 'client_courses' and back != 'past_courses' and user_id not in course_client_ids:
-        keyboard.add_text_button('ЗАПИСАТЬСЯ НА КУРС', ButtonColor.PRIMARY, payload={'course_pk': course_pk})
+        keyboard.add_text_button('ЗАПИСАТЬСЯ НА КУРС', ButtonColor.PRIMARY, payload={'entry': course_pk})
+        keyboard.add_row()
+    elif user_id in course_client_ids:
+        keyboard.add_text_button('ОТМЕНИТЬ ЗАПИСЬ', ButtonColor.PRIMARY, payload={'entry': course_pk, 'cancel': 1})
         keyboard.add_row()
     keyboard.add_text_button('НАЗАД', ButtonColor.PRIMARY, payload={'button': back})
     keyboard.add_row()
