@@ -177,6 +177,11 @@ class CourseImage(models.Model):
         blank=True,
         null=True
     )
+    image_vk_id = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True
+    )
     course = models.ForeignKey(
         Course,
         on_delete=models.CASCADE,
