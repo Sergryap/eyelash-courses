@@ -11,7 +11,14 @@ from vkwave.bots.storage.storages import Storage
 from courses.models import Client, Course, Program
 from vkwave.bots.utils.keyboards.keyboard import Keyboard, ButtonColor
 from django.utils import timezone
-from .vk_lib import BUTTONS_START, get_course_msg, get_button_menu, get_button_course_menu, entry_user_to_course, check_phone_button
+from .vk_lib import (
+    BUTTONS_START,
+    get_course_msg,
+    get_button_menu,
+    get_button_course_menu,
+    entry_user_to_course,
+    check_phone_button
+)
 from textwrap import dedent
 
 storage = Storage()
@@ -22,7 +29,6 @@ async def handle_users_reply(event: SimpleBotEvent):
 
     user_id = event.user_id
     api = event.api_ctx
-
     states_functions = {
         'START': start,
         'STEP_1': handle_step_1,
@@ -43,6 +49,7 @@ async def handle_users_reply(event: SimpleBotEvent):
             'vk_profile': f'https://vk.com/id{user_id}',
         }
     )
+
     if (event.text.lower().strip() in ['start', '/start', 'начать', 'старт']
             or event.payload and event.payload.get('button') == 'start'):
         user_state = 'START'
