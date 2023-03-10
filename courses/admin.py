@@ -188,9 +188,9 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
 
 @admin.register(CourseImage)
 class ImageAdmin(SortableAdminMixin, admin.ModelAdmin, PreviewMixin):
-    list_display = ['id', 'get_preview', 'course', 'position']
+    list_display = ['id', 'get_preview', 'course', 'image_vk_id', 'position']
     list_display_links = ['course']
-    readonly_fields = ['get_preview']
+    readonly_fields = ['get_preview', 'image_vk_id']
     list_filter = ['course__program', 'course']
 
 

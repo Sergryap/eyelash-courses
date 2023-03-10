@@ -179,22 +179,27 @@ async def handle_course_info(event: SimpleBotEvent, storage: Storage):
 
         if await sync_to_async(bool)(course_images):
             random_image = await sync_to_async(random.choice)(course_images)
-            upload = await api.photos.get_messages_upload_server(peer_id=0)
-            image_link = random_image.image.path if settings.DEBUG else random_image.image.url
+            if not random_image.image_vk_id:
+                upload = await api.photos.get_messages_upload_server(peer_id=0)
+                image_link = random_image.image.path if settings.DEBUG else random_image.image.url
 
-            with open(image_link, 'rb') as file:
-                async with aiohttp.ClientSession() as session:
-                    async with session.post(upload.response.upload_url, data={'photo': file}) as res:
-                        response = await res.text()
-            upload_photo = await sync_to_async(json.loads)(response)
+                with open(image_link, 'rb') as file:
+                    async with aiohttp.ClientSession() as session:
+                        async with session.post(upload.response.upload_url, data={'photo': file}) as res:
+                            response = await res.text()
+                upload_photo = await sync_to_async(json.loads)(response)
 
-            photo = await api.photos.save_messages_photo(
-                photo=upload_photo['photo'],
-                server=upload_photo['server'],
-                hash=upload_photo['hash']
-            )
-            if photo.response:
-                attachment = f'photo{photo.response[0].owner_id}_{photo.response[0].id}'
+                photo = await api.photos.save_messages_photo(
+                    photo=upload_photo['photo'],
+                    server=upload_photo['server'],
+                    hash=upload_photo['hash']
+                )
+                if photo.response:
+                    attachment = f'photo{photo.response[0].owner_id}_{photo.response[0].id}'
+                    random_image.image_vk_id = attachment
+                    await sync_to_async(random_image.save)()
+            else:
+                attachment = random_image.image_vk_id
 
         text = f'''            
             {course.name.upper()}:
