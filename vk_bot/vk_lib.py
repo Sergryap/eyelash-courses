@@ -1,6 +1,7 @@
 from asgiref.sync import sync_to_async
+from vkwave.bots import SimpleBotEvent
 from vkwave.bots.utils.keyboards.keyboard import Keyboard, ButtonColor
-
+from textwrap import dedent
 from courses.models import Course, CourseClient
 
 BUTTONS_START = [
@@ -52,6 +53,32 @@ async def get_button_course_menu(back, course_pk, user_id):
         keyboard.add_text_button('ОТМЕНИТЬ ЗАПИСЬ', ButtonColor.PRIMARY, payload={'entry': course_pk, 'cancel': 1})
         keyboard.add_row()
     keyboard.add_text_button('НАЗАД', ButtonColor.PRIMARY, payload={'button': back})
+    keyboard.add_row()
+    keyboard.add_text_button('☰ MENU', ButtonColor.SECONDARY, payload={'button': 'start'})
+
+    return keyboard.get_keyboard()
+
+
+async def entry_user_to_course(event: SimpleBotEvent, user_info, user_instance, course):
+    text = f'''
+         {user_info['first_name']}, вы записаны на курс:
+         **{course.name.upper()}**
+         Спасибо, что выбрали нашу школу.
+         В ближайшее время мы свяжемся с вами для подтверждения вашего участия.
+         '''
+    await event.answer(
+        message=dedent(text),
+        keyboard=await get_button_menu()
+    )
+    await sync_to_async(course.clients.add)(user_instance)
+    await sync_to_async(course.save)()
+
+
+async def check_phone_button():
+    keyboard = Keyboard(one_time=False, inline=True)
+    keyboard.add_text_button('НОМЕР ВЕРНЫЙ', ButtonColor.PRIMARY, payload={'check_phone': 'true'})
+    keyboard.add_row()
+    keyboard.add_text_button('УКАЖУ ДРУГОЙ', ButtonColor.PRIMARY, payload={'check_phone': 'false'})
     keyboard.add_row()
     keyboard.add_text_button('☰ MENU', ButtonColor.SECONDARY, payload={'button': 'start'})
 

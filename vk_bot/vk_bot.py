@@ -1,6 +1,7 @@
 import random
 import aiohttp
 import json
+import re
 
 from django.conf import settings
 from asgiref.sync import sync_to_async
@@ -10,23 +11,23 @@ from vkwave.bots.storage.storages import Storage
 from courses.models import Client, Course, Program
 from vkwave.bots.utils.keyboards.keyboard import Keyboard, ButtonColor
 from django.utils import timezone
-from .vk_lib import BUTTONS_START, get_course_msg, get_button_menu, get_button_course_menu
+from .vk_lib import BUTTONS_START, get_course_msg, get_button_menu, get_button_course_menu, entry_user_to_course, check_phone_button
 from textwrap import dedent
+
+storage = Storage()
 
 
 async def handle_users_reply(event: SimpleBotEvent):
     """Главный хэндлер для всех сообщений"""
 
-    storage = Storage()
     user_id = event.user_id
     api = event.api_ctx
 
     states_functions = {
         'START': start,
         'STEP_1': handle_step_1,
-        'COURSE': handle_course_info
-
-
+        'COURSE': handle_course_info,
+        'PHONE': enter_phone,
     }
 
     if not await storage.contains(Key(f'{user_id}_first_name')):
@@ -34,17 +35,14 @@ async def handle_users_reply(event: SimpleBotEvent):
         await storage.put(Key(f'{user_id}_first_name'), user_data.first_name)
         await storage.put(Key(f'{user_id}_last_name'), user_data.last_name)
 
-    user, _ = await Client.objects.aget_or_create(
+    user, _ = await Client.objects.async_get_or_create(
         vk_id=user_id,
         defaults={
             'first_name': await storage.get(Key(f'{user_id}_first_name')),
             'last_name': await storage.get(Key(f'{user_id}_last_name')),
-            'vk_profile': f'https://vk.com/id{user_id}'
+            'vk_profile': f'https://vk.com/id{user_id}',
         }
     )
-    if not await storage.contains(Key(f'{user_id}_instance')):
-        await storage.put(Key(f'{user_id}_instance'), user)
-
     if (event.text.lower().strip() in ['start', '/start', 'начать', 'старт']
             or event.payload and event.payload.get('button') == 'start'):
         user_state = 'START'
@@ -53,13 +51,13 @@ async def handle_users_reply(event: SimpleBotEvent):
         user_state = user.bot_state
 
     state_handler = states_functions[user_state]
-    user.bot_state = await state_handler(event, storage)
+    user.bot_state = await state_handler(event)
+    user.phone_number = await storage.get(Key(f'{user_id}_phone'), user.phone_number)
     await sync_to_async(user.save)()
 
 
-async def start(event: SimpleBotEvent, storage: Storage):
+async def start(event: SimpleBotEvent):
     user_id = event.user_id
-    user_instance = await storage.get(Key(f'{user_id}_instance'))
     user_info = {
         'first_name': await storage.get(Key(f'{user_id}_first_name')),
         'last_name': await storage.get(Key(f'{user_id}_last_name'))
@@ -80,10 +78,10 @@ async def start(event: SimpleBotEvent, storage: Storage):
     return 'STEP_1'
 
 
-async def handle_step_1(event: SimpleBotEvent, storage: Storage):
+async def handle_step_1(event: SimpleBotEvent):
     user_id = event.user_id
     api = event.api_ctx
-    user_instance = await storage.get(Key(f'{user_id}_instance'))
+    user_instance = await Client.objects.async_get(vk_id=user_id)
     user_info = {
         'first_name': await storage.get(Key(f'{user_id}_first_name')),
         'last_name': await storage.get(Key(f'{user_id}_last_name'))
@@ -100,7 +98,8 @@ async def handle_step_1(event: SimpleBotEvent, storage: Storage):
             )
             await event.answer(message=msg, keyboard=keyboard)
 
-            return 'STEP_1'
+            return 'COURSE'
+
         # отправка предстоящих курсов
         elif event.payload.get('button') == 'future_courses':
             future_courses = await Course.objects.async_filter(scheduled_at__gt=timezone.now())
@@ -166,18 +165,16 @@ async def handle_step_1(event: SimpleBotEvent, storage: Storage):
                 await sync_to_async(course.clients.remove)(user_instance)
                 await sync_to_async(course.save)()
             else:
+                await storage.put(Key(f'{user_id}_current_course'), course)
                 if user_instance.phone_number:
                     text = f'''
-                         {user_info['first_name']}, вы записаны на курс {course.name}.
-                         Спасибо, что выбрали нашу школу.
-                         В ближайшее время мы свяжемся с вами для подтверждения вашего участия.
-                         '''
+                        Чтобы записаться проверьте ваш номер телефона:
+                        {user_instance.phone_number}                        
+                        '''
                     await event.answer(
                         message=dedent(text),
-                        keyboard=await get_button_menu()
+                        keyboard=await check_phone_button()
                     )
-                    await sync_to_async(course.clients.add)(user_instance)
-                    await sync_to_async(course.save)()
                 else:
                     text = f'''
                          {user_info['first_name']}, чтобы записаться на курс, укажите ваш номер телефона.                         
@@ -186,7 +183,7 @@ async def handle_step_1(event: SimpleBotEvent, storage: Storage):
                         message=dedent(text),
                         keyboard=await get_button_menu()
                     )
-                    return 'PHONE'
+                return 'PHONE'
     # обработка произвольного сообщения пользователя
     elif event.text:
         msg = event.text
@@ -211,11 +208,11 @@ async def handle_step_1(event: SimpleBotEvent, storage: Storage):
     return 'STEP_1'
 
 
-async def handle_course_info(event: SimpleBotEvent, storage: Storage):
+async def handle_course_info(event: SimpleBotEvent):
     api = event.api_ctx
     user_id = event.user_id
-    user_instance = await storage.get(Key(f'{user_id}_instance'))
-    if event.payload:
+    user_instance = await Client.objects.async_get(vk_id=user_id)
+    if event.payload and event.payload.get('course_pk'):
         course_pk = event.payload['course_pk']
         course = await Course.objects.async_get(pk=course_pk)
         course_date = await sync_to_async(course.scheduled_at.strftime)("%d.%m.%Y")
@@ -273,13 +270,63 @@ async def handle_course_info(event: SimpleBotEvent, storage: Storage):
             )
             await event.answer(
                 message=dedent(description_text),
-                keyboard=await get_button_course_menu(back=event.payload['button'], course_pk=course_pk, user_id=user_id)
+                keyboard=await get_button_course_menu(
+                    back=event.payload['button'], course_pk=course_pk, user_id=user_id
+                )
             )
         else:
             await event.answer(
                 message=dedent(program_text),
-                keyboard=await get_button_course_menu(back=event.payload['button'], course_pk=course_pk, user_id=user_id)
+                keyboard=await get_button_course_menu(
+                    back=event.payload['button'], course_pk=course_pk, user_id=user_id
+                )
             )
 
     return 'STEP_1'
 
+
+async def enter_phone(event: SimpleBotEvent):
+    user_id = event.user_id
+    user_instance = await Client.objects.async_get(vk_id=user_id)
+    course = await storage.get(Key(f'{user_id}_current_course'))
+    user_info = {
+        'first_name': await storage.get(Key(f'{user_id}_first_name')),
+        'last_name': await storage.get(Key(f'{user_id}_last_name'))
+    }
+    # если номер существует
+    if event.payload and event.payload.get('check_phone'):
+        if event.payload['check_phone'] == 'true':
+            await entry_user_to_course(event, user_info, user_instance, course)
+            await storage.delete(Key(f'{user_id}_current_course'))
+            return 'STEP_1'
+        # если клиент захотел указать другой номер
+        else:
+            text = f'''
+                 {user_info['first_name']}, чтобы записаться на курс, укажите актуальный номер телефона.                         
+                 '''
+            await event.answer(
+                message=dedent(text),
+                keyboard=await get_button_menu()
+            )
+            return 'PHONE'
+    # проверка формата введенного номера
+    else:
+        phone = event.text
+        pattern = re.compile(r'^(\+7|7|8)?[\s\-]?\(?[489][0-9]{2}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}$')
+        if pattern.findall(phone):
+            await storage.delete(Key(f'{user_id}_current_course'))
+            norm_phone = ''.join(['+7'] + [i for i in phone if i.isdigit()][-10:])
+            await storage.put(Key(f'{user_id}_phone'), norm_phone)
+            await entry_user_to_course(event, user_info, user_instance, course)
+            return 'STEP_1'
+        else:
+            text = '''
+            Вы ввели неверный номер телефона.
+            Попробуйте еще раз.
+            Либо вернитесь в меню
+            '''
+            await event.answer(
+                message=dedent(text),
+                keyboard=await get_button_menu()
+            )
+            return 'PHONE'
