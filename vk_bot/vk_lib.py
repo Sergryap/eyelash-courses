@@ -194,41 +194,38 @@ async def upload_photo_in_album(photo_instances):
         params = {'access_token': settings.VK_USER_TOKEN, 'v': '5.131'}
 
         async with aiohttp.ClientSession() as session:
-            async with session.get(
-                    upload_server_url,
-                    params={**params, 'album_id': vk_album_id, 'group_id': settings.VK_GROUP_ID}
-            ) as upload_res:
-                upload = await sync_to_async(json.loads)(await upload_res.text())
+            for photo_sequence_part in chunked(photo_instances, 5):
+                async with session.get(
+                        upload_server_url,
+                        params={**params, 'album_id': vk_album_id, 'group_id': settings.VK_GROUP_ID}
+                ) as upload_res:
+                    upload = await sync_to_async(json.loads)(await upload_res.text())
 
-            upload_url = upload['response']['upload_url']
-            upload_photos = {}
-            photo_order = []
-            i = 0
-            for photo in photo_instances:
-                if not photo.image_vk_id:
-                    i += 1
-                    photo_order.append(photo)
-                    image_link = photo.image.path if settings.DEBUG else photo.image.url
-                    upload_photos.update({f'file{i}': open(image_link, 'rb')})
-                if i == 5:
-                    break
-            async with session.post(upload_url, data=upload_photos) as res:
-                saving_photos = await sync_to_async(json.loads)(await res.text())
-            for closed_file in upload_photos.values():
-                closed_file.close()
+                upload_url = upload['response']['upload_url']
+                upload_photos = {}
+                photo_order = []
+                for i, photo in await sync_to_async(enumerate)(photo_sequence_part, start=1):
+                    if not photo.image_vk_id:
+                        photo_order.append(photo)
+                        image_link = photo.image.path if settings.DEBUG else photo.image.url
+                        upload_photos.update({f'file{i}': open(image_link, 'rb')})
+                async with session.post(upload_url, data=upload_photos) as res:
+                    saving_photos = await sync_to_async(json.loads)(await res.text())
+                for closed_file in upload_photos.values():
+                    closed_file.close()
 
-            async with session.post(photos_save_url, params={
-                **params,
-                'album_id': vk_album_id,
-                'group_id': settings.VK_GROUP_ID,
-                'server': saving_photos['server'],
-                'photos_list': saving_photos['photos_list'],
-                'hash': saving_photos['hash'],
-            }) as res:
-                photos = await sync_to_async(json.loads)(await res.text())
+                async with session.post(photos_save_url, params={
+                    **params,
+                    'album_id': vk_album_id,
+                    'group_id': settings.VK_GROUP_ID,
+                    'server': saving_photos['server'],
+                    'photos_list': saving_photos['photos_list'],
+                    'hash': saving_photos['hash'],
+                }) as res:
+                    photos = await sync_to_async(json.loads)(await res.text())
 
-        if photos.get('response'):
-            for photo, photo_instance in zip(photos['response'], photo_order):
-                attachment = f'photo{photo["owner_id"]}_{photo["id"]}'
-                photo_instance.image_vk_id = attachment
-                await sync_to_async(photo_instance.save)()
+                if photos.get('response'):
+                    for photo, photo_instance in zip(photos['response'], photo_order):
+                        attachment = f'photo{photo["owner_id"]}_{photo["id"]}'
+                        photo_instance.image_vk_id = attachment
+                        await sync_to_async(photo_instance.save)()
