@@ -91,7 +91,7 @@ async def check_phone_button():
     return keyboard.get_keyboard()
 
 
-async def save_image_vk_id(obj):
+async def save_vkwave_image_vk_id(obj):
     if not obj.image_vk_id:
         image_link = obj.image.path if settings.DEBUG else obj.image.url
         token = Token(settings.VK_TOKEN)
@@ -111,5 +111,36 @@ async def save_image_vk_id(obj):
         )
         if photo.response:
             attachment = f'photo{photo.response[0].owner_id}_{photo.response[0].id}'
+            obj.image_vk_id = attachment
+            await sync_to_async(obj.save)()
+
+
+async def save_image_vk_id(obj):
+    """Загрузка фото на сервер ВК и получение image_vk_id"""
+    if not obj.image_vk_id:
+        messages_upload_server_url = 'https://api.vk.com/method/photos.getMessagesUploadServer'
+        save_messages_photo_url = 'https://api.vk.com/method/photos.saveMessagesPhoto'
+        params = {'access_token': settings.VK_TOKEN, 'v': '5.131', 'peer_id': 0}
+        image_link = obj.image.path if settings.DEBUG else obj.image.url
+
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                    messages_upload_server_url,
+                    params={**params, 'peer_id': 0}
+            ) as upload_res:
+                upload_url = await sync_to_async(json.loads)(await upload_res.text())
+            with open(image_link, 'rb') as file:
+                async with session.post(upload_url['response']['upload_url'], data={'photo': file}) as res:
+                    upload_photo = await sync_to_async(json.loads)(await res.text())
+            async with session.post(save_messages_photo_url, params={
+                **params,
+                'photo': upload_photo['photo'],
+                'server': upload_photo['server'],
+                'hash': upload_photo['hash']
+            }) as res:
+                photo = await sync_to_async(json.loads)(await res.text())
+
+        if photo.get('response'):
+            attachment = f'photo{photo["response"][0]["owner_id"]}_{photo["response"][0]["id"]}'
             obj.image_vk_id = attachment
             await sync_to_async(obj.save)()

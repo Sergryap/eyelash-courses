@@ -17,7 +17,8 @@ from .vk_lib import (
     get_button_menu,
     get_button_course_menu,
     entry_user_to_course,
-    check_phone_button
+    check_phone_button,
+    save_image_vk_id
 )
 from textwrap import dedent
 
@@ -229,24 +230,7 @@ async def handle_course_info(event: SimpleBotEvent):
         if await sync_to_async(bool)(course_images):
             random_image = await sync_to_async(random.choice)(course_images)
             if not random_image.image_vk_id:
-                upload = await api.photos.get_messages_upload_server(peer_id=0)
-                image_link = random_image.image.path if settings.DEBUG else random_image.image.url
-
-                with open(image_link, 'rb') as file:
-                    async with aiohttp.ClientSession() as session:
-                        async with session.post(upload.response.upload_url, data={'photo': file}) as res:
-                            response = await res.text()
-                upload_photo = await sync_to_async(json.loads)(response)
-
-                photo = await api.photos.save_messages_photo(
-                    photo=upload_photo['photo'],
-                    server=upload_photo['server'],
-                    hash=upload_photo['hash']
-                )
-                if photo.response:
-                    attachment = f'photo{photo.response[0].owner_id}_{photo.response[0].id}'
-                    random_image.image_vk_id = attachment
-                    await sync_to_async(random_image.save)()
+                await save_image_vk_id(random_image)
             else:
                 attachment = random_image.image_vk_id
 
