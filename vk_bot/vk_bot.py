@@ -244,11 +244,11 @@ async def handle_course_info(event: SimpleBotEvent):
             '''
         program_text = f'''
             О ПРОГРАММЕ КУРСА:
-            {await sync_to_async(lambda: course.program.description)()}
+            {await sync_to_async(lambda: course.program.short_description)()}
             '''
         description_text = f'''
             СОДЕРЖАНИЕ КУРСА:
-            {await sync_to_async(lambda: course.description)()}
+            {await sync_to_async(lambda: course.short_description)()}
             '''
 
         await event.answer(

@@ -18,6 +18,11 @@ class Program(models.Model):
         blank=True,
         null=True,
     )
+    short_description = models.TextField(
+        verbose_name='Сокращенное описание',
+        blank=True,
+        null=True,
+    )
     image = models.ImageField(
         verbose_name='Иллюстрация программы',
         upload_to='program'
