@@ -10,3 +10,4 @@ django_debug_toolbar==3.8.1
 asgiref==3.6.0
 vkwave @ https://github.com/fscdev/vkwave/archive/master.zip
 django-async-orm==0.1.11
+more-itertools==9.1.0

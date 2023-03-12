@@ -13,7 +13,7 @@ from import_export.admin import ExportMixin
 from django.db.models import Window
 from django.db.models.functions import DenseRank, Random
 from asgiref.sync import sync_to_async, async_to_sync
-from vk_bot.vk_lib import save_image_vk_id, create_vk_album
+from vk_bot.vk_lib import save_image_vk_id, create_or_edit_vk_album, upload_photo_in_album
 
 
 admin.site.site_header = 'Курсы по наращиванию ресниц'   # default: "Django Administration"
@@ -193,13 +193,14 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
-        async_to_sync(create_vk_album)(obj)
+        async_to_sync(create_or_edit_vk_album)(obj)
+        if obj.images.all():
+            async_to_sync(upload_photo_in_album)(obj.images.all())
 
     def save_formset(self, request, form, formset, change):
         super().save_formset(request, form, formset, change)
         instances = formset.save(commit=False)
-        for instance in instances:
-            async_to_sync(save_image_vk_id)(instance)
+        async_to_sync(upload_photo_in_album)(instances)
 
 
 @admin.register(CourseImage)
@@ -211,7 +212,7 @@ class ImageAdmin(SortableAdminMixin, admin.ModelAdmin, PreviewMixin):
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
-        async_to_sync(save_image_vk_id)(obj)
+        async_to_sync(upload_photo_in_album)([obj])
 
 
 @admin.register(Client)

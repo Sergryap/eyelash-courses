@@ -9,6 +9,7 @@ from textwrap import dedent
 from courses.models import Course, CourseClient
 from vkwave.api import API, Token
 from vkwave.api.token.token import UserSyncSingleToken
+from more_itertools import chunked
 
 BUTTONS_START = [
     ('Предстоящие курсы', 'future_courses'),
@@ -144,3 +145,90 @@ async def save_image_vk_id(obj):
             attachment = f'photo{photo["response"][0]["owner_id"]}_{photo["response"][0]["id"]}'
             obj.image_vk_id = attachment
             await sync_to_async(obj.save)()
+
+
+async def create_or_edit_vk_album(obj):
+    """Создание пустого альбома vk"""
+    if not obj.vk_album_id:
+        create_vk_album_url = 'https://api.vk.com/method/photos.createAlbum'
+        params = {
+            'access_token': settings.VK_USER_TOKEN,
+            'v': '5.131',
+            'title': obj.name,
+            'group_id': settings.VK_GROUP_ID,
+            'description': obj.short_description,
+            'upload_by_admins_only': 1,
+        }
+        async with aiohttp.ClientSession() as session:
+            async with session.post(create_vk_album_url, params=params) as response:
+                album = await sync_to_async(json.loads)(await response.text())
+
+        if album.get('response'):
+            obj.vk_album_id = album['response']['id']
+            await sync_to_async(obj.save)()
+    else:
+        edit_vk_album_url = 'https://api.vk.com/method/photos.editAlbum'
+        params = {
+            'access_token': settings.VK_USER_TOKEN,
+            'v': '5.131',
+            'album_id': str(obj.vk_album_id),
+            'owner_id': '-' + str(settings.VK_GROUP_ID),
+            'title': obj.name,
+            'description': obj.short_description,
+            'upload_by_admins_only': 1,
+        }
+        async with aiohttp.ClientSession() as session:
+            async with session.post(edit_vk_album_url, params=params) as response:
+                result = await sync_to_async(json.loads)(await response.text())
+
+
+async def upload_photo_in_album(photo_instances):
+    """Загрузка фотографий в альбом группы ВК"""
+    if photo_instances:
+        course_obj = photo_instances[0].course
+        vk_album_id = await sync_to_async(lambda: course_obj.vk_album_id)()
+        upload_need = all([photo.image_vk_id for photo in photo_instances])
+    if photo_instances and vk_album_id and not upload_need:
+        upload_server_url = 'https://api.vk.com/method/photos.getUploadServer'
+        photos_save_url = 'https://api.vk.com/method/photos.save'
+        params = {'access_token': settings.VK_USER_TOKEN, 'v': '5.131'}
+
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                    upload_server_url,
+                    params={**params, 'album_id': vk_album_id, 'group_id': settings.VK_GROUP_ID}
+            ) as upload_res:
+                upload = await sync_to_async(json.loads)(await upload_res.text())
+
+            upload_url = upload['response']['upload_url']
+            upload_photos = {}
+            photo_order = []
+            i = 0
+            for photo in photo_instances:
+                if not photo.image_vk_id:
+                    i += 1
+                    photo_order.append(photo)
+                    image_link = photo.image.path if settings.DEBUG else photo.image.url
+                    upload_photos.update({f'file{i}': open(image_link, 'rb')})
+                if i == 5:
+                    break
+            async with session.post(upload_url, data=upload_photos) as res:
+                saving_photos = await sync_to_async(json.loads)(await res.text())
+            for closed_file in upload_photos.values():
+                closed_file.close()
+
+            async with session.post(photos_save_url, params={
+                **params,
+                'album_id': vk_album_id,
+                'group_id': settings.VK_GROUP_ID,
+                'server': saving_photos['server'],
+                'photos_list': saving_photos['photos_list'],
+                'hash': saving_photos['hash'],
+            }) as res:
+                photos = await sync_to_async(json.loads)(await res.text())
+
+        if photos.get('response'):
+            for photo, photo_instance in zip(photos['response'], photo_order):
+                attachment = f'photo{photo["owner_id"]}_{photo["id"]}'
+                photo_instance.image_vk_id = attachment
+                await sync_to_async(photo_instance.save)()
