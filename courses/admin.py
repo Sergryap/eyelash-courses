@@ -2,7 +2,6 @@ import random
 
 from django.contrib import admin
 from django import forms
-from django.conf import settings
 from django.utils.html import format_html
 from courses.models import Client, Course, Lecturer, Program, CourseClient, CourseImage
 from adminsortable2.admin import SortableAdminMixin, SortableTabularInline, SortableAdminBase
@@ -10,10 +9,8 @@ from django.db.models import Count, Value
 from import_export import resources
 from import_export.fields import Field
 from import_export.admin import ExportMixin
-from django.db.models import Window
-from django.db.models.functions import DenseRank, Random
-from asgiref.sync import sync_to_async, async_to_sync
-from vk_bot.vk_lib import save_image_vk_id, create_or_edit_vk_album, upload_photo_in_album
+from asgiref.sync import async_to_sync
+from vk_bot.vk_lib import create_or_edit_vk_album, upload_photos_in_album
 
 
 admin.site.site_header = 'Курсы по наращиванию ресниц'   # default: "Django Administration"
@@ -169,13 +166,6 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
     @admin.display(description='Фото из курса')
     def get_course_preview(self, obj):
         random_photo = random.choice(obj.images.all() or ['Фото не загружены'])
-        # random_photo = (
-        #     CourseImage.objects
-        #     .filter(course=obj.pk)
-        #     .annotate(number=Window(expression=DenseRank(), order_by=[Random()]))
-        #     .order_by('number')
-        #     .first()
-        # )
         if random_photo and isinstance(random_photo, CourseImage):
             return format_html(
                 '<img style="max-height:{height}" src="{url}"/>',
@@ -194,13 +184,15 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
         async_to_sync(create_or_edit_vk_album)(obj)
-        if obj.images.all():
-            async_to_sync(upload_photo_in_album)(obj.images.all())
+        images = obj.images.all()
+        if images:
+            async_to_sync(upload_photos_in_album)(images)
 
     def save_formset(self, request, form, formset, change):
         super().save_formset(request, form, formset, change)
         instances = formset.save(commit=False)
-        async_to_sync(upload_photo_in_album)(instances)
+        images = [image for image in instances if isinstance(image, CourseImage)]
+        async_to_sync(upload_photos_in_album)(images)
 
 
 @admin.register(CourseImage)
@@ -212,7 +204,7 @@ class ImageAdmin(SortableAdminMixin, admin.ModelAdmin, PreviewMixin):
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
-        async_to_sync(upload_photo_in_album)([obj])
+        async_to_sync(upload_photos_in_album)([obj])
 
 
 @admin.register(Client)

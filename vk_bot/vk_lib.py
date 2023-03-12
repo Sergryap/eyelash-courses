@@ -93,6 +93,8 @@ async def check_phone_button():
 
 
 async def save_vkwave_image_vk_id(obj):
+    """Загрузка фото на сервер ВК и получение image_vk_id для сообщения"""
+
     if not obj.image_vk_id:
         image_link = obj.image.path if settings.DEBUG else obj.image.url
         token = Token(settings.VK_TOKEN)
@@ -117,7 +119,8 @@ async def save_vkwave_image_vk_id(obj):
 
 
 async def save_image_vk_id(obj):
-    """Загрузка фото на сервер ВК и получение image_vk_id"""
+    """Загрузка фото на сервер ВК и получение image_vk_id для сообщения"""
+
     if not obj.image_vk_id:
         messages_upload_server_url = 'https://api.vk.com/method/photos.getMessagesUploadServer'
         save_messages_photo_url = 'https://api.vk.com/method/photos.saveMessagesPhoto'
@@ -148,7 +151,8 @@ async def save_image_vk_id(obj):
 
 
 async def create_or_edit_vk_album(obj):
-    """Создание пустого альбома vk"""
+    """Создание пустого альбома vk либо редактирование существующего"""
+
     if not obj.vk_album_id:
         create_vk_album_url = 'https://api.vk.com/method/photos.createAlbum'
         params = {
@@ -182,13 +186,15 @@ async def create_or_edit_vk_album(obj):
                 result = await sync_to_async(json.loads)(await response.text())
 
 
-async def upload_photo_in_album(photo_instances):
+async def upload_photos_in_album(photo_instances):
     """Загрузка фотографий в альбом группы ВК"""
+
+    upload_need, vk_album_id = None, None
     if photo_instances:
         course_obj = photo_instances[0].course
         vk_album_id = await sync_to_async(lambda: course_obj.vk_album_id)()
-        upload_need = all([photo.image_vk_id for photo in photo_instances])
-    if photo_instances and vk_album_id and not upload_need:
+        upload_need = not all([photo.image_vk_id for photo in photo_instances])
+    if upload_need and vk_album_id:
         upload_server_url = 'https://api.vk.com/method/photos.getUploadServer'
         photos_save_url = 'https://api.vk.com/method/photos.save'
         params = {'access_token': settings.VK_USER_TOKEN, 'v': '5.131'}
