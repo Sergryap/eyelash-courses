@@ -178,7 +178,7 @@ class Course(models.Model):
         verbose_name = 'курс'
         verbose_name_plural = 'курсы'
         get_latest_by = 'scheduled_at'
-        ordering = ['-scheduled_at']
+        ordering = ['scheduled_at']
 
 
 class CourseImage(models.Model):
