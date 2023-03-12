@@ -13,7 +13,7 @@ from import_export.admin import ExportMixin
 from django.db.models import Window
 from django.db.models.functions import DenseRank, Random
 from asgiref.sync import sync_to_async, async_to_sync
-from vk_bot.vk_lib import save_image_vk_id
+from vk_bot.vk_lib import save_image_vk_id, create_vk_album
 
 
 admin.site.site_header = 'Курсы по наращиванию ресниц'   # default: "Django Administration"
@@ -162,6 +162,7 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
         ('name', 'program'),
         ('scheduled_at', 'price'),
         ('lecture', 'duration'),
+        'short_description',
         'description'
     ]
 
@@ -189,6 +190,10 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
             .select_related('program', 'lecture')
             .prefetch_related('clients', 'images')
         )
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        async_to_sync(create_vk_album)(obj)
 
     def save_formset(self, request, form, formset, change):
         super().save_formset(request, form, formset, change)

@@ -156,6 +156,11 @@ class Course(models.Model):
         blank=True,
         null=True,
     )
+    short_description = models.TextField(
+        verbose_name='Сокращенное описание',
+        blank=True,
+        null=True,
+    )
     vk_album_id = models.PositiveIntegerField(
         verbose_name='Идентификатор альбома ВК для курса',
         blank=True,
