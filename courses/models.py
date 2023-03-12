@@ -156,6 +156,11 @@ class Course(models.Model):
         blank=True,
         null=True,
     )
+    vk_album_id = models.PositiveIntegerField(
+        verbose_name='Идентификатор альбома ВК для курса',
+        blank=True,
+        null=True
+    )
 
     @admin.display(description='Участников')
     def get_count_participants(self):
