@@ -21,19 +21,17 @@ BUTTONS_START = [
 
 
 async def get_course_msg(course_instances, back, successful_msg, not_successful_msg):
-    count_courses = await course_instances.acount()
+    count_courses = len(course_instances)
     keyboard = Keyboard(one_time=False, inline=True)
     if count_courses:
         msg = successful_msg
-        for i, course in await sync_to_async(enumerate)(course_instances, start=1):
+        for course in course_instances:
             keyboard.add_text_button(
                 course.name,
                 ButtonColor.PRIMARY,
                 payload={'course_pk': course.pk, 'button': back}
             )
             keyboard.add_row()
-            if i == 5:
-                break
         keyboard.add_text_button('☰ MENU', ButtonColor.SECONDARY, payload={'button': 'start'})
     else:
         msg = not_successful_msg

@@ -11,6 +11,7 @@ from vkwave.bots.storage.storages import Storage
 from courses.models import Client, Course, Program
 from vkwave.bots.utils.keyboards.keyboard import Keyboard, ButtonColor
 from django.utils import timezone
+from more_itertools import chunked
 from .vk_lib import (
     BUTTONS_START,
     get_course_msg,
@@ -98,38 +99,58 @@ async def main_menu_handler(event: SimpleBotEvent):
         # отправка курсов пользователя
         if event.payload.get('button') == 'client_courses':
             client_courses = await sync_to_async(user_instance.courses.all)()
-            msg, keyboard = await get_course_msg(
-                client_courses,
-                back='client_courses',
-                successful_msg='Курсы, на которые вы записаны или проходили:',
-                not_successful_msg='Вы еше не записаны ни на один курс:'
-            )
-            await event.answer(message=msg, keyboard=keyboard)
+            not_successful_msg = 'Вы еше не записаны ни на один курс:'
+            i = 0
+            for client_courses_part in await sync_to_async(chunked)(client_courses, 5):
+                i += 1
+                if i == 1:
+                    successful_msg = 'Курсы, на которые вы записаны или проходили:'
+                else:
+                    successful_msg = 'Еще ваши курсы'
+                msg, keyboard = await get_course_msg(
+                    client_courses_part,
+                    back='client_courses',
+                    successful_msg=successful_msg,
+                    not_successful_msg=not_successful_msg
+                )
+                await event.answer(message=msg, keyboard=keyboard)
 
             return 'COURSE'
 
         # отправка предстоящих курсов
         elif event.payload.get('button') == 'future_courses':
             future_courses = await Course.objects.async_filter(scheduled_at__gt=timezone.now())
-            msg, keyboard = await get_course_msg(
-                future_courses,
-                back='future_courses',
-                successful_msg='Предстоящие курсы. Выберите для детальной информации',
-                not_successful_msg='Пока нет запланированных курсов:'
-            )
-            await event.answer(message=msg, keyboard=keyboard)
+            not_successful_msg = 'Пока нет запланированных курсов:'
+            for i, future_courses_part in await sync_to_async(enumerate)(chunked(future_courses, 5), start=1):
+                if i == 1:
+                    successful_msg = 'Предстоящие курсы. Выберите для детальной информации'
+                else:
+                    successful_msg = 'Еще предстоящие курсы:'
+                msg, keyboard = await get_course_msg(
+                    future_courses_part,
+                    back='future_courses',
+                    successful_msg=successful_msg,
+                    not_successful_msg=not_successful_msg
+                )
+                await event.answer(message=msg, keyboard=keyboard)
 
             return 'COURSE'
         # отправка прошедших курсов
         elif event.payload.get('button') == 'past_courses':
             past_courses = await Course.objects.async_filter(scheduled_at__lte=timezone.now())
-            msg, keyboard = await get_course_msg(
-                past_courses,
-                back='past_courses',
-                successful_msg='Прошедшие курсы. Выберите для детальной информации',
-                not_successful_msg='Еше нет прошедших курсов:'
-            )
-            await event.answer(message=msg, keyboard=keyboard)
+            not_successful_msg = 'Еше нет прошедших курсов:'
+            for i, past_courses_part in await sync_to_async(enumerate)(chunked(past_courses, 5), start=1):
+                if i == 1:
+                    successful_msg = 'Прошедшие курсы. Выберите для детальной информации'
+                else:
+                    successful_msg = 'Еще прошедшие курсы:'
+                msg, keyboard = await get_course_msg(
+                    past_courses_part,
+                    back='past_courses',
+                    successful_msg=successful_msg,
+                    not_successful_msg=not_successful_msg
+                )
+                await event.answer(message=msg, keyboard=keyboard)
 
             return 'COURSE'
 
