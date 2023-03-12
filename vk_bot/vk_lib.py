@@ -32,6 +32,8 @@ async def get_course_msg(course_instances, back, successful_msg, not_successful_
                 payload={'course_pk': course.pk, 'button': back}
             )
             keyboard.add_row()
+            if i == 5:
+                break
         keyboard.add_text_button('☰ MENU', ButtonColor.SECONDARY, payload={'button': 'start'})
     else:
         msg = not_successful_msg
