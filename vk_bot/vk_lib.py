@@ -269,9 +269,23 @@ async def delete_photos(photo_instance):
 
     delete_photos_url = 'https://api.vk.com/method/photos.delete'
     params = {'access_token': settings.VK_USER_TOKEN, 'v': '5.131'}
+    photo_id = photo_instance.image_vk_id.split('_')[1]
     async with aiohttp.ClientSession() as session:
-        photo_id = photo_instance.image_vk_id.split('_')[1]
         async with session.post(
                 delete_photos_url,
                 params={**params, 'owner_id': f"-{settings.VK_GROUP_ID}", 'photo_id': photo_id}):
             pass
+
+
+async def delete_album(album_instance):
+    """Удаление альбома группы ВК"""
+
+    delete_album_url = 'https://api.vk.com/method/photos.deleteAlbum'
+    params = {'access_token': settings.VK_USER_TOKEN, 'v': '5.131'}
+    album_id = album_instance.vk_album_id
+    async with aiohttp.ClientSession() as session:
+        async with session.post(
+                delete_album_url,
+                params={**params, 'group_id': settings.VK_GROUP_ID, 'album_id': album_id}) as response:
+            pass
+
