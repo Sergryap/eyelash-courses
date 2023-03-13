@@ -203,6 +203,10 @@ class CourseImage(models.Model):
         related_name='images',
         verbose_name='Курс'
     )
+    upload_vk = models.BooleanField(
+        verbose_name='Загрузить в ВК',
+        default=True
+    )
     position = models.IntegerField(default=0)
 
     class Meta:

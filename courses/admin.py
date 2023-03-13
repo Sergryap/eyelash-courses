@@ -91,7 +91,7 @@ class CourseInline(admin.TabularInline):
 
 class CourseImageInline(SortableTabularInline, PreviewMixin):
     model = CourseImage
-    fields = ['position', 'image', 'get_preview', 'image_vk_id']
+    fields = ['position', 'image', 'get_preview', 'image_vk_id', 'upload_vk']
     readonly_fields = ['get_preview', 'image_vk_id']
     extra = 3
 
@@ -197,7 +197,7 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
 
 @admin.register(CourseImage)
 class ImageAdmin(SortableAdminMixin, admin.ModelAdmin, PreviewMixin):
-    list_display = ['id', 'get_preview', 'course', 'image_vk_id', 'position']
+    list_display = ['id', 'get_preview', 'course', 'image_vk_id', 'upload_vk', 'position']
     list_display_links = ['course']
     readonly_fields = ['get_preview', 'image_vk_id']
     list_filter = ['course__program', 'course']
