@@ -186,16 +186,30 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
         async_to_sync(create_or_edit_vk_album)(obj)
         images = obj.images.all()
         if images:
-            async_to_sync(upload_photos_in_album)(images)
+            course_obj = images[0].course
+            vk_album_id = course_obj.vk_album_id
+            upload_need = not all([photo.image_vk_id for photo in images])
+            if upload_need and vk_album_id:
+                async_to_sync(upload_photos_in_album)(images, vk_album_id)
 
     def save_formset(self, request, form, formset, change):
         super().save_formset(request, form, formset, change)
+        if formset.deleted_objects:
+            for deleted_image in formset.deleted_objects:
+                async_to_sync(delete_photos)(deleted_image)
         instances = formset.save(commit=False)
         images = [image for image in instances if isinstance(image, CourseImage)]
-        async_to_sync(upload_photos_in_album)(images)
+        if images:
+            course_obj = images[0].course
+            vk_album_id = course_obj.vk_album_id
+            upload_need = not all([photo.image_vk_id for photo in images])
+            if upload_need and vk_album_id:
+                async_to_sync(upload_photos_in_album)(images, vk_album_id)
         for image in images:
             if image.image_vk_id and not image.upload_vk:
                 async_to_sync(delete_photos)(image)
+                image.image_vk_id = None
+                image.save()
 
 
 @admin.register(CourseImage)
@@ -207,9 +221,13 @@ class ImageAdmin(SortableAdminMixin, admin.ModelAdmin, PreviewMixin):
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
-        async_to_sync(upload_photos_in_album)([obj])
+        vk_album_id = obj.course.vk_album_id
+        if not obj.image_vk_id and vk_album_id:
+            async_to_sync(upload_photos_in_album)([obj], vk_album_id)
         if obj.image_vk_id and not obj.upload_vk:
             async_to_sync(delete_photos)(obj)
+            obj.image_vk_id = None
+            obj.save()
 
 
 @admin.register(Client)

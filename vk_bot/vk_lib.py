@@ -186,55 +186,49 @@ async def create_or_edit_vk_album(obj):
                 result = await sync_to_async(json.loads)(await response.text())
 
 
-async def upload_photos_in_album(photo_instances):
+async def upload_photos_in_album(photo_instances, vk_album_id):
     """Загрузка фотографий в альбом группы ВК"""
 
-    upload_need, vk_album_id = None, None
-    if photo_instances:
-        course_obj = photo_instances[0].course
-        vk_album_id = await sync_to_async(lambda: course_obj.vk_album_id)()
-        upload_need = not all([photo.image_vk_id for photo in photo_instances])
-    if upload_need and vk_album_id:
-        upload_server_url = 'https://api.vk.com/method/photos.getUploadServer'
-        photos_save_url = 'https://api.vk.com/method/photos.save'
-        params = {'access_token': settings.VK_USER_TOKEN, 'v': '5.131'}
+    upload_server_url = 'https://api.vk.com/method/photos.getUploadServer'
+    photos_save_url = 'https://api.vk.com/method/photos.save'
+    params = {'access_token': settings.VK_USER_TOKEN, 'v': '5.131'}
 
-        async with aiohttp.ClientSession() as session:
-            for photo_sequence_part in chunked(photo_instances, 5):
-                async with session.get(
-                        upload_server_url,
-                        params={**params, 'album_id': vk_album_id, 'group_id': settings.VK_GROUP_ID}
-                ) as upload_res:
-                    upload = await sync_to_async(json.loads)(await upload_res.text())
+    async with aiohttp.ClientSession() as session:
+        for photo_sequence_part in chunked(photo_instances, 5):
+            async with session.get(
+                    upload_server_url,
+                    params={**params, 'album_id': vk_album_id, 'group_id': settings.VK_GROUP_ID}
+            ) as upload_res:
+                upload = await sync_to_async(json.loads)(await upload_res.text())
 
-                upload_url = upload['response']['upload_url']
-                upload_photos = {}
-                photo_order = []
-                for i, photo in await sync_to_async(enumerate)(photo_sequence_part, start=1):
-                    if not photo.image_vk_id and photo.upload_vk:
-                        photo_order.append(photo)
-                        image_link = photo.image.path if settings.DEBUG else photo.image.url
-                        upload_photos.update({f'file{i}': open(image_link, 'rb')})
-                async with session.post(upload_url, data=upload_photos) as res:
-                    saving_photos = await sync_to_async(json.loads)(await res.text())
-                for closed_file in upload_photos.values():
-                    closed_file.close()
+            upload_url = upload['response']['upload_url']
+            upload_photos = {}
+            photo_order = []
+            for i, photo in await sync_to_async(enumerate)(photo_sequence_part, start=1):
+                if not photo.image_vk_id and photo.upload_vk:
+                    photo_order.append(photo)
+                    image_link = photo.image.path if settings.DEBUG else photo.image.url
+                    upload_photos.update({f'file{i}': open(image_link, 'rb')})
+            async with session.post(upload_url, data=upload_photos) as res:
+                saving_photos = await sync_to_async(json.loads)(await res.text())
+            for closed_file in upload_photos.values():
+                closed_file.close()
 
-                async with session.post(photos_save_url, params={
-                    **params,
-                    'album_id': vk_album_id,
-                    'group_id': settings.VK_GROUP_ID,
-                    'server': saving_photos['server'],
-                    'photos_list': saving_photos['photos_list'],
-                    'hash': saving_photos['hash'],
-                }) as res:
-                    photos = await sync_to_async(json.loads)(await res.text())
+            async with session.post(photos_save_url, params={
+                **params,
+                'album_id': vk_album_id,
+                'group_id': settings.VK_GROUP_ID,
+                'server': saving_photos['server'],
+                'photos_list': saving_photos['photos_list'],
+                'hash': saving_photos['hash'],
+            }) as res:
+                photos = await sync_to_async(json.loads)(await res.text())
 
-                if photos.get('response'):
-                    for photo, photo_instance in zip(photos['response'], photo_order):
-                        attachment = f'photo{photo["owner_id"]}_{photo["id"]}'
-                        photo_instance.image_vk_id = attachment
-                        await sync_to_async(photo_instance.save)()
+            if photos.get('response'):
+                for photo, photo_instance in zip(photos['response'], photo_order):
+                    attachment = f'photo{photo["owner_id"]}_{photo["id"]}'
+                    photo_instance.image_vk_id = attachment
+                    await sync_to_async(photo_instance.save)()
 
 
 async def delete_photos(photo_instance):
@@ -249,5 +243,3 @@ async def delete_photos(photo_instance):
                 params={**params, 'owner_id': f"-{settings.VK_GROUP_ID}", 'photo_id': photo_id}
         ) as response:
             result = await sync_to_async(json.loads)(await response.text())
-        photo_instance.image_vk_id = None
-        await sync_to_async(photo_instance.save)()
