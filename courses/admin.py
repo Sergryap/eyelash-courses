@@ -193,7 +193,7 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
         if images:
             course_obj = images[0].course
             vk_album_id = course_obj.vk_album_id
-            upload_photos = [image for image in images if not image.image_vk_id and image.upload_vk]
+            upload_photos = get_upload_photos(images)
             if upload_photos:
                 async_to_sync(upload_photos_in_album)(upload_photos, vk_album_id)
 
@@ -207,7 +207,7 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
         if images:
             course_obj = images[0].course
             vk_album_id = course_obj.vk_album_id
-            upload_photos = [image for image in images if not image.image_vk_id and image.upload_vk]
+            upload_photos = get_upload_photos(images)
             if upload_photos:
                 async_to_sync(upload_photos_in_album)(upload_photos, vk_album_id)
         for image in images:
@@ -215,6 +215,10 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
                 async_to_sync(delete_photos)(image)
                 image.image_vk_id = None
                 image.save()
+
+
+def get_upload_photos(images):
+    return [image for image in images if not image.image_vk_id and image.upload_vk]
 
 
 @admin.register(CourseImage)
