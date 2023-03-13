@@ -150,6 +150,40 @@ async def save_image_vk_id(obj):
             await sync_to_async(obj.save)()
 
 
+async def create_vk_album(obj):
+    """Создание пустого альбома vk"""
+    create_vk_album_url = 'https://api.vk.com/method/photos.createAlbum'
+    params = {
+        'access_token': settings.VK_USER_TOKEN,
+        'v': '5.131',
+        'title': obj.name,
+        'group_id': settings.VK_GROUP_ID,
+        'description': obj.short_description,
+        'upload_by_admins_only': 1,
+    }
+    async with aiohttp.ClientSession() as session:
+        async with session.post(create_vk_album_url, params=params) as response:
+            return await sync_to_async(json.loads)(await response.text())
+
+
+async def edit_vk_album(obj):
+    """Редактирование существующего альбома VK"""
+
+    edit_vk_album_url = 'https://api.vk.com/method/photos.editAlbum'
+    params = {
+        'access_token': settings.VK_USER_TOKEN,
+        'v': '5.131',
+        'album_id': str(obj.vk_album_id),
+        'owner_id': '-' + str(settings.VK_GROUP_ID),
+        'title': obj.name,
+        'description': obj.short_description,
+        'upload_by_admins_only': 1,
+    }
+    async with aiohttp.ClientSession() as session:
+        async with session.post(edit_vk_album_url, params=params):
+            pass
+
+
 async def create_or_edit_vk_album(obj):
     """Создание пустого альбома vk либо редактирование существующего"""
 
@@ -182,8 +216,8 @@ async def create_or_edit_vk_album(obj):
             'upload_by_admins_only': 1,
         }
         async with aiohttp.ClientSession() as session:
-            async with session.post(edit_vk_album_url, params=params) as response:
-                result = await sync_to_async(json.loads)(await response.text())
+            async with session.post(edit_vk_album_url, params=params):
+                pass
 
 
 async def upload_photos_in_album(photo_instances, vk_album_id):
@@ -240,6 +274,5 @@ async def delete_photos(photo_instance):
         photo_id = photo_instance.image_vk_id.split('_')[1]
         async with session.post(
                 delete_photos_url,
-                params={**params, 'owner_id': f"-{settings.VK_GROUP_ID}", 'photo_id': photo_id}
-        ) as response:
-            result = await sync_to_async(json.loads)(await response.text())
+                params={**params, 'owner_id': f"-{settings.VK_GROUP_ID}", 'photo_id': photo_id}):
+            pass

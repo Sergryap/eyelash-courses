@@ -10,7 +10,7 @@ from import_export import resources
 from import_export.fields import Field
 from import_export.admin import ExportMixin
 from asgiref.sync import async_to_sync
-from vk_bot.vk_lib import create_or_edit_vk_album, upload_photos_in_album, delete_photos
+from vk_bot.vk_lib import upload_photos_in_album, delete_photos, create_vk_album, edit_vk_album
 
 
 admin.site.site_header = 'Курсы по наращиванию ресниц'   # default: "Django Administration"
@@ -183,7 +183,12 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
-        async_to_sync(create_or_edit_vk_album)(obj)
+        if not obj.vk_album_id:
+            album = async_to_sync(create_vk_album)(obj)
+            obj.vk_album_id = album['response']['id']
+            obj.save()
+        else:
+            async_to_sync(edit_vk_album)(obj)
         images = obj.images.all()
         if images:
             course_obj = images[0].course
