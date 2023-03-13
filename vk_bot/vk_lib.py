@@ -235,3 +235,19 @@ async def upload_photos_in_album(photo_instances):
                         attachment = f'photo{photo["owner_id"]}_{photo["id"]}'
                         photo_instance.image_vk_id = attachment
                         await sync_to_async(photo_instance.save)()
+
+
+async def delete_photos(photo_instances):
+    """Удаление фотографий из альбома группы ВК"""
+    delete_photos_url = 'https://api.vk.com/method/photos.delete'
+    params = {'access_token': settings.VK_USER_TOKEN, 'v': '5.131'}
+    async with aiohttp.ClientSession() as session:
+        for photo in photo_instances:
+            photo_id = photo.image_vk_id.split('_')[1]
+            async with session.post(
+                    delete_photos_url,
+                    params={**params, 'owner_id': f"-{settings.VK_GROUP_ID}", 'photo_id': photo_id}
+            ) as res:
+                result = await sync_to_async(json.loads)(await res.text())
+            photo.image_vk_id = None
+            await sync_to_async(photo.save)()
