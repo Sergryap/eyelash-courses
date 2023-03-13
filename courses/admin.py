@@ -208,6 +208,8 @@ class ImageAdmin(SortableAdminMixin, admin.ModelAdmin, PreviewMixin):
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
         async_to_sync(upload_photos_in_album)([obj])
+        if obj.image_vk_id and not obj.upload_vk:
+            async_to_sync(delete_photos)(obj)
 
 
 @admin.register(Client)
