@@ -201,6 +201,11 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
         super().delete_model(request, obj)
         async_to_sync(delete_album)(obj)
 
+    def delete_queryset(self, request, queryset):
+        for course in queryset:
+            async_to_sync(delete_album)(course)
+        queryset.delete()
+
     def save_formset(self, request, form, formset, change):
         super().save_formset(request, form, formset, change)
         if formset.deleted_objects:
