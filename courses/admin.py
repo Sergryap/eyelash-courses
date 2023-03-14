@@ -16,7 +16,8 @@ from vk_bot.vk_lib import (
     delete_photos,
     create_vk_album,
     edit_vk_album,
-    delete_album
+    delete_album,
+    make_main_album_photo
 )
 
 
@@ -226,6 +227,20 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
             upload_photos = get_upload_photos(images)
             if upload_photos:
                 async_to_sync(upload_photos_in_album)(upload_photos, vk_album_id)
+
+            # Установка главной фото альбома ВК
+            course = list(Course.objects.filter(pk=course_obj.pk))
+            if course:
+                positions = [image.position for image in course[0].images.all()]
+                min_positions = [position for position in positions if position == min(positions)]
+            if course and len(min_positions) == 1:
+                all_courses_images = list(course[0].images.all())
+                main_image = sorted(all_courses_images, key=lambda image: image.position)[0]
+            else:
+                main_image = images[0]
+            album_main_image_id = main_image.image_vk_id.split('_')[1]
+            async_to_sync(make_main_album_photo)(vk_album_id, album_main_image_id)
+
         for image in images:
             if image.image_vk_id and not image.upload_vk:
                 async_to_sync(delete_photos)(image)
