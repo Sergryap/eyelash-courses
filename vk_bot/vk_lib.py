@@ -289,3 +289,18 @@ async def delete_album(album_instance):
                 params={**params, 'group_id': settings.VK_GROUP_ID, 'album_id': album_id}) as response:
             pass
 
+
+async def make_main_album_photo(obj, photo_id):
+    """Назначение обложки альбома VK"""
+
+    photos_makeсover_url = 'https://api.vk.com/method/photos.makeCover'
+    params = {
+        'access_token': settings.VK_USER_TOKEN,
+        'v': '5.131',
+        'owner_id': '-' + str(settings.VK_GROUP_ID),
+        'photo_id': photo_id,
+        'album_id': str(obj.vk_album_id),
+    }
+    async with aiohttp.ClientSession() as session:
+        async with session.post(photos_makeсover_url, params=params):
+            pass
