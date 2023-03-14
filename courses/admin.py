@@ -1,5 +1,6 @@
 import random
 
+from django.conf import settings
 from django.contrib import admin
 from django import forms
 from django.utils.html import format_html
@@ -19,9 +20,9 @@ from vk_bot.vk_lib import (
 )
 
 
-admin.site.site_header = 'Курсы по наращиванию ресниц'   # default: "Django Administration"
-admin.site.index_title = 'Управление сайтом'             # default: "Site administration"
-admin.site.site_title = 'Курсы по наращиванию ресниц'    # default: "Django site admin"
+admin.site.site_header = settings.SITE_HEADER
+admin.site.index_title = settings.INDEX_TITLE
+admin.site.site_title = settings.SITE_TITLE
 admin.site.empty_value_display = 'Нет данных'
 
 

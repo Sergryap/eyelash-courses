@@ -23,6 +23,9 @@ VK_GROUP_ID = env.int('VK_GROUP')
 ADMIN_IDS = env.list('ADMIN_IDS')
 OFFICE_LAT = env.float('OFFICE_LAT')
 OFFICE_LONG = env.float('OFFICE_LONG')
+SITE_HEADER = env.str('SITE_HEADER')
+INDEX_TITLE = env.str('INDEX_TITLE')
+SITE_TITLE = env.str('SITE_TITLE')
 
 
 INSTALLED_APPS = [
