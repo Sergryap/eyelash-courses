@@ -15,7 +15,7 @@ from django.utils import timezone
 from more_itertools import chunked
 from .vk_lib import (
     BUTTONS_START,
-    get_course_msg,
+    get_course_buttons,
     get_button_menu,
     get_button_course_menu,
     entry_user_to_course,
@@ -107,7 +107,7 @@ async def main_menu_handler(event: SimpleBotEvent):
                     successful_msg = 'Курсы, на которые вы записаны или проходили:'
                 else:
                     successful_msg = 'Еще ваши курсы'
-                keyboard = await get_course_msg(client_courses_part, back='client_courses')
+                keyboard = await get_course_buttons(client_courses_part, back='client_courses')
                 await event.answer(message=successful_msg, keyboard=keyboard)
             if i == 0:
                 keyboard = Keyboard(one_time=False, inline=True)
@@ -128,7 +128,7 @@ async def main_menu_handler(event: SimpleBotEvent):
                     successful_msg = 'Предстоящие курсы. Выберите для детальной информации'
                 else:
                     successful_msg = 'Еще предстоящие курсы:'
-                keyboard = await get_course_msg(future_courses_part, back='future_courses')
+                keyboard = await get_course_buttons(future_courses_part, back='future_courses')
                 await event.answer(message=successful_msg, keyboard=keyboard)
             return 'COURSE'
 
@@ -145,7 +145,7 @@ async def main_menu_handler(event: SimpleBotEvent):
                     successful_msg = 'Прошедшие курсы. Выберите для детальной информации'
                 else:
                     successful_msg = 'Еще прошедшие курсы:'
-                keyboard = await get_course_msg(past_courses_part, back='past_courses')
+                keyboard = await get_course_buttons(past_courses_part, back='past_courses')
                 await event.answer(message=successful_msg, keyboard=keyboard)
             return 'COURSE'
 
