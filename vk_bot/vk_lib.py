@@ -21,25 +21,19 @@ BUTTONS_START = [
 ]
 
 
-async def get_course_msg(course_instances, back, successful_msg=None, not_successful_msg=None):
+async def get_course_msg(course_instances, back):
     count_courses = len(course_instances)
     keyboard = Keyboard(one_time=False, inline=True)
-    if count_courses:
-        msg = successful_msg
-        for course in course_instances:
-            keyboard.add_text_button(
-                course.name,
-                ButtonColor.PRIMARY,
-                payload={'course_pk': course.pk, 'button': back}
-            )
-            keyboard.add_row()
-        keyboard.add_text_button('☰ MENU', ButtonColor.SECONDARY, payload={'button': 'start'})
-    else:
-        msg = not_successful_msg
-        keyboard.add_text_button('☰ MENU', ButtonColor.SECONDARY, payload={'button': 'start'})
-    keyboard = keyboard.get_keyboard()
+    for course in course_instances:
+        keyboard.add_text_button(
+            course.name,
+            ButtonColor.PRIMARY,
+            payload={'course_pk': course.pk, 'button': back}
+        )
+        keyboard.add_row()
+    keyboard.add_text_button('☰ MENU', ButtonColor.SECONDARY, payload={'button': 'start'})
 
-    return msg, keyboard
+    return keyboard.get_keyboard()
 
 
 async def get_button_menu(inline=True):
