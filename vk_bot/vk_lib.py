@@ -21,7 +21,7 @@ BUTTONS_START = [
 ]
 
 
-async def get_course_msg(course_instances, back, successful_msg, not_successful_msg):
+async def get_course_msg(course_instances, back, successful_msg=None, not_successful_msg=None):
     count_courses = len(course_instances)
     keyboard = Keyboard(one_time=False, inline=True)
     if count_courses:

@@ -1,3 +1,4 @@
+import asyncio
 import random
 import aiohttp
 import json
@@ -8,7 +9,7 @@ from asgiref.sync import sync_to_async
 from vkwave.bots import SimpleBotEvent
 from vkwave.bots.storage.types import Key
 from vkwave.bots.storage.storages import Storage
-from courses.models import Client, Course, Program
+from courses.models import Client, Course, Program, CourseClient
 from vkwave.bots.utils.keyboards.keyboard import Keyboard, ButtonColor
 from django.utils import timezone
 from more_itertools import chunked
@@ -99,7 +100,6 @@ async def main_menu_handler(event: SimpleBotEvent):
         # отправка курсов пользователя
         if event.payload.get('button') == 'client_courses':
             client_courses = await sync_to_async(user_instance.courses.all)()
-            not_successful_msg = 'Вы еше не записаны ни на один курс:'
             i = 0
             for client_courses_part in await sync_to_async(chunked)(client_courses, 5):
                 i += 1
@@ -111,16 +111,27 @@ async def main_menu_handler(event: SimpleBotEvent):
                     client_courses_part,
                     back='client_courses',
                     successful_msg=successful_msg,
-                    not_successful_msg=not_successful_msg
                 )
                 await event.answer(message=msg, keyboard=keyboard)
+            if i == 0:
+                keyboard = Keyboard(one_time=False, inline=True)
+                keyboard.add_text_button('☰ MENU', ButtonColor.SECONDARY, payload={'button': 'start'})
+                await event.answer(message='Вы еше не записаны ни на один курс:', keyboard=keyboard.get_keyboard())
 
             return 'COURSE'
 
         # отправка предстоящих курсов
         elif event.payload.get('button') == 'future_courses':
-            future_courses = await Course.objects.async_filter(scheduled_at__gt=timezone.now())
-            not_successful_msg = 'Пока нет запланированных курсов:'
+            future_courses = await Course.objects.async_filter(scheduled_at__gt=timezone.now(), published_in_bot=True)
+            if not future_courses:
+                msg, keyboard = await get_course_msg(
+                    future_courses,
+                    back='future_courses',
+                    not_successful_msg='Пока нет запланированных курсов:'
+                )
+                await event.answer(message=msg, keyboard=keyboard)
+                return 'COURSE'
+
             for i, future_courses_part in await sync_to_async(enumerate)(chunked(future_courses, 5), start=1):
                 if i == 1:
                     successful_msg = 'Предстоящие курсы. Выберите для детальной информации'
@@ -129,16 +140,23 @@ async def main_menu_handler(event: SimpleBotEvent):
                 msg, keyboard = await get_course_msg(
                     future_courses_part,
                     back='future_courses',
-                    successful_msg=successful_msg,
-                    not_successful_msg=not_successful_msg
+                    successful_msg=successful_msg
                 )
                 await event.answer(message=msg, keyboard=keyboard)
 
             return 'COURSE'
         # отправка прошедших курсов
         elif event.payload.get('button') == 'past_courses':
-            past_courses = await Course.objects.async_filter(scheduled_at__lte=timezone.now())
-            not_successful_msg = 'Еше нет прошедших курсов:'
+            past_courses = await Course.objects.async_filter(scheduled_at__lte=timezone.now(), published_in_bot=True)
+            if not past_courses:
+                msg, keyboard = await get_course_msg(
+                    past_courses,
+                    back='future_courses',
+                    not_successful_msg='Еше нет прошедших курсов:'
+                )
+                await event.answer(message=msg, keyboard=keyboard)
+                return 'COURSE'
+
             for i, past_courses_part in await sync_to_async(enumerate)(chunked(past_courses, 5), start=1):
                 if i == 1:
                     successful_msg = 'Прошедшие курсы. Выберите для детальной информации'
@@ -148,7 +166,6 @@ async def main_menu_handler(event: SimpleBotEvent):
                     past_courses_part,
                     back='past_courses',
                     successful_msg=successful_msg,
-                    not_successful_msg=not_successful_msg
                 )
                 await event.answer(message=msg, keyboard=keyboard)
 
