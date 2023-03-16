@@ -156,10 +156,11 @@ class CourseForm(forms.ModelForm):
 class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
     inlines = [CourseImageInline, ClientInline]
     list_display = [
-        '__str__', 'program', 'price', 'lecture', 'get_course_preview', 'get_count_participants', 'duration'
+        '__str__', 'program', 'price', 'lecture', 'get_course_preview',
+        'get_count_participants', 'duration', 'published_in_bot'
     ]
     readonly_fields = ['get_course_preview']
-    list_editable = ['price', 'program', 'duration']
+    list_editable = ['price', 'program', 'duration', 'published_in_bot']
     list_filter = ['scheduled_at', 'name', 'program', 'clients', ParticipantsCountFilter]
     save_on_top = True
     form = CourseForm

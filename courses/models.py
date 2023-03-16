@@ -171,6 +171,10 @@ class Course(models.Model):
         blank=True,
         null=True
     )
+    published_in_bot = models.BooleanField(
+        verbose_name='В боте',
+        default=True
+    )
 
     @admin.display(description='Участников')
     def get_count_participants(self):
