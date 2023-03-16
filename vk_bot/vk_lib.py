@@ -10,6 +10,7 @@ from courses.models import Course, CourseClient
 from vkwave.api import API, Token
 from vkwave.api.token.token import UserSyncSingleToken
 from more_itertools import chunked
+from typing import List
 
 BUTTONS_START = [
     ('Предстоящие курсы', 'future_courses'),
@@ -304,3 +305,28 @@ async def make_main_album_photo(vk_album_id, photo_id):
     async with aiohttp.ClientSession() as session:
         async with session.post(photos_makeсover_url, params=params):
             pass
+
+
+async def get_group_albums(owner_id: str, /) -> dict:
+    get_group_albums_url = 'https://api.vk.com/method/photos.getAlbums'
+    params = {
+        'access_token': settings.VK_USER_TOKEN,
+        'v': '5.131',
+        'owner_id': owner_id,
+    }
+    async with aiohttp.ClientSession() as session:
+        async with session.post(get_group_albums_url, params=params) as response:
+            return await sync_to_async(json.loads)(await response.text())
+
+
+async def get_album_photos(owner_id: str, album_id: str, /) -> dict:
+    get_album_photos_url = 'https://api.vk.com/method/photos.get'
+    params = {
+        'access_token': settings.VK_USER_TOKEN,
+        'v': '5.131',
+        'owner_id': owner_id,
+        'album_id': album_id,
+    }
+    async with aiohttp.ClientSession() as session:
+        async with session.post(get_album_photos_url, params=params) as response:
+            return await sync_to_async(json.loads)(await response.text())
