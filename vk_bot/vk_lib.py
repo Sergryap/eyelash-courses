@@ -235,8 +235,7 @@ async def upload_photos_in_album(photo_instances, vk_album_id):
             photo_order = []
             for i, photo in await sync_to_async(enumerate)(photo_sequence_part, start=1):
                 photo_order.append(photo)
-                image_link = photo.image.path if settings.DEBUG else photo.image.url
-                upload_photos.update({f'file{i}': open(image_link, 'rb')})
+                upload_photos.update({f'file{i}': open(photo.image.path, 'rb')})
             async with session.post(upload_url, data=upload_photos) as res:
                 saving_photos = await sync_to_async(json.loads)(await res.text())
             for closed_file in upload_photos.values():
