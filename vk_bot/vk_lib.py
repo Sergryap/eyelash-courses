@@ -301,13 +301,15 @@ async def make_main_album_photo(vk_album_id, photo_id):
             pass
 
 
-async def get_group_albums(owner_id: str, /) -> dict:
+async def get_group_albums(owner_id: str, album_ids: str = None, /) -> dict:
     get_group_albums_url = 'https://api.vk.com/method/photos.getAlbums'
     params = {
         'access_token': settings.VK_USER_TOKEN,
         'v': '5.131',
         'owner_id': owner_id,
     }
+    if album_ids:
+        params.update({'album_ids': album_ids})
     async with aiohttp.ClientSession() as session:
         async with session.post(get_group_albums_url, params=params) as response:
             return await sync_to_async(json.loads)(await response.text())
