@@ -33,4 +33,5 @@ OFFICE_LONG=<координата офиса long>
 SITE_HEADER=<SITE_HEADER>
 INDEX_TITLE=<INDEX_TITLE>
 SITE_TITLE=<SITE_TITLE>
+DB_URL=postgres://<пользователь postgres>:<пароль пользователя>@<хост базы данных>:<порт бд>/<имя бд>
 ```
