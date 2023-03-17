@@ -1,5 +1,6 @@
 import aiohttp
 import json
+import logging
 
 from django.conf import settings
 from asgiref.sync import sync_to_async
@@ -10,7 +11,9 @@ from courses.models import Course, CourseClient
 from vkwave.api import API, Token
 from vkwave.api.token.token import UserSyncSingleToken
 from more_itertools import chunked
-from typing import List
+
+logger = logging.getLogger('telegram')
+
 
 BUTTONS_START = [
     ('Предстоящие курсы', 'future_courses'),
@@ -74,6 +77,7 @@ async def entry_user_to_course(event: SimpleBotEvent, user_info, user_instance, 
     )
     await sync_to_async(course.clients.add)(user_instance)
     await sync_to_async(course.save)()
+    logger.warning(f'Клиент https://vk.com/id{event.user_id} записался на курс **{course.name.upper()}**')
 
 
 async def check_phone_button():

@@ -1,15 +1,13 @@
-import asyncio
 import random
-import aiohttp
-import json
 import re
+import logging
 
 from django.conf import settings
 from asgiref.sync import sync_to_async
 from vkwave.bots import SimpleBotEvent
 from vkwave.bots.storage.types import Key
 from vkwave.bots.storage.storages import Storage
-from courses.models import Client, Course, Program, CourseClient
+from courses.models import Client, Course
 from vkwave.bots.utils.keyboards.keyboard import Keyboard, ButtonColor
 from django.utils import timezone
 from more_itertools import chunked
@@ -23,6 +21,7 @@ from .vk_lib import (
     save_image_vk_id
 )
 from textwrap import dedent
+logger = logging.getLogger('telegram')
 
 storage = Storage()
 
@@ -308,6 +307,7 @@ async def send_main_menu_answer(event):
             await event.answer(message=dedent(text), keyboard=await get_button_menu())
             await sync_to_async(course.clients.remove)(user_instance)
             await sync_to_async(course.save)()
+            logger.warning(f'Клиент https://vk.com/id{event.user_id} отменил запись на курс **{course.name.upper()}**')
         else:
             await storage.put(Key(f'{user_id}_current_course'), course)
             if user_instance.phone_number:
