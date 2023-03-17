@@ -1,5 +1,7 @@
+import logging
 from django.conf import settings
 from django.core.management import BaseCommand
+from vk_bot.logger import MyLogsHandler
 from vk_bot.vk_bot import handle_users_reply
 from vk_bot.mat_filter import MatFilter
 from vkwave.bots import SimpleBotEvent,  SimpleLongPollBot, DefaultRouter, simple_bot_message_handler
@@ -15,6 +17,10 @@ class Command(BaseCommand):
 
 
 def start_vk_bot():
+    logger = logging.getLogger('telegram')
+    logger.setLevel(logging.WARNING)
+    logger.addHandler(MyLogsHandler(settings.TG_LOGGER_BOT, settings.TG_LOGGER_CHAT))
+    logger.warning('Бот "eyelash-courses" запущен')
 
     router = DefaultRouter()
 
