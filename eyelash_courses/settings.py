@@ -75,20 +75,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'eyelash_courses.wsgi.application'
 
 
-DATABASES = {
-    'default': dj_database_url.config(
-        env='DB_URL',
-        conn_max_age=600
-    ),
-}
-
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
+DATABASES = {'default': dj_database_url.config(env='DB_URL', conn_max_age=600)}
 
 
 # Password validation
