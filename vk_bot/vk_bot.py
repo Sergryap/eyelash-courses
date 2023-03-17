@@ -89,147 +89,10 @@ async def start(event: SimpleBotEvent):
 
 
 async def main_menu_handler(event: SimpleBotEvent):
-    user_id = event.user_id
-    api = event.api_ctx
-    user_instance = await Client.objects.async_get(vk_id=user_id)
-    user_info = {
-        'first_name': await storage.get(Key(f'{user_id}_first_name')),
-        'last_name': await storage.get(Key(f'{user_id}_last_name'))
-    }
     if event.payload:
-        # отправка курсов пользователя
-        if event.payload.get('button') == 'client_courses':
-            client_courses = await sync_to_async(user_instance.courses.all)()
-            i = 0
-            for client_courses_part in await sync_to_async(chunked)(client_courses, 5):
-                i += 1
-                if i == 1:
-                    successful_msg = 'Курсы, на которые вы записаны или проходили:'
-                else:
-                    successful_msg = 'Еще ваши курсы'
-                keyboard = await get_course_buttons(client_courses_part, back='client_courses')
-                await event.answer(message=successful_msg, keyboard=keyboard)
-            if i == 0:
-                keyboard = Keyboard(one_time=False, inline=True)
-                keyboard.add_text_button('☰ MENU', ButtonColor.SECONDARY, payload={'button': 'start'})
-                await event.answer(message='Вы еше не записаны ни на один курс:', keyboard=keyboard.get_keyboard())
-            return 'COURSE'
-
-        # отправка предстоящих курсов
-        elif event.payload.get('button') == 'future_courses':
-            future_courses = await Course.objects.async_filter(scheduled_at__gt=timezone.now(), published_in_bot=True)
-            if not future_courses:
-                keyboard = Keyboard(one_time=False, inline=True)
-                keyboard.add_text_button('☰ MENU', ButtonColor.SECONDARY, payload={'button': 'start'})
-                await event.answer(message='Пока нет запланированных курсов:', keyboard=keyboard.get_keyboard())
-                return 'COURSE'
-            for i, future_courses_part in await sync_to_async(enumerate)(chunked(future_courses, 5), start=1):
-                if i == 1:
-                    successful_msg = 'Предстоящие курсы. Выберите для детальной информации'
-                else:
-                    successful_msg = 'Еще предстоящие курсы:'
-                keyboard = await get_course_buttons(future_courses_part, back='future_courses')
-                await event.answer(message=successful_msg, keyboard=keyboard)
-            return 'COURSE'
-
-        # отправка прошедших курсов
-        elif event.payload.get('button') == 'past_courses':
-            past_courses = await Course.objects.async_filter(scheduled_at__lte=timezone.now(), published_in_bot=True)
-            if not past_courses:
-                keyboard = Keyboard(one_time=False, inline=True)
-                keyboard.add_text_button('☰ MENU', ButtonColor.SECONDARY, payload={'button': 'start'})
-                await event.answer(message='Еше нет прошедших курсов:', keyboard=keyboard.get_keyboard())
-                return 'COURSE'
-            for i, past_courses_part in await sync_to_async(enumerate)(chunked(past_courses, 5), start=1):
-                if i == 1:
-                    successful_msg = 'Прошедшие курсы. Выберите для детальной информации'
-                else:
-                    successful_msg = 'Еще прошедшие курсы:'
-                keyboard = await get_course_buttons(past_courses_part, back='past_courses')
-                await event.answer(message=successful_msg, keyboard=keyboard)
-            return 'COURSE'
-
-        elif event.payload.get('button') == 'admin_msg':
-            user_msg = f'{user_info["first_name"]}, введите и отправьте ваше сообщение:'
-            await event.answer(message=user_msg)
-        # отправка геолокации
-        elif event.payload.get('button') == 'search_us':
-            text = f'''
-                 {user_info['first_name']}, мы находимся по адресу:
-                 📍 г.Пермь, ул. Тургенева, д. 23.
-                 
-                 Это малоэтажное кирпичное здание слева от ТЦ "Агат" 
-                 Вход через "Идеал-Лик", большой стеклянный тамбур.
-                 '''
-            await api.messages.send(
-                user_id=user_id,
-                random_id=random.randint(0, 1000),
-                message=dedent(text),
-                lat=settings.OFFICE_LAT,
-                long=settings.OFFICE_LONG
-            )
-            await event.answer(
-                message='В главное меню:',
-                keyboard=await get_button_menu()
-            )
-        # запись/отмена участия на курсе
-        elif event.payload.get('entry'):
-            course_pk = event.payload.get('entry')
-            course = await Course.objects.async_get(pk=course_pk)
-            if event.payload.get('cancel'):
-                text = f'''
-                     {user_info['first_name']}, вы отменили запись на курс: {course.name}.
-                     Спасибо, что проявили интерес к нашей школе.
-                     Вы всегда можете вернуться снова и выбрать подходящий курс.
-                     '''
-                await event.answer(
-                    message=dedent(text),
-                    keyboard=await get_button_menu()
-                )
-                await sync_to_async(course.clients.remove)(user_instance)
-                await sync_to_async(course.save)()
-            else:
-                await storage.put(Key(f'{user_id}_current_course'), course)
-                if user_instance.phone_number:
-                    text = f'''
-                        Чтобы записаться проверьте ваш номер телефона:
-                        {user_instance.phone_number}                        
-                        '''
-                    await event.answer(
-                        message=dedent(text),
-                        keyboard=await check_phone_button()
-                    )
-                else:
-                    text = f'''
-                         {user_info['first_name']}, чтобы записаться на курс, укажите ваш номер телефона.                         
-                         '''
-                    await event.answer(
-                        message=dedent(text),
-                        keyboard=await get_button_menu()
-                    )
-                return 'PHONE'
-    # обработка произвольного сообщения пользователя
+        return await send_main_menu_answer(event)
     elif event.text:
-        msg = event.text
-        vk_profile = user_instance.vk_profile
-        admin_msg = f'''
-        Сообщение от {vk_profile} в чате https://vk.com/gim{settings.VK_GROUP_ID}:
-        "{msg}"
-        '''
-        user_msg = f'''
-        Ваше сообщение отправлено. Мы обязательно свяжемся с Вами!
-        '''
-        await api.messages.send(
-            random_id=random.randint(0, 1000),
-            user_ids=settings.ADMIN_IDS,
-            message=admin_msg
-        )
-        await event.answer(
-            message=user_msg,
-            keyboard=await get_button_menu()
-        )
-
-    return 'MAIN_MENU'
+        return await answer_arbitrary_text(event)
 
 
 async def handle_course_info(event: SimpleBotEvent):
@@ -288,6 +151,10 @@ async def handle_course_info(event: SimpleBotEvent):
                     back=event.payload['button'], course_pk=course_pk, user_id=user_id
                 )
             )
+    elif event.payload:
+        return await send_main_menu_answer(event)
+    elif event.text:
+        return await answer_arbitrary_text(event)
 
     return 'MAIN_MENU'
 
@@ -317,6 +184,10 @@ async def enter_phone(event: SimpleBotEvent):
             )
             return 'PHONE'
     # проверка формата введенного номера
+    elif event.payload and event.payload.get('button') == 'admin_msg':
+        user_msg = f'{user_info["first_name"]}, введите и отправьте ваше сообщение:'
+        await event.answer(message=user_msg)
+        return 'MAIN_MENU'
     else:
         phone = event.text
         pattern = re.compile(r'^(\+7|7|8)?[\s\-]?\(?[489][0-9]{2}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}$')
@@ -337,3 +208,144 @@ async def enter_phone(event: SimpleBotEvent):
                 keyboard=await get_button_menu()
             )
             return 'PHONE'
+
+
+#######################################
+## Функции, не являющиеся хэндлерами ##
+#######################################
+async def send_main_menu_answer(event):
+    user_id = event.user_id
+    user_instance = await Client.objects.async_get(vk_id=user_id)
+    user_info = {
+        'first_name': await storage.get(Key(f'{user_id}_first_name')),
+        'last_name': await storage.get(Key(f'{user_id}_last_name'))
+    }
+    # отправка курсов пользователя
+    if event.payload.get('button') == 'client_courses':
+        client_courses = await sync_to_async(user_instance.courses.filter)(published_in_bot=True)
+        i = 0
+        for client_courses_part in await sync_to_async(chunked)(client_courses, 5):
+            i += 1
+            if i == 1:
+                successful_msg = 'Курсы, на которые вы записаны или проходили:'
+            else:
+                successful_msg = 'Еще ваши курсы'
+            keyboard = await get_course_buttons(client_courses_part, back='client_courses')
+            await event.answer(message=successful_msg, keyboard=keyboard)
+        if i == 0:
+            keyboard = Keyboard(one_time=False, inline=True)
+            keyboard.add_text_button('☰ MENU', ButtonColor.SECONDARY, payload={'button': 'start'})
+            await event.answer(message='Вы еше не записаны ни на один курс:', keyboard=keyboard.get_keyboard())
+        return 'COURSE'
+
+    # отправка предстоящих курсов
+    elif event.payload.get('button') == 'future_courses':
+        future_courses = await Course.objects.async_filter(scheduled_at__gt=timezone.now(), published_in_bot=True)
+        if not future_courses:
+            keyboard = Keyboard(one_time=False, inline=True)
+            keyboard.add_text_button('☰ MENU', ButtonColor.SECONDARY, payload={'button': 'start'})
+            await event.answer(message='Пока нет запланированных курсов:', keyboard=keyboard.get_keyboard())
+            return 'COURSE'
+        for i, future_courses_part in await sync_to_async(enumerate)(chunked(future_courses, 5), start=1):
+            if i == 1:
+                successful_msg = 'Предстоящие курсы. Выберите для детальной информации'
+            else:
+                successful_msg = 'Еще предстоящие курсы:'
+            keyboard = await get_course_buttons(future_courses_part, back='future_courses')
+            await event.answer(message=successful_msg, keyboard=keyboard)
+        return 'COURSE'
+
+    # отправка прошедших курсов
+    elif event.payload.get('button') == 'past_courses':
+        past_courses = await Course.objects.async_filter(scheduled_at__lte=timezone.now(), published_in_bot=True)
+        if not past_courses:
+            keyboard = Keyboard(one_time=False, inline=True)
+            keyboard.add_text_button('☰ MENU', ButtonColor.SECONDARY, payload={'button': 'start'})
+            await event.answer(message='Еше нет прошедших курсов:', keyboard=keyboard.get_keyboard())
+            return 'COURSE'
+        for i, past_courses_part in await sync_to_async(enumerate)(chunked(past_courses, 5), start=1):
+            if i == 1:
+                successful_msg = 'Прошедшие курсы. Выберите для детальной информации'
+            else:
+                successful_msg = 'Еще прошедшие курсы:'
+            keyboard = await get_course_buttons(past_courses_part, back='past_courses')
+            await event.answer(message=successful_msg, keyboard=keyboard)
+        return 'COURSE'
+
+    elif event.payload.get('button') == 'admin_msg':
+        user_msg = f'{user_info["first_name"]}, введите и отправьте ваше сообщение:'
+        await event.answer(message=user_msg)
+
+    # отправка геолокации
+    elif event.payload.get('button') == 'search_us':
+        api = event.api_ctx
+        text = f'''
+             {user_info['first_name']}, мы находимся по адресу:
+             📍 г.Пермь, ул. Тургенева, д. 23.
+
+             Это малоэтажное кирпичное здание слева от ТЦ "Агат" 
+             Вход через "Идеал-Лик", большой стеклянный тамбур.
+             '''
+        await api.messages.send(
+            user_id=user_id,
+            random_id=random.randint(0, 1000),
+            message=dedent(text),
+            lat=settings.OFFICE_LAT,
+            long=settings.OFFICE_LONG
+        )
+        await event.answer(message='В главное меню:', keyboard=await get_button_menu())
+
+    # запись/отмена участия на курсе
+    elif event.payload.get('entry'):
+        course_pk = event.payload.get('entry')
+        course = await Course.objects.async_get(pk=course_pk)
+        if event.payload.get('cancel'):
+            text = f'''
+                 {user_info['first_name']}, вы отменили запись на курс: {course.name}.
+                 Спасибо, что проявили интерес к нашей школе.
+                 Вы всегда можете вернуться снова и выбрать подходящий курс.
+                 '''
+            await event.answer(message=dedent(text), keyboard=await get_button_menu())
+            await sync_to_async(course.clients.remove)(user_instance)
+            await sync_to_async(course.save)()
+        else:
+            await storage.put(Key(f'{user_id}_current_course'), course)
+            if user_instance.phone_number:
+                text = f'''
+                    Чтобы записаться проверьте ваш номер телефона:
+                    {user_instance.phone_number}                        
+                    '''
+                await event.answer(message=dedent(text), keyboard=await check_phone_button())
+            else:
+                text = f'''
+                     {user_info['first_name']}, чтобы записаться на курс, укажите ваш номер телефона.                         
+                     '''
+                await event.answer(message=dedent(text), keyboard=await get_button_menu())
+            return 'PHONE'
+
+    return 'MAIN_MENU'
+
+
+async def answer_arbitrary_text(event):
+    user_id = event.user_id
+    api = event.api_ctx
+    user_instance = await Client.objects.async_get(vk_id=user_id)
+    msg = event.text
+    vk_profile = user_instance.vk_profile
+    admin_msg = f'''
+            Сообщение от {vk_profile} в чате https://vk.com/gim{settings.VK_GROUP_ID}:
+            "{msg}"
+            '''
+    user_msg = f'''
+            Ваше сообщение отправлено. Мы обязательно свяжемся с Вами!
+            '''
+    await api.messages.send(
+        random_id=random.randint(0, 1000),
+        user_ids=settings.ADMIN_IDS,
+        message=admin_msg
+    )
+    await event.answer(
+        message=user_msg,
+        keyboard=await get_button_menu()
+    )
+    return 'MAIN_MENU'
