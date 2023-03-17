@@ -11,4 +11,3 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         album_ids = ','.join([str(album_id) for album_id in options['album_ids']])
         get_albums(options, album_ids)
-

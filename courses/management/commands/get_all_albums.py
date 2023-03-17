@@ -7,4 +7,3 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         get_albums(options)
-
