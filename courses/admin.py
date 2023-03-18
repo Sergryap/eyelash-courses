@@ -16,7 +16,6 @@ from vk_bot.vk_lib import (
     delete_photos,
     create_vk_album,
     edit_vk_album,
-    delete_album,
     make_main_album_photo
 )
 
@@ -211,14 +210,14 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
             if upload_photos:
                 async_to_sync(upload_photos_in_album)(upload_photos, vk_album_id)
 
-    def delete_model(self, request, obj):
-        super().delete_model(request, obj)
-        async_to_sync(delete_album)(obj)
-
-    def delete_queryset(self, request, queryset):
-        for course in queryset:
-            async_to_sync(delete_album)(course)
-        queryset.delete()
+    # def delete_model(self, request, obj):
+    #     super().delete_model(request, obj)
+    #     async_to_sync(delete_album)(obj)
+    #
+    # def delete_queryset(self, request, queryset):
+    #     for course in queryset:
+    #         async_to_sync(delete_album)(course)
+    #     queryset.delete()
 
     def save_formset(self, request, form, formset, change):
         super().save_formset(request, form, formset, change)
