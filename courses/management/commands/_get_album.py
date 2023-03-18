@@ -41,7 +41,7 @@ def get_albums(options: dict, albums_ids: str = None):
                 CourseImage(
                     image_vk_id=f'photo{owner_id}_{photo_id}',
                     course=course,
-                    image=ContentFile(response.content, name=md5(response.content).hexdigest())
+                    image=ContentFile(response.content, name=f'{md5(response.content).hexdigest()}.jpg')
                 )
             )
         CourseImage.objects.bulk_create(photo_instances)
