@@ -243,7 +243,8 @@ async def send_main_menu_answer(event):
             event, future_courses,
             'Пока нет запланированных курсов:',
             'Предстоящие курсы. Выберите для детальной информации',
-            'Еще предстоящие курсы:'
+            'Еще предстоящие курсы:',
+            back='future_courses'
         )
     # отправка прошедших курсов
     elif event.payload.get('button') == 'past_courses':
@@ -252,7 +253,8 @@ async def send_main_menu_answer(event):
             event, past_courses,
             'Еше нет прошедших курсов:',
             'Прошедшие курсы. Выберите для детальной информации',
-            'Еще прошедшие курсы:'
+            'Еще прошедшие курсы:',
+            back='past_courses'
         )
     elif event.payload.get('button') == 'admin_msg':
         user_msg = f'{user_info["first_name"]}, введите и отправьте ваше сообщение:'
@@ -334,7 +336,7 @@ async def answer_arbitrary_text(event):
     return 'MAIN_MENU'
 
 
-async def send_courses(event, courses, msg1, msg2, msg3, /):
+async def send_courses(event, courses, msg1, msg2, msg3, /, *, back):
     if not courses:
         keyboard = Keyboard(one_time=False, inline=True)
         keyboard.add_text_button('☰ MENU', ButtonColor.SECONDARY, payload={'button': 'start'})
@@ -345,6 +347,6 @@ async def send_courses(event, courses, msg1, msg2, msg3, /):
             successful_msg = msg2
         else:
             successful_msg = msg3
-        keyboard = await get_course_buttons(past_courses_part, back='past_courses')
+        keyboard = await get_course_buttons(past_courses_part, back=back)
         await event.answer(message=successful_msg, keyboard=keyboard)
     return 'COURSE'
