@@ -236,41 +236,24 @@ async def send_main_menu_answer(event):
             keyboard.add_text_button('☰ MENU', ButtonColor.SECONDARY, payload={'button': 'start'})
             await event.answer(message='Вы еше не записаны ни на один курс:', keyboard=keyboard.get_keyboard())
         return 'COURSE'
-
     # отправка предстоящих курсов
     elif event.payload.get('button') == 'future_courses':
         future_courses = await Course.objects.async_filter(scheduled_at__gt=timezone.now(), published_in_bot=True)
-        if not future_courses:
-            keyboard = Keyboard(one_time=False, inline=True)
-            keyboard.add_text_button('☰ MENU', ButtonColor.SECONDARY, payload={'button': 'start'})
-            await event.answer(message='Пока нет запланированных курсов:', keyboard=keyboard.get_keyboard())
-            return 'COURSE'
-        for i, future_courses_part in await sync_to_async(enumerate)(chunked(future_courses, 5), start=1):
-            if i == 1:
-                successful_msg = 'Предстоящие курсы. Выберите для детальной информации'
-            else:
-                successful_msg = 'Еще предстоящие курсы:'
-            keyboard = await get_course_buttons(future_courses_part, back='future_courses')
-            await event.answer(message=successful_msg, keyboard=keyboard)
-        return 'COURSE'
-
+        return await send_courses(
+            event, future_courses,
+            'Пока нет запланированных курсов:',
+            'Предстоящие курсы. Выберите для детальной информации',
+            'Еще предстоящие курсы:'
+        )
     # отправка прошедших курсов
     elif event.payload.get('button') == 'past_courses':
         past_courses = await Course.objects.async_filter(scheduled_at__lte=timezone.now(), published_in_bot=True)
-        if not past_courses:
-            keyboard = Keyboard(one_time=False, inline=True)
-            keyboard.add_text_button('☰ MENU', ButtonColor.SECONDARY, payload={'button': 'start'})
-            await event.answer(message='Еше нет прошедших курсов:', keyboard=keyboard.get_keyboard())
-            return 'COURSE'
-        for i, past_courses_part in await sync_to_async(enumerate)(chunked(past_courses, 5), start=1):
-            if i == 1:
-                successful_msg = 'Прошедшие курсы. Выберите для детальной информации'
-            else:
-                successful_msg = 'Еще прошедшие курсы:'
-            keyboard = await get_course_buttons(past_courses_part, back='past_courses')
-            await event.answer(message=successful_msg, keyboard=keyboard)
-        return 'COURSE'
-
+        return await send_courses(
+            event, past_courses,
+            'Еше нет прошедших курсов:',
+            'Прошедшие курсы. Выберите для детальной информации',
+            'Еще прошедшие курсы:'
+        )
     elif event.payload.get('button') == 'admin_msg':
         user_msg = f'{user_info["first_name"]}, введите и отправьте ваше сообщение:'
         await event.answer(message=user_msg)
@@ -349,3 +332,19 @@ async def answer_arbitrary_text(event):
         keyboard=await get_button_menu()
     )
     return 'MAIN_MENU'
+
+
+async def send_courses(event, courses, msg1, msg2, msg3, /):
+    if not courses:
+        keyboard = Keyboard(one_time=False, inline=True)
+        keyboard.add_text_button('☰ MENU', ButtonColor.SECONDARY, payload={'button': 'start'})
+        await event.answer(message=msg1, keyboard=keyboard.get_keyboard())
+        return 'COURSE'
+    for i, past_courses_part in await sync_to_async(enumerate)(chunked(courses, 5), start=1):
+        if i == 1:
+            successful_msg = msg2
+        else:
+            successful_msg = msg3
+        keyboard = await get_course_buttons(past_courses_part, back='past_courses')
+        await event.answer(message=successful_msg, keyboard=keyboard)
+    return 'COURSE'
