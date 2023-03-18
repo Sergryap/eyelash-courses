@@ -65,8 +65,9 @@ async def get_button_course_menu(back, course_pk, user_id):
 
 
 async def entry_user_to_course(event: SimpleBotEvent, user_info, user_instance, course):
+    name = user_info['first_name']
     text = f'''
-         {user_info['first_name']}, вы записаны на курс:
+         {name}, вы записаны на курс:
          **{course.name.upper()}**
          Спасибо, что выбрали нашу школу.
          В ближайшее время мы свяжемся с вами для подтверждения вашего участия.
@@ -77,7 +78,9 @@ async def entry_user_to_course(event: SimpleBotEvent, user_info, user_instance, 
     )
     await sync_to_async(course.clients.add)(user_instance)
     await sync_to_async(course.save)()
-    logger.warning(f'Клиент https://vk.com/id{event.user_id}: {user_instance.phone_number} записался на курс **{course.name.upper()}**')
+    client_vk = f'https://vk.com/id{event.user_id}'
+    phone = user_instance.phone_number
+    logger.warning(f'Клиент {name}\n{client_vk}:\nТел: {phone}\nзаписался на курс **{course.name.upper()}**')
 
 
 async def check_phone_button():
