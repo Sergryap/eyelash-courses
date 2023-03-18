@@ -7,7 +7,7 @@ from asgiref.sync import sync_to_async
 from vkwave.bots import SimpleBotEvent
 from vkwave.bots.storage.types import Key
 from vkwave.bots.storage.storages import Storage
-from courses.models import Client, Course
+from courses.models import Client, Course, Office
 from vkwave.bots.utils.keyboards.keyboard import Keyboard, ButtonColor
 from django.utils import timezone
 from more_itertools import chunked
@@ -77,7 +77,7 @@ async def start(event: SimpleBotEvent):
     for i, (btn, payload) in await sync_to_async(enumerate)(buttons, start=1):
         keyboard.add_text_button(
             btn,
-            ButtonColor.PRIMARY,
+            ButtonColor.SECONDARY,
             payload={'button': payload}
         )
         if i != len(buttons):
@@ -222,20 +222,13 @@ async def send_main_menu_answer(event):
     # отправка курсов пользователя
     if event.payload.get('button') == 'client_courses':
         client_courses = await sync_to_async(user_instance.courses.filter)(published_in_bot=True)
-        i = 0
-        for client_courses_part in await sync_to_async(chunked)(client_courses, 5):
-            i += 1
-            if i == 1:
-                successful_msg = 'Курсы, на которые вы записаны или проходили:'
-            else:
-                successful_msg = 'Еще ваши курсы'
-            keyboard = await get_course_buttons(client_courses_part, back='client_courses')
-            await event.answer(message=successful_msg, keyboard=keyboard)
-        if i == 0:
-            keyboard = Keyboard(one_time=False, inline=True)
-            keyboard.add_text_button('☰ MENU', ButtonColor.SECONDARY, payload={'button': 'start'})
-            await event.answer(message='Вы еше не записаны ни на один курс:', keyboard=keyboard.get_keyboard())
-        return 'COURSE'
+        return await send_courses(
+            event, client_courses,
+            'Вы еше не записаны ни на один курс:',
+            'Курсы, на которые вы записаны или проходили:',
+            'Еще ваши курсы',
+            back='client_courses'
+        )
     # отправка предстоящих курсов
     elif event.payload.get('button') == 'future_courses':
         future_courses = await Course.objects.async_filter(scheduled_at__gt=timezone.now(), published_in_bot=True)
@@ -263,17 +256,12 @@ async def send_main_menu_answer(event):
     # отправка геолокации
     elif event.payload.get('button') == 'search_us':
         api = event.api_ctx
-        text = f'''
-             {user_info['first_name']}, мы находимся по адресу:
-             📍 г.Пермь, ул. Тургенева, д. 23.
-
-             Это малоэтажное кирпичное здание слева от ТЦ "Агат" 
-             Вход через "Идеал-Лик", большой стеклянный тамбур.
-             '''
+        office = await Office.objects.async_first()
+        text = f'{user_info["first_name"]}, мы находимся по адресу:\n\n{office.address}\n{office.description}'
         await api.messages.send(
             user_id=user_id,
             random_id=random.randint(0, 1000),
-            message=dedent(text),
+            message=text,
             lat=settings.OFFICE_LAT,
             long=settings.OFFICE_LONG
         )
@@ -336,17 +324,28 @@ async def answer_arbitrary_text(event):
     return 'MAIN_MENU'
 
 
-async def send_courses(event, courses, msg1, msg2, msg3, /, *, back):
+async def send_courses_v(event, courses, msg1, msg2, msg3, /, *, back):
     if not courses:
         keyboard = Keyboard(one_time=False, inline=True)
         keyboard.add_text_button('☰ MENU', ButtonColor.SECONDARY, payload={'button': 'start'})
         await event.answer(message=msg1, keyboard=keyboard.get_keyboard())
         return 'COURSE'
     for i, past_courses_part in await sync_to_async(enumerate)(chunked(courses, 5), start=1):
-        if i == 1:
-            successful_msg = msg2
-        else:
-            successful_msg = msg3
+        msg = msg2 if i == 1 else msg3
         keyboard = await get_course_buttons(past_courses_part, back=back)
-        await event.answer(message=successful_msg, keyboard=keyboard)
+        await event.answer(message=msg, keyboard=keyboard)
+    return 'COURSE'
+
+
+async def send_courses(event, courses, msg1, msg2, msg3, /, *, back):
+    i = 0
+    for client_courses_part in await sync_to_async(chunked)(courses, 5):
+        i += 1
+        msg = msg2 if i == 1 else msg3
+        keyboard = await get_course_buttons(client_courses_part, back=back)
+        await event.answer(message=msg, keyboard=keyboard)
+    if i == 0:
+        keyboard = Keyboard(one_time=False, inline=True)
+        keyboard.add_text_button('☰ MENU', ButtonColor.SECONDARY, payload={'button': 'start'})
+        await event.answer(message=msg1, keyboard=keyboard.get_keyboard())
     return 'COURSE'
