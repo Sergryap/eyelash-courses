@@ -20,9 +20,54 @@
 1. Создание постов через admin Django и управление ими.
 2. Анализ аудитории.
 
-#### Перед запуском необходимо создать файл для переменных окружения `.env`:
+## Как запустить prod-версию сайта
+
+#### Арендуйте удаленный сервер и установите на нем последнюю версию OS Ubuntu
+
+Установите Postgresql, git, pip, venv, nginx:
+```sh
+sudo apt update
+sudo apt -y install git
+sudo apt -y install postgresql
+sudo apt -y install python3-pip
+sudo apt -y install python3-venv
+sudo apt -y install nginx
+```
+
+#### Создайте базу данных Postgres и пользователя для работы с ней:
+```sh
+sudo su - postgres
+psql
+CREATE DATABASE <имя базы данных>;
+CREATE USER <пользователь postgres> WITH PASSWORD '<пароль для пользователя>';
+ALTER ROLE <имя пользователя> SET client_encoding TO 'utf8';
+GRANT ALL PRIVILEGES ON DATABASE <имя базы данных> TO <имя пользователя>;
+```
+
+#### Скачайте код проекта в каталог `/opt` корневого каталога сервера:
+```sh
+cd /
+cd /opt
+git clone https://github.com/Sergryap/eyelash-courses.git
+```
+
+#### В каталоге проекта создайте виртуальное окружение:
+```sh
+cd opt/eyelash-courses
+python3 -m venv venv
+source venv/bin/activate
+```
+
+#### Установите зависимости в виртуальное окружение:
+```sh
+pip install -r requirements.txt
+pip install gunicorn
 
 ```
+
+#### Перед запуском необходимо создать файл для переменных окружения `.env`:
+
+```sh
 SECRET_KEY=<django secret key>
 VK_TOKEN=<токен сообщества ВК>
 VK_USER_TOKEN=<токен пользователя ВК>
@@ -36,4 +81,18 @@ SITE_HEADER=<SITE_HEADER>
 INDEX_TITLE=<INDEX_TITLE>
 SITE_TITLE=<SITE_TITLE>
 DB_URL=postgres://<пользователь postgres>:<пароль пользователя>@<хост базы данных>:<порт бд>/<имя бд>
+```
+
+#### Выполните миграцию базы данных:
+
+```sh
+python3 manage.py migrate
+```
+#### Создайте суперпользователя:
+```sh
+python3 manage.py createsuperuser
+```
+#### Соберите статику для prod-версии:
+```sh
+python3 manage.py collectstatic
 ```
