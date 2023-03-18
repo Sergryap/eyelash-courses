@@ -20,6 +20,16 @@
 1. Создание постов через admin Django и управление ими.
 2. Анализ аудитории.
 
+#### Создать базу данных Postgres и пользователя для работы с ней:
+```sh
+sudo su - postgres
+psql
+CREATE DATABASE <имя базы данных>;
+CREATE USER <пользователь postgres> WITH PASSWORD '<пароль для пользователя>';
+ALTER ROLE <имя пользователя> SET client_encoding TO 'utf8';
+GRANT ALL PRIVILEGES ON DATABASE <имя базы данных> TO <имя пользователя>;
+```
+
 #### Перед запуском необходимо создать файл для переменных окружения `.env`:
 
 ```
