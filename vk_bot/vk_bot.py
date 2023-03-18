@@ -55,7 +55,13 @@ async def handle_users_reply(event: SimpleBotEvent):
     if (event.text.lower().strip() in ['start', '/start', 'начать', 'старт']
             or event.payload and event.payload.get('button') == 'start'):
         user_state = 'START'
-        await event.answer(message='Переход в главное меню', keyboard=await get_button_menu(inline=False))
+        msg = f'''
+            Привет, {await storage.get(Key(f"{user_id}_first_name"))}, я бот этого чата.
+            Выберите, чтобы вы хотели.
+            Для записи на курс нажмите:
+            "Предстоящие курсы"             
+            '''
+        await event.answer(message=dedent(msg), keyboard=await get_button_menu(inline=False))
     else:
         user_state = user.bot_state
 
@@ -71,7 +77,6 @@ async def start(event: SimpleBotEvent):
         'first_name': await storage.get(Key(f'{user_id}_first_name')),
         'last_name': await storage.get(Key(f'{user_id}_last_name'))
     }
-    msg = f'{user_info["first_name"]}, выберите, чтобы вы хотели:'
     keyboard = Keyboard(one_time=False, inline=True)
     buttons = BUTTONS_START
     for i, (btn, payload) in await sync_to_async(enumerate)(buttons, start=1):
@@ -82,7 +87,7 @@ async def start(event: SimpleBotEvent):
         )
         if i != len(buttons):
             keyboard.add_row()
-    await event.answer(message=msg, keyboard=keyboard.get_keyboard())
+    await event.answer(message='MENU:', keyboard=keyboard.get_keyboard())
 
     return 'MAIN_MENU'
 
