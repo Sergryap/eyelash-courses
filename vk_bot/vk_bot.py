@@ -72,11 +72,6 @@ async def handle_users_reply(event: SimpleBotEvent):
 
 
 async def start(event: SimpleBotEvent):
-    user_id = event.user_id
-    user_info = {
-        'first_name': await storage.get(Key(f'{user_id}_first_name')),
-        'last_name': await storage.get(Key(f'{user_id}_last_name'))
-    }
     keyboard = Keyboard(one_time=False, inline=True)
     buttons = BUTTONS_START
     for i, (btn, payload) in await sync_to_async(enumerate)(buttons, start=1):
@@ -102,7 +97,6 @@ async def main_menu_handler(event: SimpleBotEvent):
 async def handle_course_info(event: SimpleBotEvent):
     api = event.api_ctx
     user_id = event.user_id
-    user_instance = await Client.objects.async_get(vk_id=user_id)
     if event.payload and event.payload.get('course_pk'):
         course_pk = event.payload['course_pk']
         course = await Course.objects.async_get(pk=course_pk)
@@ -306,22 +300,19 @@ async def send_main_menu_answer(event):
 
 
 async def answer_arbitrary_text(event):
-    user_id = event.user_id
     api = event.api_ctx
-    user_instance = await Client.objects.async_get(vk_id=user_id)
-    msg = event.text
+    user_instance = await Client.objects.async_get(vk_id=event.user_id)
     vk_profile = user_instance.vk_profile
     admin_msg = f'''
-            Сообщение от {vk_profile} в чате https://vk.com/gim{settings.VK_GROUP_ID}:
-            "{msg}"
+            Сообщение от {vk_profile}
+            в чате https://vk.com/gim{settings.VK_GROUP_ID}:
+            "{event.text}"
             '''
-    user_msg = f'''
-            Ваше сообщение отправлено. Мы обязательно свяжемся с Вами!
-            '''
+    user_msg = f'Ваше сообщение отправлено. Мы обязательно свяжемся с Вами!'
     await api.messages.send(
         random_id=random.randint(0, 1000),
         user_ids=settings.ADMIN_IDS,
-        message=admin_msg
+        message=dedent(admin_msg)
     )
     await event.answer(
         message=user_msg,

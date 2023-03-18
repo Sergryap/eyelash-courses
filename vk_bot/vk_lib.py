@@ -7,7 +7,7 @@ from asgiref.sync import sync_to_async
 from vkwave.bots import SimpleBotEvent
 from vkwave.bots.utils.keyboards.keyboard import Keyboard, ButtonColor
 from textwrap import dedent
-from courses.models import Course, CourseClient
+from courses.models import CourseClient
 from vkwave.api import API, Token
 from vkwave.api.token.token import UserSyncSingleToken
 from more_itertools import chunked
@@ -25,7 +25,6 @@ BUTTONS_START = [
 
 
 async def get_course_buttons(course_instances, back):
-    count_courses = len(course_instances)
     keyboard = Keyboard(one_time=False, inline=True)
     for course in course_instances:
         keyboard.add_text_button(
@@ -35,7 +34,6 @@ async def get_course_buttons(course_instances, back):
         )
         keyboard.add_row()
     keyboard.add_text_button('☰ MENU', ButtonColor.PRIMARY, payload={'button': 'start'})
-
     return keyboard.get_keyboard()
 
 
@@ -43,7 +41,6 @@ async def get_button_menu(inline=True):
     keyboard = Keyboard(one_time=False, inline=inline)
     buttons_color = ButtonColor.SECONDARY
     keyboard.add_text_button('☰ MENU', buttons_color, payload={'button': 'start'})
-
     return keyboard.get_keyboard()
 
 
@@ -60,7 +57,6 @@ async def get_button_course_menu(back, course_pk, user_id):
     keyboard.add_text_button('НАЗАД', ButtonColor.SECONDARY, payload={'button': back})
     keyboard.add_row()
     keyboard.add_text_button('☰ MENU', ButtonColor.PRIMARY, payload={'button': 'start'})
-
     return keyboard.get_keyboard()
 
 
@@ -90,7 +86,6 @@ async def check_phone_button():
     keyboard.add_text_button('УКАЖУ ДРУГОЙ', ButtonColor.PRIMARY, payload={'check_phone': 'false'})
     keyboard.add_row()
     keyboard.add_text_button('☰ MENU', ButtonColor.SECONDARY, payload={'button': 'start'})
-
     return keyboard.get_keyboard()
 
 
@@ -236,7 +231,6 @@ async def upload_photos_in_album(photo_instances, vk_album_id):
                     params={**params, 'album_id': vk_album_id, 'group_id': settings.VK_GROUP_ID}
             ) as upload_res:
                 upload = await sync_to_async(json.loads)(await upload_res.text())
-
             upload_url = upload['response']['upload_url']
             upload_photos = {}
             photo_order = []

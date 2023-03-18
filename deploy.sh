@@ -1,7 +1,6 @@
 # #!/bin/bash
 set -Eeuo pipefail
-cd /
-cd /opt/eyelash-courses
+cd /opt/eyelash-courses/
 git pull
 sudo systemctl daemon-reload
 sudo systemctl restart django-bot-example.service
