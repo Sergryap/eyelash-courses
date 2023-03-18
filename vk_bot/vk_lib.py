@@ -77,7 +77,7 @@ async def entry_user_to_course(event: SimpleBotEvent, user_info, user_instance, 
     )
     await sync_to_async(course.clients.add)(user_instance)
     await sync_to_async(course.save)()
-    logger.warning(f'Клиент https://vk.com/id{event.user_id} записался на курс **{course.name.upper()}**')
+    logger.warning(f'Клиент https://vk.com/id{event.user_id}: {user_instance.phone_number} записался на курс **{course.name.upper()}**')
 
 
 async def check_phone_button():
