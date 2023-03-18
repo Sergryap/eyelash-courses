@@ -105,11 +105,10 @@ async def handle_course_info(event: SimpleBotEvent):
         attachment = None
 
         if await sync_to_async(bool)(course_images):
-            random_image = await sync_to_async(random.choice)(course_images)
-            if not random_image.image_vk_id:
-                await save_image_vk_id(random_image)
-            else:
-                attachment = random_image.image_vk_id
+            random_images = await sync_to_async(random.choices)(course_images, k=4)
+            random_attachment = [image.image_vk_id for image in random_images if image.image_vk_id]
+            if random_attachment:
+                attachment = ','.join(random_attachment)
 
         text = f'''            
             {course.name.upper()}:
