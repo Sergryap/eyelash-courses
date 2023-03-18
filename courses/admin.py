@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib import admin
 from django import forms
 from django.utils.html import format_html
-from courses.models import Client, Course, Lecturer, Program, CourseClient, CourseImage
+from courses.models import Client, Course, Lecturer, Program, CourseClient, CourseImage, Office
 from adminsortable2.admin import SortableAdminMixin, SortableTabularInline, SortableAdminBase
 from django.db.models import Count, Value
 from import_export import resources
@@ -141,6 +141,12 @@ class ParticipantsCountFilter(admin.SimpleListFilter):
 class ProgramAdmin(admin.ModelAdmin, PreviewMixin):
     inlines = [CourseProgramInline]
     list_display = ['title', 'short_description', 'description', 'get_preview']
+    readonly_fields = ['get_preview']
+
+
+@admin.register(Office)
+class OfficeAdmin(admin.ModelAdmin, PreviewMixin):
+    list_display = ['title', 'get_preview', 'address', 'long', 'lat']
     readonly_fields = ['get_preview']
 
 

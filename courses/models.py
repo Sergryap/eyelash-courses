@@ -4,7 +4,50 @@ from django.utils import timezone
 from phonenumber_field.modelfields import PhoneNumberField
 from django.contrib import admin
 from tinymce.models import HTMLField
-from django.core.validators import MaxValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
+
+
+class Office(models.Model):
+    title = models.CharField(
+        verbose_name='Название офиса',
+        max_length=150,
+    )
+    address = models.CharField(
+        verbose_name='Адрес',
+        max_length=150,
+    )
+    description = models.TextField(
+        verbose_name='Описание',
+        blank=True,
+        null=True,
+    )
+    image = models.ImageField(
+        verbose_name='Фото офиса',
+        upload_to='office'
+    )
+    long = models.DecimalField(
+        max_digits=17,
+        decimal_places=14,
+        validators=[
+            MinValueValidator(limit_value=-180),
+            MaxValueValidator(limit_value=180)
+        ]
+    )
+    lat = models.DecimalField(
+        max_digits=16,
+        decimal_places=14,
+        validators=[
+            MinValueValidator(limit_value=-90),
+            MaxValueValidator(limit_value=90)
+        ]
+    )
+
+    def __str__(self):
+        return f'{self.title}'
+
+    class Meta:
+        verbose_name = 'офис'
+        verbose_name_plural = 'офисы'
 
 
 class Program(models.Model):
