@@ -262,8 +262,9 @@ async def send_main_menu_answer(event):
             user_id=user_id,
             random_id=random.randint(0, 1000),
             message=text,
-            lat=settings.OFFICE_LAT,
-            long=settings.OFFICE_LONG
+            lat=office.lat,
+            long=office.long,
+            attachment=settings.OFFICE_PHOTO
         )
         await event.answer(message='В главное меню:', keyboard=await get_button_menu())
 
