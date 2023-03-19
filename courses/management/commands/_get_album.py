@@ -31,8 +31,11 @@ def get_albums(options: dict, albums_ids: str = None):
         )
         photos = async_to_sync(get_album_photos)(owner_id, album_id)
         photo_instances = []
+        i = 0
         for photo in photos['response']['items']:
+            i += 1
             photo_id = photo['id']
+            print(f'Загружаю фото: {photo_id}')
             photo_url = photo['sizes'][-1]['url']
             text = photo['text']
             response = requests.get(photo_url)
@@ -44,4 +47,8 @@ def get_albums(options: dict, albums_ids: str = None):
                     image=ContentFile(response.content, name=f'{md5(response.content).hexdigest()}.jpg')
                 )
             )
-        CourseImage.objects.bulk_create(photo_instances)
+            if i == 5:
+                CourseImage.objects.bulk_create(photo_instances)
+                photo_instances = []
+                i = 0
+
