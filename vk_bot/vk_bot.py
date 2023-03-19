@@ -108,7 +108,8 @@ async def handle_course_info(event: SimpleBotEvent):
 
         if await sync_to_async(bool)(course_images):
             if course.name == 'Фотогалерея':
-                attachment_sequence = [image.image_vk_id for image in course_images if image.image_vk_id]
+                random_images = await sync_to_async(random.shuffle)(course_images)
+                attachment_sequence = [image.image_vk_id for image in random_images if image.image_vk_id]
             else:
                 random_images = await sync_to_async(random.choices)(course_images, k=4)
                 attachment_sequence = [image.image_vk_id for image in random_images if image.image_vk_id]
