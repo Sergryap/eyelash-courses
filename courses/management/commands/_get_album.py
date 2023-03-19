@@ -54,4 +54,8 @@ def get_albums(options: dict, albums_ids: str = None):
                 photo_instances.clear()
                 i = 0
                 time.sleep(2)
+        if i != 0:
+            CourseImage.objects.bulk_create(photo_instances)
+            photo_instances.clear()
+            time.sleep(2)
 
