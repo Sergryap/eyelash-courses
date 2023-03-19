@@ -107,10 +107,23 @@ async def handle_course_info(event: SimpleBotEvent):
         attachment = None
 
         if await sync_to_async(bool)(course_images):
-            random_images = await sync_to_async(random.choices)(course_images, k=4)
-            random_attachment = [image.image_vk_id for image in random_images if image.image_vk_id]
-            if random_attachment:
-                attachment = ','.join(random_attachment)
+            if course.name == 'Фотогалерея':
+                attachment_sequence = [image.image_vk_id for image in course_images if image.image_vk_id]
+            else:
+                random_images = await sync_to_async(random.choices)(course_images, k=4)
+                attachment_sequence = [image.image_vk_id for image in random_images if image.image_vk_id]
+            if attachment_sequence:
+                attachment = ','.join(attachment_sequence)
+
+        if course.name == 'Фотогалерея':
+            await event.answer(
+                message='Фото с прошедших курсов:',
+                attachment=attachment,
+                keyboard=await get_button_course_menu(
+                    back=event.payload['button'], course_pk=course_pk, user_id=user_id
+                )
+            )
+            return 'MAIN_MENU'
 
         text = f'''            
             {course.name.upper()}:
@@ -245,7 +258,7 @@ async def send_main_menu_answer(event):
         return await send_courses(
             event, past_courses,
             'Еше нет прошедших курсов:',
-            'Прошедшие курсы. Выберите для детальной информации',
+            'Прошедшие курсы',
             'Еще прошедшие курсы:',
             back='past_courses'
         )

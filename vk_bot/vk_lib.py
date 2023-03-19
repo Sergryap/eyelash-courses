@@ -26,13 +26,19 @@ BUTTONS_START = [
 
 async def get_course_buttons(course_instances, back):
     keyboard = Keyboard(one_time=False, inline=True)
+    gallery_payload = None
     for course in course_instances:
+        if course.name == 'Фотогалерея':
+            gallery_payload = {'course_pk': course.pk, 'button': back}
+            continue
         keyboard.add_text_button(
             course.name,
             ButtonColor.SECONDARY,
             payload={'course_pk': course.pk, 'button': back}
         )
         keyboard.add_row()
+    if gallery_payload:
+        keyboard.add_text_button('ГАЛЕРЕЯ', ButtonColor.PRIMARY, payload=gallery_payload)
     keyboard.add_text_button('☰ MENU', ButtonColor.PRIMARY, payload={'button': 'start'})
     return keyboard.get_keyboard()
 
