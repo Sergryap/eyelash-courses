@@ -47,8 +47,8 @@ def get_albums(options: dict, albums_ids: str = None):
                     image=ContentFile(response.content, name=f'{md5(response.content).hexdigest()}.jpg')
                 )
             )
-            if i == 5:
+            if i == 3:
                 CourseImage.objects.bulk_create(photo_instances)
-                photo_instances = []
+                photo_instances.clear()
                 i = 0
 
