@@ -1,3 +1,5 @@
+import time
+
 import requests
 from vk_bot.vk_lib import get_group_albums, get_album_photos
 from django.conf import settings
@@ -51,4 +53,5 @@ def get_albums(options: dict, albums_ids: str = None):
                 CourseImage.objects.bulk_create(photo_instances)
                 photo_instances.clear()
                 i = 0
+                time.sleep(2)
 
