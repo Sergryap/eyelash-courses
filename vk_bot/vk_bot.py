@@ -37,6 +37,7 @@ async def handle_users_reply(event: SimpleBotEvent):
         'COURSE': handle_course_info,
         'PHONE': enter_phone,
     }
+    start_buttons = ['start', '/start', 'начать', 'старт', '+']
 
     if not await storage.contains(Key(f'{user_id}_first_name')):
         user_data = (await api.users.get(user_ids=user_id)).response[0]
@@ -52,16 +53,17 @@ async def handle_users_reply(event: SimpleBotEvent):
         }
     )
 
-    if (event.text.lower().strip() in ['start', '/start', 'начать', 'старт']
+    if (event.text.lower().strip() in start_buttons
             or event.payload and event.payload.get('button') == 'start'):
         user_state = 'START'
-        msg = f'''
-            Привет, {await storage.get(Key(f"{user_id}_first_name"))}, я бот этого чата.
-            Выберите, чтобы вы хотели.
-            Для записи на курс нажмите:
-            "Предстоящие курсы"             
-            '''
-        await event.answer(message=dedent(msg), keyboard=await get_button_menu(inline=False))
+        if event.text.lower().strip() in start_buttons:
+            msg = f'''
+                Привет, {await storage.get(Key(f"{user_id}_first_name"))}, я бот этого чата.
+                Здесь вы можете узнать всю актуальную информацию о наших курсах и при желании оставить заявку.
+                Для записи на курс нажмите:
+                "Предстоящие курсы"             
+                '''
+            await event.answer(message=dedent(msg), keyboard=await get_button_menu(inline=False))
     else:
         user_state = user.bot_state
 
@@ -173,11 +175,11 @@ async def enter_phone(event: SimpleBotEvent):
         # если клиент захотел указать другой номер
         else:
             text = f'''
-                 {user_info['first_name']}, чтобы записаться на курс, укажите актуальный номер телефона.                         
+                 {user_info['first_name']}, чтобы записаться на курс,
+                 отправьте актуальный номер телефона в ответном сообщении:                   
                  '''
             await event.answer(
-                message=dedent(text),
-                keyboard=await get_button_menu()
+                message=dedent(text)
             )
             return 'PHONE'
     # проверка формата введенного номера

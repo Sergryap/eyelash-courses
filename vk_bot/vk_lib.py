@@ -39,7 +39,7 @@ async def get_course_buttons(course_instances, back):
 
 async def get_button_menu(inline=True):
     keyboard = Keyboard(one_time=False, inline=inline)
-    buttons_color = ButtonColor.SECONDARY
+    buttons_color = ButtonColor.PRIMARY
     keyboard.add_text_button('☰ MENU', buttons_color, payload={'button': 'start'})
     return keyboard.get_keyboard()
 
