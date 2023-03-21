@@ -157,7 +157,7 @@ async def main_menu_handler(connect, event):
     if payload:
         return await send_main_menu_answer(connect, event)
     else:
-        return answer_arbitrary_text(connect, event)
+        return await answer_arbitrary_text(connect, event)
 
 
 async def handle_course_info(connect, event):
@@ -489,6 +489,7 @@ async def listen_server():
                 ts = response['ts']
                 events = response['updates']
                 for event in events:
+                    pprint(event)
                     if event['type'] != 'message_new':
                         continue
                     await event_handler(connect, event)
@@ -501,6 +502,6 @@ async def listen_server():
                 sleep(5)
                 print(err)
                 continue
-            except Exception as err:
-                sleep(5)
-                print(err)
+            # except Exception as err:
+            #     sleep(5)
+            #     print(err)
