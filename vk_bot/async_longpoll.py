@@ -422,7 +422,11 @@ async def answer_arbitrary_text(connect, event):
             в чате https://vk.com/gim{settings.VK_GROUP_ID}:
             "{event['object']['message']['text']}"
             '''
-    user_msg = 'Ваше сообщение отправлено. Мы обязательно свяжемся с Вами!'
+    user_msg = f'''
+        Ваше сообщение отправлено.
+        Мы обязательно свяжемся с Вами!
+        Можете отправить еще, либо вернуться в меню.
+        '''
     await send_message(
         connect,
         user_id=settings.ADMIN_IDS,
@@ -433,7 +437,7 @@ async def answer_arbitrary_text(connect, event):
     await send_message(
         connect,
         user_id=user_id,
-        message=user_msg,
+        message=dedent(user_msg),
         keyboard=await get_menu_button(color='secondary', inline=True)
     )
     return 'MAIN_MENU'
