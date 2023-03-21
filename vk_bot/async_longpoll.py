@@ -250,16 +250,17 @@ async def enter_phone(connect, event):
     user_id = event['object']['message']['from_id']
     payload = json.loads(event['object']['message'].get('payload', '{}'))
     user_instance = await Client.objects.async_get(vk_id=user_id)
-    course = connect['redis_db'].get(f'{user_id}_current_course')
+    course_pk = connect['redis_db'].get(f'{user_id}_current_course')
+    course = await Course.objects.async_get(pk=course_pk)
     user_info = {
-        'first_name': connect['redid_db'].get(f'{user_id}_first_name').decode('utf-8'),
-        'last_name': connect['redid_db'].get(f'{user_id}_last_name').decode('utf-8')
+        'first_name': connect['redis_db'].get(f'{user_id}_first_name').decode('utf-8'),
+        'last_name': connect['redis_db'].get(f'{user_id}_last_name').decode('utf-8')
     }
     # если номер существует
     if payload and payload.get('check_phone'):
         if payload['check_phone'] == 'true':
             await entry_user_to_course(connect, user_id, user_info, user_instance, course)
-            connect['redid_db'].delete(f'{user_id}_current_course')
+            connect['redis_db'].delete(f'{user_id}_current_course')
             return 'MAIN_MENU'
         # если клиент захотел указать другой номер
         else:
@@ -286,10 +287,10 @@ async def enter_phone(connect, event):
         phone = event['object']['message']['text']
         pattern = re.compile(r'^(\+7|7|8)?[\s\-]?\(?[489][0-9]{2}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}$')
         if pattern.findall(phone):
-            await connect['redis_db'].delete(f'{user_id}_current_course')
+            connect['redis_db'].delete(f'{user_id}_current_course')
             norm_phone = ''.join(['+7'] + [i for i in phone if i.isdigit()][-10:])
-            await connect['redis_db'].set(f'{user_id}_phone', norm_phone)
-            await entry_user_to_course(event, user_info, user_instance, course)
+            connect['redis_db'].set(f'{user_id}_phone', norm_phone)
+            await entry_user_to_course(connect, user_id, user_info, user_instance, course)
             return 'MAIN_MENU'
         else:
             text = '''
