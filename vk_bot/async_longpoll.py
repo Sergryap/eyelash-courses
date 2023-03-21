@@ -360,8 +360,8 @@ async def send_main_menu_answer(connect, event):
             connect,
             user_id=user_id,
             message=text,
-            lat=office.lat,
-            long=office.long,
+            lat=str(office.lat),
+            long=str(office.long),
             attachment=settings.OFFICE_PHOTO
         )
         await send_message(
@@ -390,7 +390,7 @@ async def send_main_menu_answer(connect, event):
             await sync_to_async(course.save)()
             logger.warning(f'Клиент https://vk.com/id{user_id} отменил запись на курс **{course.name.upper()}**')
         else:
-            connect['redis_db'].set(f'{user_id}_current_course', course)
+            connect['redis_db'].set(f'{user_id}_current_course', course_pk)
             if user_instance.phone_number:
                 text = f'''
                     Чтобы записаться проверьте ваш номер телефона:
