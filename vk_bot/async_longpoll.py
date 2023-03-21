@@ -1,3 +1,4 @@
+import asyncio
 import requests
 import random
 import redis
@@ -7,8 +8,6 @@ import logging
 import re
 
 from django.conf import settings
-from pprint import pprint
-from environs import Env
 from textwrap import dedent
 from time import sleep
 from asgiref.sync import sync_to_async
@@ -125,6 +124,7 @@ async def event_handler(connect, event):
             message=dedent(msg),
             keyboard=await get_menu_button(color='positive', inline=False)
         )
+        await asyncio.sleep(0.3)
     else:
         user_state = user.bot_state
 
@@ -141,7 +141,6 @@ async def event_handler(connect, event):
 
 
 async def start(connect, event):
-    print('--start--')
     user_id = event['object']['message']['from_id']
     await send_message(
         connect,
@@ -214,7 +213,7 @@ async def handle_course_info(connect, event):
             message=dedent(text),
             attachment=attachment
         )
-
+        await asyncio.sleep(0.3)
         await send_message(
             connect,
             user_id=user_id,
@@ -347,13 +346,8 @@ async def send_main_menu_answer(connect, event):
             message=text,
             lat=str(office.lat),
             long=str(office.long),
-            attachment=settings.OFFICE_PHOTO
-        )
-        await send_message(
-            connect,
-            user_id=user_id,
-            message='В главное меню:',
-            keyboard=await get_menu_button(color='secondary', inline=True)
+            attachment=settings.OFFICE_PHOTO,
+            keyboard=await get_menu_button(color='primary', inline=True)
         )
     # запись/отмена участия на курсе
     elif payload.get('entry'):
@@ -471,37 +465,31 @@ async def entry_user_to_course(connect, user_id, user_info, user_instance, cours
 
 
 async def listen_server():
-    env = Env()
-    env.read_env()
-
-    redis_password = env.str('REDIS_PASSWORD')
-    redis_host = env.str('REDIS_HOST')
-    redis_port = env.str('REDIS_PORT')
-    token = env.str('VK_TOKEN')
-    group_id = env.int('VK_GROUP')
-    redis_db = redis.Redis(host=redis_host, port=redis_port, password=redis_password)
+    token = settings.VK_TOKEN
+    redis_db = redis.Redis(
+        host=settings.REDIS_HOST,
+        port=settings.REDIS_PORT,
+        password=settings.REDIS_PASSWORD
+    )
     async with aiohttp.ClientSession() as session:
-        key, server, ts = await get_long_poll_server(session, token, group_id)
+        key, server, ts = await get_long_poll_server(session, token, settings.VK_GROUP_ID)
         connect = {'session': session, 'token': token, 'redis_db': redis_db}
         while True:
             try:
                 response = await connect_server(session, key, server, ts)
                 ts = response['ts']
-                events = response['updates']
-                for event in events:
-                    pprint(event)
+                for event in response['updates']:
                     if event['type'] != 'message_new':
                         continue
+                    await asyncio.sleep(0.3)
                     await event_handler(connect, event)
             except ConnectionError as err:
                 sleep(5)
-                print(err)
-                key, server, ts = await get_long_poll_server(session, token, group_id)
+                logger.warning(f'Соединение было прервано: {err}', stack_info=True)
                 continue
             except requests.exceptions.ReadTimeout as err:
-                sleep(5)
-                print(err)
+                logger.warning(f'Ошибка ReadTimeout: {err}', stack_info=True)
                 continue
-            # except Exception as err:
-            #     sleep(5)
-            #     print(err)
+            except Exception as err:
+                logger.exception(err)
+        logger.critical('Бот вышел из цикла и упал:', stack_info=True)
