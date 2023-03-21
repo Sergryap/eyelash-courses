@@ -99,11 +99,19 @@ async def event_handler(connect, event):
     start_buttons = ['start', '/start', 'начать', 'старт', '+']
     text = event['object']['message']['text'].lower().strip()
     payload = json.loads(event['object']['message'].get('payload', '{}'))
-    if not connect['redis_db'].get(f'{user_id}_first_name').decode('utf-8'):
+    if not connect['redis_db'].get(f'{user_id}_first_name'):
         user_data = await get_user(connect, user_id)
         if user_data:
             connect['redis_db'].set(f'{user_id}_first_name', user_data[0].get('first_name'))
             connect['redis_db'].set(f'{user_id}_last_name', user_data[0].get('last_name'))
+    user, _ = await Client.objects.async_get_or_create(
+        vk_id=user_id,
+        defaults={
+            'first_name': connect['redis_db'].get(f'{user_id}_first_name').decode('utf-8'),
+            'last_name': connect['redis_db'].get(f'{user_id}_last_name').decode('utf-8'),
+            'vk_profile': f'https://vk.com/id{user_id}',
+        }
+    )
     if text in start_buttons or payload.get('button') == 'start':
         user_state = 'START'
         msg = f'''
@@ -119,8 +127,7 @@ async def event_handler(connect, event):
             keyboard=await get_menu_button(color='positive', inline=False)
         )
     else:
-        user_state = connect['redis_db'].get(user_id).decode('utf-8')
-        print(user_state)
+        user_state = user.bot_state
 
     states_functions = {
         'START': start,
@@ -129,8 +136,9 @@ async def event_handler(connect, event):
         'PHONE': enter_phone,
     }
     state_handler = states_functions[user_state]
-    next_state = await state_handler(connect, event)
-    connect['redis_db'].set(user_id, next_state)
+    user.bot_state = await state_handler(connect, event)
+    user.phone_number = connect['redis_db'].get(f'{user_id}_phone').decode('utf-8') or user.phone_number
+    await sync_to_async(user.save)()
 
 
 async def start(connect, event):
