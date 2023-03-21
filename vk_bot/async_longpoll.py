@@ -479,7 +479,8 @@ async def entry_user_to_course(connect, user_id, user_info, user_instance, cours
     await sync_to_async(course.clients.add)(user_instance)
     await sync_to_async(course.save)()
     client_vk = f'https://vk.com/id{user_id}'
-    phone = connect['redis_db'].get(f'{user_id}_phone').decode('utf-8')
+    redis_phone = connect['redis_db'].get(f'{user_id}_phone')
+    phone = redis_phone.decode('utf-8') if redis_phone else user_instance.phone_number
     logger.warning(f'Клиент {name}\n{client_vk}:\nТел: {phone}\nзаписался на курс **{course.name.upper()}**')
 
 
