@@ -162,11 +162,7 @@ async def get_course_menu_buttons(back, course_pk, user_id):
                     'label': 'НАЗАД'
                 },
                 'color': 'secondary'
-            }
-        ]
-    )
-    buttons.append(
-        [
+            },
             {
                 'action': {
                     'type': 'text',

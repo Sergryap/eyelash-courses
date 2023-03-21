@@ -1,4 +1,5 @@
 import asyncio
+
 import requests
 import random
 import redis
@@ -112,19 +113,6 @@ async def event_handler(connect, event):
     )
     if text in start_buttons or payload.get('button') == 'start':
         user_state = 'START'
-        msg = f'''
-            Привет, я бот этого чата.
-            Здесь вы можете узнать всю актуальную информацию о наших курсах и при желании оставить заявку.
-            Для записи на курс нажмите:
-            "Предстоящие курсы"             
-            '''
-        await send_message(
-            connect,
-            user_id=user_id,
-            message=dedent(msg),
-            keyboard=await get_menu_button(color='positive', inline=False)
-        )
-        await asyncio.sleep(0.3)
     else:
         user_state = user.bot_state
 
@@ -136,16 +124,50 @@ async def event_handler(connect, event):
     }
     state_handler = states_functions[user_state]
     user.bot_state = await state_handler(connect, event)
-    user.phone_number = connect['redis_db'].get(f'{user_id}_phone').decode('utf-8') or user.phone_number
+    exist_phone = connect['redis_db'].get(f'{user_id}_phone')
+    user.phone_number = exist_phone.decode('utf-8') if exist_phone else user.phone_number
     await sync_to_async(user.save)()
 
 
 async def start(connect, event):
     user_id = event['object']['message']['from_id']
+    first_name = connect['redis_db'].get(f'{user_id}_first_name').decode('utf-8')
+    text = event['object']['message']['text'].lower().strip()
+    start_buttons = ['start', '/start', 'начать', 'старт', '+']
+    msg = 'MENU:'
+    if text in start_buttons:
+        msg = f'''
+            Привет, {first_name}, я бот этого чата.
+            Здесь ты можешь узнать всю актуальную информацию о наших курсах и при желании оставить заявку.
+            Чтобы начать нажми "MENU"             
+            '''
+        buttons = [
+            [
+                {
+                    'action': {'type': 'text', 'payload': {'button': 'start'}, 'label': '☰ MENU'},
+                    'color': 'positive'
+                }
+            ],
+            [
+                {
+                    'action': {'type': 'text', 'payload': {'button': 'future_courses'}, 'label': 'Предстоящие курсы'},
+                    'color': 'positive'
+                }
+            ],
+        ]
+        keyboard = json.dumps({'inline': True, 'buttons': buttons}, ensure_ascii=False)
+        await send_message(
+            connect,
+            user_id=user_id,
+            message=dedent(msg),
+            keyboard=keyboard,
+        )
+        return 'MAIN_MENU'
+
     await send_message(
         connect,
         user_id=user_id,
-        message='MENU:',
+        message=dedent(msg),
         keyboard=await get_start_buttons()
     )
     return 'MAIN_MENU'
@@ -198,8 +220,7 @@ async def handle_course_info(connect, event):
             Программа: {await sync_to_async(lambda: course.program)()}
             Лектор: {await sync_to_async(lambda: course.lecture)()}            
             Продолжительность: {course.duration} д.
-            '''
-        program_text = f'''
+
             О ПРОГРАММЕ КУРСА:
             {await sync_to_async(lambda: course.program.short_description)()}
 
@@ -211,15 +232,12 @@ async def handle_course_info(connect, event):
             connect,
             user_id=user_id,
             message=dedent(text),
-            attachment=attachment
-        )
-        await asyncio.sleep(0.3)
-        await send_message(
-            connect,
-            user_id=user_id,
-            message=dedent(program_text),
+            attachment=attachment,
             keyboard=await get_course_menu_buttons(
-                back=payload['button'], course_pk=course_pk, user_id=user_id)
+                back=payload['button'],
+                course_pk=course_pk,
+                user_id=user_id
+            )
         )
 
     elif payload:
@@ -411,7 +429,7 @@ async def answer_arbitrary_text(connect, event):
         user_ids=settings.ADMIN_IDS,
         message=dedent(admin_msg)
     )
-    await asyncio.sleep(0.3)
+    await asyncio.sleep(0.2)
     await send_message(
         connect,
         user_id=user_id,
@@ -461,7 +479,7 @@ async def entry_user_to_course(connect, user_id, user_info, user_instance, cours
     await sync_to_async(course.clients.add)(user_instance)
     await sync_to_async(course.save)()
     client_vk = f'https://vk.com/id{user_id}'
-    phone = user_instance.phone_number
+    phone = connect['redis_db'].get(f'{user_id}_phone').decode('utf-8')
     logger.warning(f'Клиент {name}\n{client_vk}:\nТел: {phone}\nзаписался на курс **{course.name.upper()}**')
 
 
@@ -482,7 +500,7 @@ async def listen_server():
                 for event in response['updates']:
                     if event['type'] != 'message_new':
                         continue
-                    await asyncio.sleep(0.3)
+                    await asyncio.sleep(0.1)
                     await event_handler(connect, event)
             except ConnectionError as err:
                 sleep(5)

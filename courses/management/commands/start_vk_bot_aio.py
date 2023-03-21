@@ -22,4 +22,6 @@ def start_vk_bot():
     logger.addHandler(MyLogsHandler(settings.TG_LOGGER_BOT, settings.TG_LOGGER_CHAT))
     logger.warning('Бот "eyelash-courses" запущен')
 
-    asyncio.run(listen_server())
+    loop = asyncio.get_event_loop()
+    asyncio.ensure_future(listen_server())
+    loop.run_forever()
