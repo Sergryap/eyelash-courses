@@ -75,7 +75,6 @@ async def send_message(
         if value is None:
             del params[param]
     async with connect['session'].post(send_message_url, params=params) as res:
-        print(await res.text())
         res.raise_for_status()
         return json.loads(await res.text())
 
@@ -142,6 +141,7 @@ async def event_handler(connect, event):
 
 
 async def start(connect, event):
+    print('--start--')
     user_id = event['object']['message']['from_id']
     await send_message(
         connect,
@@ -203,8 +203,7 @@ async def handle_course_info(connect, event):
         program_text = f'''
             О ПРОГРАММЕ КУРСА:
             {await sync_to_async(lambda: course.program.short_description)()}
-            '''
-        description_text = f'''
+
             СОДЕРЖАНИЕ КУРСА:
             {await sync_to_async(lambda: course.short_description)()}
             '''
@@ -215,29 +214,15 @@ async def handle_course_info(connect, event):
             message=dedent(text),
             attachment=attachment
         )
-        if description_text:
-            await send_message(
-                connect,
-                user_id=user_id,
-                message=dedent(program_text)
-            )
-            await send_message(
-                connect,
-                user_id=user_id,
-                message=dedent(description_text),
-                keyboard=await get_course_menu_buttons(
-                    back=payload['button'], course_pk=course_pk, user_id=user_id
-                )
-            )
-        else:
-            await send_message(
-                connect,
-                user_id=user_id,
-                message=dedent(program_text),
-                keyboard=await get_course_menu_buttons(
-                    back=payload['button'], course_pk=course_pk, user_id=user_id
-                )
-            )
+
+        await send_message(
+            connect,
+            user_id=user_id,
+            message=dedent(program_text),
+            keyboard=await get_course_menu_buttons(
+                back=payload['button'], course_pk=course_pk, user_id=user_id)
+        )
+
     elif payload:
         return await send_main_menu_answer(connect, event)
     else:
@@ -316,8 +301,8 @@ async def send_main_menu_answer(connect, event):
     payload = json.loads(event['object']['message'].get('payload', '{}'))
     user_instance = await Client.objects.async_get(vk_id=user_id)
     user_info = {
-        'first_name': connect['redid_db'].get(f'{user_id}_first_name').decode('utf-8'),
-        'last_name': connect['redid_db'].get(f'{user_id}_last_name').decode('utf-8')
+        'first_name': connect['redis_db'].get(f'{user_id}_first_name').decode('utf-8'),
+        'last_name': connect['redis_db'].get(f'{user_id}_last_name').decode('utf-8')
     }
     # отправка курсов пользователя
     if payload.get('button') == 'client_courses':
