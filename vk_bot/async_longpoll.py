@@ -488,7 +488,6 @@ async def listen_server():
                 response = await connect_server(session, key, server, ts)
                 ts = response['ts']
                 events = response['updates']
-                pprint(events)
                 for event in events:
                     if event['type'] != 'message_new':
                         continue
