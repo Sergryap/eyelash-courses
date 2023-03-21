@@ -404,13 +404,14 @@ async def answer_arbitrary_text(connect, event):
             в чате https://vk.com/gim{settings.VK_GROUP_ID}:
             "{event['object']['message']['text']}"
             '''
-    user_msg = f'Ваше сообщение отправлено. Мы обязательно свяжемся с Вами!'
+    user_msg = 'Ваше сообщение отправлено. Мы обязательно свяжемся с Вами!'
     await send_message(
         connect,
         user_id=settings.ADMIN_IDS,
         user_ids=settings.ADMIN_IDS,
         message=dedent(admin_msg)
     )
+    await asyncio.sleep(0.3)
     await send_message(
         connect,
         user_id=user_id,
