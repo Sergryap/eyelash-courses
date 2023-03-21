@@ -127,7 +127,7 @@ async def get_course_menu_buttons(back, course_pk, user_id):
     course_client_ids = [await sync_to_async(lambda: user.client.vk_id)() for user in course_clients]
     buttons = []
     if back != 'client_courses' and back != 'past_courses' and user_id not in course_client_ids:
-        buttons.append([
+        buttons.append(
             [
                 {
                     'action': {
@@ -138,10 +138,10 @@ async def get_course_menu_buttons(back, course_pk, user_id):
                     'color': 'secondary'
                 }
             ]
-        ])
+        )
 
     elif user_id in course_client_ids:
-        buttons.append([
+        buttons.append(
             [
                 {
                     'action': {
@@ -152,8 +152,8 @@ async def get_course_menu_buttons(back, course_pk, user_id):
                     'color': 'secondary'
                 }
             ]
-        ])
-    buttons.append([
+        )
+    buttons.append(
         [
             {
                 'action': {
@@ -164,8 +164,8 @@ async def get_course_menu_buttons(back, course_pk, user_id):
                 'color': 'secondary'
             }
         ]
-    ])
-    buttons.append([
+    )
+    buttons.append(
         [
             {
                 'action': {
@@ -176,6 +176,6 @@ async def get_course_menu_buttons(back, course_pk, user_id):
                 'color': 'primary'
             }
         ]
-    ])
+    )
     keyboard = {'inline': True, 'buttons': buttons}
     return json.dumps(keyboard, ensure_ascii=False)
