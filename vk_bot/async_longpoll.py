@@ -510,12 +510,13 @@ async def listen_server():
             except ConnectionError as err:
                 sleep(5)
                 logger.warning(f'Соединение было прервано: {err}', stack_info=True)
+                key, server, ts = await get_long_poll_server(session, token, settings.VK_GROUP_ID)
                 continue
             except requests.exceptions.ReadTimeout as err:
                 logger.warning(f'Ошибка ReadTimeout: {err}', stack_info=True)
+                key, server, ts = await get_long_poll_server(session, token, settings.VK_GROUP_ID)
                 continue
             except Exception as err:
                 logger.exception(err)
-                sleep(5)
                 key, server, ts = await get_long_poll_server(session, token, settings.VK_GROUP_ID)
         logger.critical('Бот вышел из цикла и упал:', stack_info=True)
