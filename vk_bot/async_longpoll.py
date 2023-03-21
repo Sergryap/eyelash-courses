@@ -15,6 +15,7 @@ from asgiref.sync import sync_to_async
 from more_itertools import chunked
 from courses.models import Client, Course, Office
 from django.utils import timezone
+from asyncio.subprocess import create_subprocess_exec
 from .buttons import (
     get_start_buttons,
     get_menu_button,
@@ -511,6 +512,7 @@ async def listen_server():
                 sleep(5)
                 logger.warning(f'Соединение было прервано: {err}', stack_info=True)
                 key, server, ts = await get_long_poll_server(session, token, settings.VK_GROUP_ID)
+                # await create_subprocess_exec('python3', 'manage.py', 'start_vk_bot_aio')
                 continue
             except requests.exceptions.ReadTimeout as err:
                 logger.warning(f'Ошибка ReadTimeout: {err}', stack_info=True)
@@ -519,4 +521,5 @@ async def listen_server():
             except Exception as err:
                 logger.exception(err)
                 key, server, ts = await get_long_poll_server(session, token, settings.VK_GROUP_ID)
+                # await create_subprocess_exec('python3', 'manage.py', 'start_vk_bot_aio')
         logger.critical('Бот вышел из цикла и упал:', stack_info=True)
