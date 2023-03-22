@@ -15,7 +15,6 @@ from asgiref.sync import sync_to_async
 from more_itertools import chunked
 from courses.models import Client, Course, Office
 from django.utils import timezone
-from asyncio.subprocess import create_subprocess_exec
 from .buttons import (
     get_start_buttons,
     get_menu_button,
@@ -502,17 +501,24 @@ async def listen_server():
         while True:
             try:
                 response = await connect_server(session, key, server, ts)
+                if 'failed' in response:
+                    if response['failed'] == 1:
+                        ts = response['ts']
+                    elif response['failed'] == 2:
+                        key, __, __ = await get_long_poll_server(session, token, settings.VK_GROUP_ID)
+                    elif response['failed'] == 3:
+                        key, __, ts = await get_long_poll_server(session, token, settings.VK_GROUP_ID)
+                    continue
                 ts = response['ts']
                 for event in response['updates']:
                     if event['type'] != 'message_new':
                         continue
-                    await asyncio.sleep(0.1)
+                    await asyncio.sleep(0.2)
                     await event_handler(connect, event)
             except ConnectionError as err:
                 sleep(5)
                 logger.warning(f'Соединение было прервано: {err}', stack_info=True)
                 key, server, ts = await get_long_poll_server(session, token, settings.VK_GROUP_ID)
-                # await create_subprocess_exec('python3', 'manage.py', 'start_vk_bot_aio')
                 continue
             except requests.exceptions.ReadTimeout as err:
                 logger.warning(f'Ошибка ReadTimeout: {err}', stack_info=True)
@@ -521,5 +527,4 @@ async def listen_server():
             except Exception as err:
                 logger.exception(err)
                 key, server, ts = await get_long_poll_server(session, token, settings.VK_GROUP_ID)
-                # await create_subprocess_exec('python3', 'manage.py', 'start_vk_bot_aio')
         logger.critical('Бот вышел из цикла и упал:', stack_info=True)
