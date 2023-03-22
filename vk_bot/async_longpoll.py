@@ -38,13 +38,6 @@ async def get_long_poll_server(session: aiohttp.ClientSession, token: str, group
         return key, server, ts
 
 
-async def connect_server(session: aiohttp.ClientSession, key, server, ts):
-    params = {'act': 'a_check', 'key': key, 'ts': ts, 'wait': 25}
-    async with session.get(server, params=params) as res:
-        res.raise_for_status()
-        return json.loads(await res.text())
-
-
 async def send_message(
         connect,
         user_id: int,
@@ -500,7 +493,10 @@ async def listen_server():
         connect = {'session': session, 'token': token, 'redis_db': redis_db}
         while True:
             try:
-                response = await connect_server(session, key, server, ts)
+                params = {'act': 'a_check', 'key': key, 'ts': ts, 'wait': 25}
+                async with session.get(server, params=params) as res:
+                    res.raise_for_status()
+                    response = json.loads(await res.text())
                 if 'failed' in response:
                     if response['failed'] == 1:
                         ts = response['ts']
