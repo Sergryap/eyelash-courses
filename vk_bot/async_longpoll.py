@@ -1,6 +1,4 @@
 import asyncio
-
-import requests
 import random
 import redis
 import json
@@ -15,6 +13,7 @@ from asgiref.sync import sync_to_async
 from more_itertools import chunked
 from courses.models import Client, Course, Office
 from django.utils import timezone
+from aiohttp import client_exceptions
 from .buttons import (
     get_start_buttons,
     get_menu_button,
@@ -516,7 +515,7 @@ async def listen_server():
                 logger.warning(f'Соединение было прервано: {err}', stack_info=True)
                 key, server, ts = await get_long_poll_server(session, token, settings.VK_GROUP_ID)
                 continue
-            except requests.exceptions.ReadTimeout as err:
+            except client_exceptions.ServerTimeoutError as err:
                 logger.warning(f'Ошибка ReadTimeout: {err}', stack_info=True)
                 key, server, ts = await get_long_poll_server(session, token, settings.VK_GROUP_ID)
                 continue
