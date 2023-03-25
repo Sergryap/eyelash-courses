@@ -1,7 +1,7 @@
 import logging
 from django.conf import settings
 from django.core.management import BaseCommand
-from vk_bot.logger import MyLogsHandler
+from eyelash_courses.logger import MyLogsHandler
 from vk_bot.vk_bot import handle_users_reply
 from vk_bot.mat_filter import MatFilter
 from vkwave.bots import SimpleBotEvent,  SimpleLongPollBot, DefaultRouter, simple_bot_message_handler

@@ -482,14 +482,9 @@ async def entry_user_to_course(connect, user_id, user_info, user_instance, cours
 
 async def listen_server():
     token = settings.VK_TOKEN
-    redis_db = redis.Redis(
-        host=settings.REDIS_HOST,
-        port=settings.REDIS_PORT,
-        password=settings.REDIS_PASSWORD
-    )
     async with aiohttp.ClientSession() as session:
         key, server, ts = await get_long_poll_server(session, token, settings.VK_GROUP_ID)
-        connect = {'session': session, 'token': token, 'redis_db': redis_db}
+        connect = {'session': session, 'token': token, 'redis_db': settings.REDIS_DB}
         while True:
             try:
                 params = {'act': 'a_check', 'key': key, 'ts': ts, 'wait': 25}

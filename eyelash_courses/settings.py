@@ -1,11 +1,15 @@
 import dj_database_url
+import redis
+import logging
 
 from pathlib import Path
 from environs import Env
+from .logger import MyLogsHandler
 
 
 env = Env()
 env.read_env()
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -18,6 +22,7 @@ SECRET_KEY = env.str('SECRET_KEY')
 DEBUG = env.bool('DEBUG', True)
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', ['127.0.0.1', 'localhost'])
 VK_TOKEN = env.str('VK_TOKEN')
+TG_TOKEN = env.str('TG_TOKEN')
 VK_USER_TOKEN = env.str('VK_USER_TOKEN')
 TG_LOGGER_BOT = env.str('TG_LOGGER_BOT')
 TG_LOGGER_CHAT = env.str('TG_LOGGER_CHAT')
@@ -27,10 +32,15 @@ SITE_HEADER = env.str('SITE_HEADER')
 INDEX_TITLE = env.str('INDEX_TITLE')
 SITE_TITLE = env.str('SITE_TITLE')
 OFFICE_PHOTO = env.str('OFFICE_PHOTO')
-REDIS_PASSWORD = env.str('REDIS_PASSWORD')
-REDIS_HOST = env.str('REDIS_HOST')
-REDIS_PORT = env.str('REDIS_PORT')
+REDIS_DB = redis.Redis(
+    host=env.str('REDIS_HOST'),
+    port=env.str('REDIS_PORT'),
+    password=env.str('REDIS_PASSWORD')
+)
 
+logger = logging.getLogger('telegram')
+logger.setLevel(logging.WARNING)
+logger.addHandler(MyLogsHandler(TG_LOGGER_BOT, TG_LOGGER_CHAT))
 
 INSTALLED_APPS = [
     'django.contrib.admin',

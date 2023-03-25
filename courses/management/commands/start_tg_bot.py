@@ -2,21 +2,21 @@ import logging
 import asyncio
 
 from django.core.management import BaseCommand
-from vk_bot.async_longpoll import listen_server
+from tg_bot.tg_bot import listen_server
 
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
         try:
-            start_vk_bot()
+            start_tg_bot()
         except Exception as exc:
             print(exc)
             raise
 
 
-def start_vk_bot():
+def start_tg_bot():
     logger = logging.getLogger('telegram')
-    logger.warning('VK-Бот "eyelash-courses" запущен')
+    logger.warning('TG-Бот "eyelash-courses" запущен')
 
     loop = asyncio.get_event_loop()
     asyncio.ensure_future(listen_server())
