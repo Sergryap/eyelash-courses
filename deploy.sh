@@ -5,4 +5,5 @@ git pull
 sudo systemctl daemon-reload
 sudo systemctl restart django-bot-example.service
 sudo systemctl restart django-bot-start.service
+sudo systemctl restart django-tg-bot-start.service
 echo "Deploy completed successfully!"
