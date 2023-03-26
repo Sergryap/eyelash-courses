@@ -140,12 +140,7 @@ async def answer_arbitrary_text(connect, event):
         Мы обязательно свяжемся с Вами!
         Можете отправить еще, либо вернуться в меню.
         '''
-    await send_message(
-        connect,
-        chat_id=settings.TG_LOGGER_CHAT,
-        msg=dedent(admin_msg)
-    )
-    await asyncio.sleep(0.2)
+    logger.warning(admin_msg)
     await send_message(
         connect,
         chat_id=chat_id,
