@@ -119,7 +119,7 @@ class Client(models.Model):
         null=True,
         blank=True
     )
-    telegram_id = models.PositiveIntegerField(
+    telegram_id = models.PositiveBigIntegerField(
         verbose_name='Telegram Id',
         null=True,
         blank=True
