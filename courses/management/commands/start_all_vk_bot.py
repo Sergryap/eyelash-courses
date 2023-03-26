@@ -17,7 +17,7 @@ class Command(BaseCommand):
 
 def start_vk_bot():
     logger = logging.getLogger('telegram')
-    logger.warning('VK-Бот "eyelash-courses" запущен')
+    logger.warning('Боты VK и TG "eyelash-courses" запущены')
 
     loop = asyncio.get_event_loop()
     asyncio.ensure_future(vk_listen_server())
