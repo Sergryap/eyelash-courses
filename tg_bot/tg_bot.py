@@ -99,7 +99,12 @@ async def send_main_menu_answer(connect, event):
             )
             await sync_to_async(course.clients.remove)(user_instance)
             await sync_to_async(course.save)()
-            logger.warning(f'Клиент t.me/{username}\nТел: {user_instance.phone_number}\nотменил запись на курс **{course.name.upper()}**')
+            logger_msg = f'''
+                Клиент t.me/{username}
+                Тел: {user_instance.phone_number}
+                отменил запись на курс **{course.name.upper()}**'
+                '''
+            logger.warning(dedent(logger_msg))
         else:
             connect['redis_db'].set(f'tg_{chat_id}_current_course', course_pk)
             if user_instance.phone_number:
@@ -136,15 +141,15 @@ async def answer_arbitrary_text(connect, event):
     vk_profile = user_instance.vk_profile
     username = event_info['username']
     admin_msg = f'''
-            Сообщение от t.me/{username}:
-            "{user_reply}"
-            '''
+        Сообщение от t.me/{username}:
+        "{user_reply}"
+        '''
     user_msg = f'''
         Ваше сообщение отправлено.
         Мы обязательно свяжемся с Вами!
         Можете отправить еще, либо вернуться в меню.
         '''
-    logger.warning(admin_msg)
+    logger.warning(dedent(admin_msg))
     await send_message(
         connect,
         chat_id=chat_id,
@@ -171,7 +176,12 @@ async def entry_user_to_course(connect, chat_id, first_name, username, user_inst
     await sync_to_async(course.save)()
     redis_phone = connect['redis_db'].get(f'tg_{chat_id}_phone')
     phone = redis_phone.decode('utf-8') if redis_phone else user_instance.phone_number
-    logger.warning(f'Клиент t.me/{username}:\nТел: {phone}\nзаписался на курс **{course.name.upper()}**')
+    logger_msg = f'''
+        Клиент t.me/{username}
+        Тел: {phone}
+        записался на курс **{course.name.upper()}**'
+        '''
+    logger.warning(dedent(logger_msg))
 
 
 async def send_courses(connect, event, courses, msg1, msg2, msg3, /, *, back):
@@ -207,13 +217,13 @@ async def get_event_info(event):
         chat_id = event['message']['chat']['id']
         first_name = event['message']['chat']['first_name']
         last_name = event['message']['chat'].get('last_name', '')
-        username = event['message']['chat']['username']
+        username = event['message']['chat'].get('username', '')
     elif event.get('callback_query'):
         user_reply = event['callback_query']['data']
         chat_id = event['callback_query']['message']['chat']['id']
         first_name = event['callback_query']['message']['chat']['first_name']
         last_name = event['callback_query']['message']['chat'].get('last_name', '')
-        username = event['callback_query']['message']['chat']['username']
+        username = event['callback_query']['message']['chat'].get('username', '')
     else:
         return
     return {
@@ -444,7 +454,6 @@ async def listen_server():
                 if not updates.get('result') or not updates['ok']:
                     continue
                 event = updates['result'][-1]
-                pprint(event)
                 params['offset'] = event['update_id'] + 1
                 await handle_event(connect, event)
             except ConnectionError:
