@@ -26,6 +26,7 @@ async def send_main_menu_answer(connect, event):
     chat_id = event_info['chat_id']
     user_reply = event_info['user_reply']
     first_name = event_info['first_name']
+    username = event_info['username']
     user_instance = await Client.objects.async_get(telegram_id=chat_id)
     # отправка курсов пользователя
     if user_reply == 'client_courses':
@@ -96,7 +97,6 @@ async def send_main_menu_answer(connect, event):
             )
             await sync_to_async(course.clients.remove)(user_instance)
             await sync_to_async(course.save)()
-            username = event['callback_query']['message']['chat']['username']
             logger.warning(f'Клиент t.me/{username}\nТел: {user_instance.phone_number}\nотменил запись на курс **{course.name.upper()}**')
         else:
             connect['redis_db'].set(f'tg_{chat_id}_current_course', course_pk)
@@ -132,8 +132,9 @@ async def answer_arbitrary_text(connect, event):
     first_name = event_info['first_name']
     user_instance = await Client.objects.async_get(telegram_id=chat_id)
     vk_profile = user_instance.vk_profile
+    username = event_info['username']
     admin_msg = f'''
-            Сообщение от t.me/{event['message']['chat']['username']}:
+            Сообщение от t.me/{username}:
             "{user_reply}"
             '''
     user_msg = f'''
@@ -170,6 +171,7 @@ async def entry_user_to_course(connect, chat_id, first_name, username, user_inst
     phone = redis_phone.decode('utf-8') if redis_phone else user_instance.phone_number
     logger.warning(f'Клиент t.me/{username}:\nТел: {phone}\nзаписался на курс **{course.name.upper()}**')
 
+
 async def send_courses(connect, event, courses, msg1, msg2, msg3, /, *, back):
     event_info = await get_event_info(event)
     chat_id = event_info['chat_id']
@@ -203,18 +205,21 @@ async def get_event_info(event):
         chat_id = event['message']['chat']['id']
         first_name = event['message']['chat']['first_name']
         last_name = event['message']['chat'].get('last_name', '')
+        username = event['message']['chat']['username']
     elif event.get('callback_query'):
         user_reply = event['callback_query']['data']
         chat_id = event['callback_query']['message']['chat']['id']
         first_name = event['callback_query']['message']['chat']['first_name']
         last_name = event['callback_query']['message']['chat'].get('last_name', '')
+        username = event['callback_query']['message']['chat']['username']
     else:
         return
     return {
         'user_reply': user_reply,
         'chat_id': chat_id,
         'first_name': first_name,
-        'last_name': last_name
+        'last_name': last_name,
+        'username': username
     }
 
 
@@ -335,13 +340,13 @@ async def enter_phone(connect, event):
     chat_id = event_info['chat_id']
     user_reply = event_info['user_reply']
     first_name = event_info['first_name']
+    username = event_info['username']
     user_instance = await Client.objects.async_get(telegram_id=chat_id)
     course_pk = connect['redis_db'].get(f'tg_{chat_id}_current_course')
     course = await Course.objects.async_get(pk=course_pk)
 
     # если номер существует
     if event.get('callback_query') and user_reply.split('_')[0] == 'phone':
-        username = event['callback_query']['message']['chat']['username']
         if user_reply.split('_')[1] == 'true':
             await entry_user_to_course(connect, chat_id, first_name, username, user_instance, course)
             connect['redis_db'].delete(f'tg_{chat_id}_current_course')
@@ -374,7 +379,6 @@ async def enter_phone(connect, event):
             connect['redis_db'].delete(f'tg_{chat_id}_current_course')
             norm_phone = ''.join(['+7'] + [i for i in phone if i.isdigit()][-10:])
             connect['redis_db'].set(f'tg_{chat_id}_phone', norm_phone)
-            username = event['callback_query']['message']['chat']['username']
             await entry_user_to_course(connect, chat_id, first_name, username, user_instance, course)
             return 'MAIN_MENU'
         else:
