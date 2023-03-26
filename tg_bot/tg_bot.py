@@ -96,7 +96,8 @@ async def send_main_menu_answer(connect, event):
             )
             await sync_to_async(course.clients.remove)(user_instance)
             await sync_to_async(course.save)()
-            logger.warning(f'Клиент {first_name}_tg_ID{chat_id} отменил запись на курс **{course.name.upper()}**')
+            username = event['callback_query']['message']['chat']['username']
+            logger.warning(f'Клиент t.me/{username}\nТел: {user_instance.phone_number}\nотменил запись на курс **{course.name.upper()}**')
         else:
             connect['redis_db'].set(f'tg_{chat_id}_current_course', course_pk)
             if user_instance.phone_number:
@@ -150,7 +151,7 @@ async def answer_arbitrary_text(connect, event):
     return 'MAIN_MENU'
 
 
-async def entry_user_to_course(connect, chat_id, first_name, user_instance, course):
+async def entry_user_to_course(connect, chat_id, first_name, username, user_instance, course):
     text = f'''
          {first_name}, вы записаны на курс:
          **{course.name.upper()}**
@@ -167,8 +168,7 @@ async def entry_user_to_course(connect, chat_id, first_name, user_instance, cour
     await sync_to_async(course.save)()
     redis_phone = connect['redis_db'].get(f'tg_{chat_id}_phone')
     phone = redis_phone.decode('utf-8') if redis_phone else user_instance.phone_number
-    logger.warning(f'Клиент {first_name}\ntg_{chat_id}:\nТел: {phone}\nзаписался на курс **{course.name.upper()}**')
-
+    logger.warning(f'Клиент t.me/{username}:\nТел: {phone}\nзаписался на курс **{course.name.upper()}**')
 
 async def send_courses(connect, event, courses, msg1, msg2, msg3, /, *, back):
     event_info = await get_event_info(event)
@@ -202,12 +202,12 @@ async def get_event_info(event):
         user_reply = event['message']['text']
         chat_id = event['message']['chat']['id']
         first_name = event['message']['chat']['first_name']
-        last_name = event['message']['chat'].get('last_name')
+        last_name = event['message']['chat'].get('last_name', '')
     elif event.get('callback_query'):
         user_reply = event['callback_query']['data']
         chat_id = event['callback_query']['message']['chat']['id']
         first_name = event['callback_query']['message']['chat']['first_name']
-        last_name = event['callback_query']['message']['chat'].get('last_name')
+        last_name = event['callback_query']['message']['chat'].get('last_name', '')
     else:
         return
     return {
@@ -341,8 +341,9 @@ async def enter_phone(connect, event):
 
     # если номер существует
     if event.get('callback_query') and user_reply.split('_')[0] == 'phone':
+        username = event['callback_query']['message']['chat']['username']
         if user_reply.split('_')[1] == 'true':
-            await entry_user_to_course(connect, chat_id, first_name, user_instance, course)
+            await entry_user_to_course(connect, chat_id, first_name, username, user_instance, course)
             connect['redis_db'].delete(f'tg_{chat_id}_current_course')
             return 'MAIN_MENU'
         # если клиент захотел указать другой номер
@@ -373,7 +374,8 @@ async def enter_phone(connect, event):
             connect['redis_db'].delete(f'tg_{chat_id}_current_course')
             norm_phone = ''.join(['+7'] + [i for i in phone if i.isdigit()][-10:])
             connect['redis_db'].set(f'tg_{chat_id}_phone', norm_phone)
-            await entry_user_to_course(connect, chat_id, first_name, user_instance, course)
+            username = event['callback_query']['message']['chat']['username']
+            await entry_user_to_course(connect, chat_id, first_name, username, user_instance, course)
             return 'MAIN_MENU'
         else:
             text = '''
