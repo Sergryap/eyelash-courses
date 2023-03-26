@@ -68,7 +68,9 @@ class Program(models.Model):
     )
     image = models.ImageField(
         verbose_name='Иллюстрация программы',
-        upload_to='program'
+        upload_to='program',
+        blank=True,
+        null=True,
     )
 
     def __str__(self):
