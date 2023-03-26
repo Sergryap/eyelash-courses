@@ -205,13 +205,13 @@ async def get_event_info(event):
         chat_id = event['message']['chat']['id']
         first_name = event['message']['chat']['first_name']
         last_name = event['message']['chat'].get('last_name', '')
-        username = event['message']['chat']['username']
+        username = event['message']['chat'].get('username', '')
     elif event.get('callback_query'):
         user_reply = event['callback_query']['data']
         chat_id = event['callback_query']['message']['chat']['id']
         first_name = event['callback_query']['message']['chat']['first_name']
         last_name = event['callback_query']['message']['chat'].get('last_name', '')
-        username = event['callback_query']['message']['chat']['username']
+        username = event['callback_query']['message']['chat'].get('username', '')
     else:
         return
     return {
