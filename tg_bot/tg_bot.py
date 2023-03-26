@@ -393,7 +393,7 @@ async def enter_phone(connect, event):
 async def handle_event(connect, event):
     """Главный обработчик событий"""
     event_info = await get_event_info(event)
-    start_buttons = ['start', '/start', 'начать', 'старт', '+', '☰ menu']
+    start_buttons = ['start', '/start', 'начать', 'старт', '+', '☰ menu', '/menu']
     user, _ = await Client.objects.async_get_or_create(
         telegram_id=event_info['chat_id'],
         defaults={
