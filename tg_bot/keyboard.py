@@ -1,4 +1,6 @@
 import json
+from courses.models import CourseClient
+from asgiref.sync import sync_to_async
 
 
 async def get_start_inline_keyboard():
@@ -48,7 +50,6 @@ async def get_main_keyboard(column: int):
         ('Прошедшие курсы', 'past_courses'),
         ('Ваши курсы', 'client_courses'),
         ('Как нас найти', 'search_us'),
-        ('Галерея', 'gallery'),
         ('Написать администратору', 'admin_msg'),
     ]
     buttons, row = [], []
@@ -80,3 +81,45 @@ async def get_callback_keyboard(buttons: list[tuple[str, str]], column: int, inl
     if inline:
         return json.dumps({'inline_keyboard': keyboard})
     return json.dumps({'keyboard': keyboard, 'resize_keyboard': True})
+
+
+async def get_course_buttons(course_instances, back):
+    buttons = []
+    for course in course_instances:
+        if course.name == 'Фотогалерея':
+            buttons.append(('ГАЛЕРЕЯ', f'c:{course.pk}:{back}'))
+            continue
+        buttons.append((course.name, f'c:{course.pk}:{back}'))
+    return await get_callback_keyboard(buttons, column=2)
+
+
+async def get_course_menu_buttons(back, course_pk, chat_id):
+    course_clients = await CourseClient.objects.async_filter(course=course_pk)
+    course_client_ids = [await sync_to_async(lambda: user.client.telegram_id)() for user in course_clients]
+    buttons = []
+    if back != 'client_courses' and back != 'past_courses' and chat_id not in course_client_ids:
+        buttons.append(('ЗАПИСАТЬСЯ НА КУРС', f'en_{course_pk}_e'))
+    elif chat_id in course_client_ids:
+        buttons.append(('ОТМЕНИТЬ ЗАПИСЬ', f'en_{course_pk}_c'))
+    buttons.extend([('НАЗАД', back), ('☰ MENU', 'start')])
+    return await get_callback_keyboard(buttons, column=2)
+
+
+async def check_phone_button():
+
+    return json.dumps(
+        {
+            'inline_keyboard': [
+                [
+                    {
+                        'text': 'НОМЕР ВЕРНЫЙ',
+                        'callback_data': 'phone_true'
+                    },
+                    {
+                        'text': 'УКАЖУ ДРУГОЙ',
+                        'callback_data': 'phone_false'
+                    }
+                ],
+            ]
+        }
+    )
