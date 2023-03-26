@@ -12,7 +12,6 @@ from time import sleep
 from asgiref.sync import sync_to_async
 from more_itertools import chunked
 from .keyboard import get_callback_keyboard, get_course_buttons, get_course_menu_buttons, check_phone_button
-from pprint import pprint
 from textwrap import dedent
 from django.conf import settings
 
@@ -442,7 +441,6 @@ async def listen_server():
                 if not updates.get('result') or not updates['ok']:
                     continue
                 event = updates['result'][-1]
-                pprint(event)
                 params['offset'] = event['update_id'] + 1
                 await handle_event(connect, event)
             except ConnectionError:
