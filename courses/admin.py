@@ -281,7 +281,7 @@ class ClientAdmin(ExportMixin, admin.ModelAdmin):
     inlines = [CourseInline]
     list_display = ['__str__', 'phone_number', 'telegram_id', 'get_vk_url', 'get_registry_date']
     list_filter = ['courses__program', 'courses', 'registered_at']
-    readonly_fields = ['get_vk_url']
+    readonly_fields = ['get_vk_url', 'telegram_id']
     resource_class = ClientResource
     fields = [
         'first_name', 'last_name', 'phone_number',
