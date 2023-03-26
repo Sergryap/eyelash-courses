@@ -137,10 +137,9 @@ class ParticipantsCountFilter(admin.SimpleListFilter):
 
 
 @admin.register(Program)
-class ProgramAdmin(admin.ModelAdmin, PreviewMixin):
+class ProgramAdmin(admin.ModelAdmin):
     inlines = [CourseProgramInline]
-    list_display = ['title', 'short_description', 'description', 'get_preview']
-    readonly_fields = ['get_preview']
+    list_display = ['title', 'short_description', 'description']
 
 
 @admin.register(Office)
