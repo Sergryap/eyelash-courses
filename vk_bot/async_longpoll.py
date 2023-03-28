@@ -1,6 +1,5 @@
 import asyncio
 import random
-import redis
 import json
 import aiohttp
 import logging
@@ -200,7 +199,7 @@ async def handle_course_info(connect, event):
                 message='Фото с прошедших курсов:',
                 attachment=attachment,
                 keyboard=await get_course_menu_buttons(
-                    back=payload['button'], course_pk=course_pk, user_id=user_id
+                    back=payload['button'], course=course, user_id=user_id
                 )
             )
             return 'MAIN_MENU'
@@ -226,9 +225,7 @@ async def handle_course_info(connect, event):
             message=dedent(text),
             attachment=attachment,
             keyboard=await get_course_menu_buttons(
-                back=payload['button'],
-                course_pk=course_pk,
-                user_id=user_id
+                back=payload['button'], course=course, user_id=user_id
             )
         )
 

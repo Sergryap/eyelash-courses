@@ -1,7 +1,7 @@
 import json
-
 from courses.models import CourseClient
 from asgiref.sync import sync_to_async
+from django.utils import timezone
 
 
 async def get_start_buttons():
@@ -122,8 +122,8 @@ async def check_phone_button():
     return json.dumps(keyboard, ensure_ascii=False)
 
 
-async def get_course_menu_buttons(back, course_pk, user_id):
-    course_clients = await CourseClient.objects.async_filter(course=course_pk)
+async def get_course_menu_buttons(back, course, user_id):
+    course_clients = await CourseClient.objects.async_filter(course=course)
     course_client_ids = [await sync_to_async(lambda: user.client.vk_id)() for user in course_clients]
     buttons = []
     if back != 'client_courses' and back != 'past_courses' and user_id not in course_client_ids:
@@ -132,7 +132,7 @@ async def get_course_menu_buttons(back, course_pk, user_id):
                 {
                     'action': {
                         'type': 'text',
-                        'payload': {'entry': course_pk},
+                        'payload': {'entry': course.pk},
                         'label': 'ЗАПИСАТЬСЯ НА КУРС'
                     },
                     'color': 'secondary'
@@ -140,13 +140,13 @@ async def get_course_menu_buttons(back, course_pk, user_id):
             ]
         )
 
-    elif user_id in course_client_ids:
+    elif user_id in course_client_ids and course.scheduled_at > timezone.now():
         buttons.append(
             [
                 {
                     'action': {
                         'type': 'text',
-                        'payload': {'entry': course_pk, 'cancel': 1},
+                        'payload': {'entry': course.pk, 'cancel': 1},
                         'label': 'ОТМЕНИТЬ ЗАПИСЬ'
                     },
                     'color': 'secondary'
