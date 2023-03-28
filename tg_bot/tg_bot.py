@@ -266,7 +266,7 @@ async def start(connect, event):
         reply_markup = json.dumps(
             {'inline_keyboard': [[{
                 'text': 'ADMIN',
-                'url': f'http://{settings.ALLOWED_HOSTS[0]}/admin/'
+                'url': settings.ADMIN_URL
             }]]}
         )
         await send_message(
