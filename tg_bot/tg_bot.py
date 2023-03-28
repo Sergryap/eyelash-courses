@@ -345,7 +345,7 @@ async def handle_course_info(connect, event):
             <b>О ПРОГРАММЕ КУРСА:</b>
             {await sync_to_async(lambda: course.program.short_description)()}
 
-            <b>РАССПИСАНИЕ КУРСА:</b>
+            <b>РАСПИСАНИЕ КУРСА:</b>
             {await sync_to_async(lambda: course.short_description)()}
             '''
 
