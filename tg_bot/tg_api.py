@@ -71,3 +71,15 @@ async def send_venue(connect, chat_id, *, lat, long, title, address, reply_marku
     async with connect['session'].get(url, params=params) as res:
         res.raise_for_status()
         return json.loads(await res.text())
+
+
+async def send_media_group(connect, chat_id, *, media: list):
+    """Отправка сообщения через api TG"""
+    url = f"https://api.telegram.org/bot{connect['token']}/sendmediagroup"
+    params = {
+        'chat_id': chat_id,
+        'media': json.dumps(media)
+    }
+    async with connect['session'].get(url, params=params) as res:
+        res.raise_for_status()
+        return json.loads(await res.text())

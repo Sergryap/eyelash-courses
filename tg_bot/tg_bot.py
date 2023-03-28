@@ -15,7 +15,7 @@ from more_itertools import chunked
 from .keyboard import get_callback_keyboard, get_course_buttons, get_course_menu_buttons, check_phone_button
 from textwrap import dedent
 from django.conf import settings
-from .tg_api import send_message, send_location, send_photo, send_venue
+from .tg_api import send_message, send_photo, send_venue, send_media_group
 
 
 logger = logging.getLogger('telegram')
@@ -330,12 +330,8 @@ async def handle_course_info(connect, event):
                 chat_id=chat_id,
                 msg='Фото с прошедших курсов:',
             )
-            for photo in attachment_sequence:
-                await send_photo(
-                    connect,
-                    chat_id=chat_id,
-                    photo=f'https://vk.com/{photo}'
-                )
+            media = [{'type': 'photo', 'media': f'https://vk.com/{photo}'} for photo in attachment_sequence[:10]]
+            await send_media_group(connect, chat_id, media=media)
             return 'MAIN_MENU'
 
         text = f'''            
