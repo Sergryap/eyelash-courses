@@ -101,7 +101,7 @@ async def get_course_menu_buttons(back, course_pk, chat_id):
         buttons.append(('ЗАПИСАТЬСЯ НА КУРС', f'en_{course_pk}_e'))
     elif chat_id in course_client_ids:
         buttons.append(('ОТМЕНИТЬ ЗАПИСЬ', f'en_{course_pk}_c'))
-    buttons.extend([('НАЗАД', back), ('☰ MENU', 'start')])
+    buttons.extend([('НАЗАД', back)])
     return await get_callback_keyboard(buttons, column=2)
 
 

@@ -2,13 +2,14 @@ import json
 from django.conf import settings
 
 
-async def send_message(connect, chat_id, msg, *, reply_markup=None):
+async def send_message(connect, chat_id, msg, *, reply_markup=None, parse_mode=None):
     """Отправка сообщения через api TG"""
     url = f"https://api.telegram.org/bot{connect['token']}/sendmessage"
     params = {
         'chat_id': chat_id,
         'text': msg,
-        'reply_markup': reply_markup
+        'reply_markup': reply_markup,
+        'parse_mode': parse_mode
     }
     for param, value in params.copy().items():
         if value is None:

@@ -1,6 +1,5 @@
 import asyncio
 import json
-from pprint import pprint
 
 import aiohttp
 import logging
@@ -35,9 +34,9 @@ async def send_main_menu_answer(connect, event):
         client_courses = await sync_to_async(user_instance.courses.filter)(published_in_bot=True)
         return await send_courses(
             connect, event, client_courses,
-            'Вы еше не записаны ни на один курс:',
-            'Курсы, на которые вы записаны или проходили:',
-            'Еще ваши курсы',
+            '_Вы еше не записаны ни на один курс_',
+            '_Курсы, на которые вы записаны или проходили:_',
+            '_Еще ваши курсы_',
             back='client_courses',
         )
     # отправка предстоящих курсов
@@ -45,9 +44,9 @@ async def send_main_menu_answer(connect, event):
         future_courses = await Course.objects.async_filter(scheduled_at__gt=timezone.now(), published_in_bot=True)
         return await send_courses(
             connect, event, future_courses,
-            'Пока нет запланированных курсов:',
-            'Предстоящие курсы. Выберите для детальной информации',
-            'Еще предстоящие курсы:',
+            '_Пока нет запланированных курсов_',
+            '*Предстоящие курсы.*\n_Выберите для детальной информации:_',
+            '_Еще предстоящие курсы:_',
             back='future_courses',
         )
     # отправка прошедших курсов
@@ -55,16 +54,17 @@ async def send_main_menu_answer(connect, event):
         past_courses = await Course.objects.async_filter(scheduled_at__lte=timezone.now(), published_in_bot=True)
         return await send_courses(
             connect, event, past_courses,
-            'Еше нет прошедших курсов:',
-            'Прошедшие курсы',
-            'Еще прошедшие курсы:',
+            '_Еше нет прошедших курсов_',
+            '*Прошедшие курсы*',
+            '_Еще прошедшие курсы:_',
             back='past_courses',
         )
     elif user_reply == 'admin_msg':
         await send_message(
             connect,
             chat_id=chat_id,
-            msg=f'{first_name}, введите и отправьте ваше сообщение:'
+            msg=f'_{first_name}, введите и отправьте ваше сообщение:_',
+            parse_mode='Markdown'
         )
     # отправка геолокации
     elif user_reply == 'search_us':
@@ -88,14 +88,15 @@ async def send_main_menu_answer(connect, event):
         course = await Course.objects.async_get(pk=course_pk)
         if user_reply.split('_')[2] == 'c':
             text = f'''
-                 {first_name}, вы отменили запись на курс: {course.name}.
-                 Спасибо, что проявили интерес к нашей школе.
-                 Вы всегда можете вернуться снова и выбрать подходящий курс.
+                 {first_name}, вы отменили запись на курс: *{course.name}*.
+                 _Спасибо, что проявили интерес к нашей школе._
+                 _Вы всегда можете вернуться снова и выбрать подходящий курс._
                  '''
             await send_message(
                 connect,
                 chat_id=chat_id,
                 msg=dedent(text),
+                parse_mode='Markdown'
             )
             await sync_to_async(course.clients.remove)(user_instance)
             await sync_to_async(course.save)()
@@ -110,13 +111,14 @@ async def send_main_menu_answer(connect, event):
             if user_instance.phone_number:
                 text = f'''
                     Чтобы записаться проверьте ваш номер телефона:
-                    {user_instance.phone_number}                        
+                    *{user_instance.phone_number}*                        
                     '''
                 await send_message(
                     connect,
                     chat_id=chat_id,
                     msg=dedent(text),
-                    reply_markup=await check_phone_button()
+                    reply_markup=await check_phone_button(),
+                    parse_mode='Markdown'
                 )
             else:
                 text = f'''
@@ -136,46 +138,49 @@ async def answer_arbitrary_text(connect, event):
     event_info = await get_event_info(event)
     chat_id = event_info['chat_id']
     user_reply = event_info['user_reply']
-    first_name = event_info['first_name']
-    user_instance = await Client.objects.async_get(telegram_id=chat_id)
-    vk_profile = user_instance.vk_profile
     username = event_info['username']
     admin_msg = f'''
         Сообщение от t.me/{username}:
         "{user_reply}"
         '''
     user_msg = f'''
-        Ваше сообщение отправлено.
-        Мы обязательно свяжемся с Вами!
-        Можете отправить еще, либо вернуться в меню.
+        _Ваше сообщение отправлено._
+        _Мы обязательно свяжемся с Вами!_
+        _Можете отправить еще, либо вернуться в меню._
         '''
     logger.warning(dedent(admin_msg))
     await send_message(
         connect,
         chat_id=chat_id,
         msg=dedent(user_msg),
-        reply_markup=await get_callback_keyboard([('☰ MENU', 'start')], 1, inline=False)
+        reply_markup=await get_callback_keyboard([('☰ MENU', 'start')], 1, inline=False),
+        parse_mode='Markdown'
     )
     return 'MAIN_MENU'
 
 
-async def entry_user_to_course(connect, chat_id, first_name, username, user_instance, course):
+async def entry_user_to_course(connect, event, user, course):
+    event_info = await get_event_info(event)
+    chat_id = event_info['chat_id']
+    first_name = event_info['first_name']
+    username = event_info['username']
     text = f'''
          {first_name}, вы записаны на курс:
-         **{course.name.upper()}**
-         Спасибо, что выбрали нашу школу.
-         В ближайшее время мы свяжемся с вами для подтверждения вашего участия.
+         *{course.name.upper()}*
+         _Спасибо, что выбрали нашу школу._
+         _В ближайшее время мы свяжемся с вами для подтверждения вашего участия._
          '''
     await send_message(
         connect,
         chat_id=chat_id,
         msg=dedent(text),
-        reply_markup=await get_callback_keyboard([('☰ MENU', 'start')], 1, inline=False)
+        reply_markup=await get_callback_keyboard([('☰ MENU', 'start')], 1, inline=False),
+        parse_mode='Markdown'
     )
-    await sync_to_async(course.clients.add)(user_instance)
+    await sync_to_async(course.clients.add)(user)
     await sync_to_async(course.save)()
     redis_phone = connect['redis_db'].get(f'tg_{chat_id}_phone')
-    phone = redis_phone.decode('utf-8') if redis_phone else user_instance.phone_number
+    phone = redis_phone.decode('utf-8') if redis_phone else user.phone_number
     logger_msg = f'''
         Клиент t.me/{username}
         Тел: {phone}
@@ -196,7 +201,8 @@ async def send_courses(connect, event, courses, msg1, msg2, msg3, /, *, back):
             connect,
             chat_id=chat_id,
             msg=msg,
-            reply_markup=keyboard
+            reply_markup=keyboard,
+            parse_mode='Markdown'
         )
     if i == 0:
         buttons = [
@@ -206,51 +212,51 @@ async def send_courses(connect, event, courses, msg1, msg2, msg3, /, *, back):
             connect,
             chat_id=chat_id,
             msg=msg1,
-            reply_markup=await get_callback_keyboard(buttons, 2, inline=False)
+            reply_markup=await get_callback_keyboard(buttons, 2, inline=False),
+            parse_mode='Markdown'
         )
     return 'COURSE'
 
 
 async def get_event_info(event):
     if event.get('message'):
-        user_reply = event['message']['text']
-        chat_id = event['message']['chat']['id']
-        first_name = event['message']['chat']['first_name']
-        last_name = event['message']['chat'].get('last_name', '')
-        username = event['message']['chat'].get('username', '')
+        event_info = event['message']
+        return {
+            'user_reply': event_info['text'],
+            'chat_id': event_info['chat']['id'],
+            'first_name': event_info['chat']['first_name'],
+            'last_name': event_info['chat'].get('last_name', ''),
+            'username': event_info['chat'].get('username', '')
+        }
     elif event.get('callback_query'):
-        user_reply = event['callback_query']['data']
-        chat_id = event['callback_query']['message']['chat']['id']
-        first_name = event['callback_query']['message']['chat']['first_name']
-        last_name = event['callback_query']['message']['chat'].get('last_name', '')
-        username = event['callback_query']['message']['chat'].get('username', '')
-    else:
-        return
-    return {
-        'user_reply': user_reply,
-        'chat_id': chat_id,
-        'first_name': first_name,
-        'last_name': last_name,
-        'username': username
-    }
+        event_info = event['callback_query']
+        return {
+            'user_reply': event_info['data'],
+            'chat_id': event_info['message']['chat']['id'],
+            'first_name': event_info['message']['chat']['first_name'],
+            'last_name': event_info['message']['chat'].get('last_name', ''),
+            'username': event_info['message']['chat'].get('username', '')
+        }
+    return
 
 
 async def start(connect, event):
     event_info = await get_event_info(event)
-    start_buttons = ['/start', '+']
+    start_buttons = ['/start']
     msg = 'MENU:'
     if event_info['user_reply'] in start_buttons:
         msg = f'''
             Привет, {event_info['first_name']}, я бот этого чата.
             Здесь ты можешь узнать всю актуальную информацию о наших курсах и при желании оставить заявку.
-            Чтобы начать нажми "MENU"             
+            Чтобы начать нажми *"MENU"*             
             '''
         buttons = [('☰ MENU', 'start')]
         await send_message(
             connect,
             chat_id=event_info['chat_id'],
             msg=dedent(msg),
-            reply_markup=await get_callback_keyboard(buttons, 2, inline=False)
+            reply_markup=await get_callback_keyboard(buttons, 2, inline=False),
+            parse_mode='Markdown'
         )
         return 'MAIN_MENU'
     buttons = [
@@ -313,7 +319,7 @@ async def handle_course_info(connect, event):
             return 'MAIN_MENU'
 
         text = f'''            
-            {course.name.upper()}:
+            *{course.name.upper()}:*
 
             Дата: {course_date}
             Программа: {await sync_to_async(lambda: course.program)()}
@@ -324,7 +330,7 @@ async def handle_course_info(connect, event):
             {await sync_to_async(lambda: course.program.short_description)()}
 
             СОДЕРЖАНИЕ КУРСА:
-            {await sync_to_async(lambda: course.short_description)()}
+            _{await sync_to_async(lambda: course.short_description)()}_
             '''
 
         await send_photo(
@@ -336,7 +342,8 @@ async def handle_course_info(connect, event):
             connect,
             chat_id=chat_id,
             msg=dedent(text),
-            reply_markup=await get_course_menu_buttons(back, course_pk, chat_id)
+            reply_markup=await get_course_menu_buttons(back, course_pk, chat_id),
+            parse_mode='Markdown'
         )
 
     elif event.get('callback_query'):
@@ -352,7 +359,6 @@ async def enter_phone(connect, event):
     chat_id = event_info['chat_id']
     user_reply = event_info['user_reply']
     first_name = event_info['first_name']
-    username = event_info['username']
     user_instance = await Client.objects.async_get(telegram_id=chat_id)
     course_pk = connect['redis_db'].get(f'tg_{chat_id}_current_course')
     course = await Course.objects.async_get(pk=course_pk)
@@ -360,7 +366,7 @@ async def enter_phone(connect, event):
     # если номер существует
     if event.get('callback_query') and user_reply.split('_')[0] == 'phone':
         if user_reply.split('_')[1] == 'true':
-            await entry_user_to_course(connect, chat_id, first_name, username, user_instance, course)
+            await entry_user_to_course(connect, event, user_instance, course)
             connect['redis_db'].delete(f'tg_{chat_id}_current_course')
             return 'MAIN_MENU'
         # если клиент захотел указать другой номер
@@ -391,7 +397,7 @@ async def enter_phone(connect, event):
             connect['redis_db'].delete(f'tg_{chat_id}_current_course')
             norm_phone = ''.join(['+7'] + [i for i in phone if i.isdigit()][-10:])
             connect['redis_db'].set(f'tg_{chat_id}_phone', norm_phone)
-            await entry_user_to_course(connect, chat_id, first_name, username, user_instance, course)
+            await entry_user_to_course(connect, event, user_instance, course)
             return 'MAIN_MENU'
         else:
             text = '''
