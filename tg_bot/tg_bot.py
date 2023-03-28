@@ -15,8 +15,7 @@ from more_itertools import chunked
 from .keyboard import get_callback_keyboard, get_course_buttons, get_course_menu_buttons, check_phone_button
 from textwrap import dedent
 from django.conf import settings
-
-from .tg_api import send_message, send_location, send_photo
+from .tg_api import send_message, send_location, send_photo, send_venue
 
 
 logger = logging.getLogger('telegram')
@@ -69,18 +68,21 @@ async def send_main_menu_answer(connect, event):
     # отправка геолокации
     elif user_reply == 'search_us':
         office = await Office.objects.async_first()
-        text = f'{first_name}, мы находимся по адресу:\n\n{office.address}\n{office.description}'
+        text = f'{first_name}, мы находимся по адресу:\n<b>{office.address}</b>\n<i>{office.description}</i>'
         await send_photo(
             connect,
             chat_id=chat_id,
             photo=f'https://vk.com/{settings.OFFICE_PHOTO}',
-            caption=text
+            caption=text,
+            parse_mode='HTML'
         )
-        await send_location(
+        await send_venue(
             connect,
             chat_id=chat_id,
             lat=str(office.lat),
             long=str(office.long),
+            title=office.title,
+            address=office.address
         )
     # запись/отмена участия на курсе
     elif user_reply.split('_')[0] == 'en':
@@ -110,7 +112,7 @@ async def send_main_menu_answer(connect, event):
             connect['redis_db'].set(f'tg_{chat_id}_current_course', course_pk)
             if user_instance.phone_number:
                 text = f'''
-                    Чтобы записаться проверьте ваш номер телефона:
+                    _Чтобы записаться проверьте ваш номер телефона:_
                     *{user_instance.phone_number}*                        
                     '''
                 await send_message(
@@ -337,18 +339,18 @@ async def handle_course_info(connect, event):
             return 'MAIN_MENU'
 
         text = f'''            
-            *{course.name.upper()}:*
+            <b>{course.name.upper()}:</b>
 
-            Дата: {course_date}
-            Программа: {await sync_to_async(lambda: course.program)()}
-            Лектор: {await sync_to_async(lambda: course.lecture)()}            
-            Продолжительность: {course.duration} д.
+            Дата: <b><i>{course_date}</i></b>
+            Программа: <b><i>{await sync_to_async(lambda: course.program)()}</i></b>
+            Лектор: <b><i>{await sync_to_async(lambda: course.lecture)()}   </i></b>     
+            Продолжительность: <b><i>{course.duration} д.</i></b>
 
-            О ПРОГРАММЕ КУРСА:
+            <b>О ПРОГРАММЕ КУРСА:</b>
             {await sync_to_async(lambda: course.program.short_description)()}
 
-            СОДЕРЖАНИЕ КУРСА:
-            _{await sync_to_async(lambda: course.short_description)()}_
+            <b>РАССПИСАНИЕ КУРСА:</b>
+            {await sync_to_async(lambda: course.short_description)()}
             '''
 
         await send_photo(
@@ -361,7 +363,7 @@ async def handle_course_info(connect, event):
             chat_id=chat_id,
             msg=dedent(text),
             reply_markup=await get_course_menu_buttons(back, course, chat_id),
-            parse_mode='Markdown'
+            parse_mode='HTML'
         )
 
     elif event.get('callback_query'):
@@ -396,16 +398,17 @@ async def enter_phone(connect, event):
             await send_message(
                 connect,
                 chat_id=chat_id,
-                msg=dedent(text)
+                msg=f'_{dedent(text)}_',
+                parse_mode='Markdown'
             )
             return 'PHONE'
     # проверка формата введенного номера
     elif event.get('callback_query') and user_reply == 'admin_msg':
-        user_msg = f'{first_name}, введите и отправьте ваше сообщение:'
         await send_message(
             connect,
             chat_id=chat_id,
-            msg=user_msg
+            msg=f'_{first_name}, введите и отправьте ваше сообщение:_',
+            parse_mode='Markdown'
         )
         return 'MAIN_MENU'
     else:
@@ -426,8 +429,9 @@ async def enter_phone(connect, event):
             await send_message(
                 connect,
                 chat_id=chat_id,
-                msg=dedent(text),
-                reply_markup=await get_callback_keyboard([('☰ MENU', 'start')], 1, inline=False)
+                msg=f'_{dedent(text)}_',
+                reply_markup=await get_callback_keyboard([('☰ MENU', 'start')], 1, inline=False),
+                parse_mode='Markdown'
             )
             return 'PHONE'
 

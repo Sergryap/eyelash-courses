@@ -36,14 +36,34 @@ async def send_location(connect, chat_id, *, lat, long, reply_markup=None):
         return json.loads(await res.text())
 
 
-async def send_photo(connect, chat_id, *, photo, caption=None, reply_markup=None):
+async def send_photo(connect, chat_id, *, photo, caption=None, reply_markup=None,  parse_mode=None):
     """Отправка сообщения через api TG"""
     url = f"https://api.telegram.org/bot{connect['token']}/sendphoto"
     params = {
         'chat_id': chat_id,
         'caption': caption,
         'reply_markup': reply_markup,
-        'photo': photo
+        'photo': photo,
+        'parse_mode': parse_mode
+    }
+    for param, value in params.copy().items():
+        if value is None:
+            del params[param]
+    async with connect['session'].get(url, params=params) as res:
+        res.raise_for_status()
+        return json.loads(await res.text())
+
+
+async def send_venue(connect, chat_id, *, lat, long, title, address, reply_markup=None):
+    """Отправка сообщения через api TG"""
+    url = f"https://api.telegram.org/bot{connect['token']}/sendvenue"
+    params = {
+        'chat_id': chat_id,
+        'latitude': lat,
+        'longitude': long,
+        'title': title,
+        'address': address,
+        'reply_markup': reply_markup
     }
     for param, value in params.copy().items():
         if value is None:
