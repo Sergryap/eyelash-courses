@@ -360,7 +360,7 @@ async def handle_course_info(connect, event):
             connect,
             chat_id=chat_id,
             msg=dedent(text),
-            reply_markup=await get_course_menu_buttons(back, course_pk, chat_id),
+            reply_markup=await get_course_menu_buttons(back, course, chat_id),
             parse_mode='Markdown'
         )
 

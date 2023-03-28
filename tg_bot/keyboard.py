@@ -1,6 +1,7 @@
 import json
 from courses.models import CourseClient
 from asgiref.sync import sync_to_async
+from django.utils import timezone
 
 
 async def get_start_inline_keyboard():
@@ -93,14 +94,14 @@ async def get_course_buttons(course_instances, back):
     return await get_callback_keyboard(buttons, column=2)
 
 
-async def get_course_menu_buttons(back, course_pk, chat_id):
-    course_clients = await CourseClient.objects.async_filter(course=course_pk)
+async def get_course_menu_buttons(back, course, chat_id):
+    course_clients = await CourseClient.objects.async_filter(course=course)
     course_client_ids = [await sync_to_async(lambda: user.client.telegram_id)() for user in course_clients]
     buttons = []
     if back != 'client_courses' and back != 'past_courses' and chat_id not in course_client_ids:
-        buttons.append(('ЗАПИСАТЬСЯ НА КУРС', f'en_{course_pk}_e'))
-    elif chat_id in course_client_ids:
-        buttons.append(('ОТМЕНИТЬ ЗАПИСЬ', f'en_{course_pk}_c'))
+        buttons.append(('ЗАПИСАТЬСЯ НА КУРС', f'en_{course.pk}_e'))
+    elif chat_id in course_client_ids and course.scheduled_at > timezone.now():
+        buttons.append(('ОТМЕНИТЬ ЗАПИСЬ', f'en_{course.pk}_c'))
     buttons.extend([('НАЗАД', back)])
     return await get_callback_keyboard(buttons, column=2)
 
