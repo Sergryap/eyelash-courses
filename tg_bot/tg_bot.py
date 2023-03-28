@@ -259,6 +259,24 @@ async def start(connect, event):
             parse_mode='Markdown'
         )
         return 'MAIN_MENU'
+    elif event_info['user_reply'] == '/admin' and str(event_info['chat_id']) in settings.TG_ADMIN_IDS:
+        msg = f'''
+            Для управления ботом нажми *ADMIN*             
+            '''
+        reply_markup = json.dumps(
+            {'inline_keyboard': [[{
+                'text': 'ADMIN',
+                'url': f'http://{settings.ALLOWED_HOSTS[0]}/admin/'
+            }]]}
+        )
+        await send_message(
+            connect,
+            chat_id=event_info['chat_id'],
+            msg=msg,
+            reply_markup=reply_markup,
+            parse_mode='Markdown',
+        )
+        return 'MAIN_MENU'
     buttons = [
         ('Предстоящие курсы', 'future_courses'),
         ('Прошедшие курсы', 'past_courses'),
@@ -417,7 +435,7 @@ async def enter_phone(connect, event):
 async def handle_event(connect, event):
     """Главный обработчик событий"""
     event_info = await get_event_info(event)
-    start_buttons = ['start', '/start', 'начать', 'старт', '+', '☰ menu', '/menu']
+    start_buttons = ['start', '/start', '/admin', 'начать', 'старт', '+', '☰ menu', '/menu']
     user, _ = await Client.objects.async_get_or_create(
         telegram_id=event_info['chat_id'],
         defaults={
