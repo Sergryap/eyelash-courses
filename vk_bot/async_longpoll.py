@@ -215,7 +215,7 @@ async def handle_course_info(connect, event):
             О ПРОГРАММЕ КУРСА:
             {await sync_to_async(lambda: course.program.short_description)()}
 
-            СОДЕРЖАНИЕ КУРСА:
+            РАССПИСАНИЕ КУРСА:
             {await sync_to_async(lambda: course.short_description)()}
             '''
 
