@@ -83,3 +83,16 @@ async def send_media_group(connect, chat_id, *, media: list):
     async with connect['session'].get(url, params=params) as res:
         res.raise_for_status()
         return json.loads(await res.text())
+
+
+async def answer_callback_query(connect, *, callback_query_id: str, text: str):
+    """Отправка уведомления ввиде всплывающего сообщения"""
+    url = f"https://api.telegram.org/bot{connect['token']}/answercallbackquery"
+    params = {
+        'callback_query_id': callback_query_id,
+        'text': text,
+        'show_alert': 1
+    }
+    async with connect['session'].get(url, params=params) as res:
+        res.raise_for_status()
+        return json.loads(await res.text())

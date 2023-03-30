@@ -434,6 +434,7 @@ async def get_cleaned_event(event):
             'first_name': event_info['message']['chat']['first_name'],
             'last_name': event_info['message']['chat'].get('last_name', ''),
             'username': event_info['message']['chat'].get('username', ''),
+            'callback_query_id': event_info['id'],
             'callback_query': True
         }
     # При необходимости добавить новые типы событий
