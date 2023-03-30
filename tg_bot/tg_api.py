@@ -96,3 +96,16 @@ async def answer_callback_query(connect, *, callback_query_id: str, text: str):
     async with connect['session'].get(url, params=params) as res:
         res.raise_for_status()
         return json.loads(await res.text())
+
+
+async def edit_message_reply_markup(connect, *, chat_id, message_id, reply_markup):
+    """Изменение существующей клавиатуры"""
+    url = f"https://api.telegram.org/bot{connect['token']}/editmessagereplymarkup"
+    params = {
+        'chat_id': chat_id,
+        'message_id': message_id,
+        'reply_markup': reply_markup
+    }
+    async with connect['session'].get(url, params=params) as res:
+        res.raise_for_status()
+        return json.loads(await res.text())
