@@ -357,13 +357,13 @@ async def enter_phone(connect, event):
     elif event.get('callback_query') and event['user_reply'] == 'admin_msg':
         await send_message(
             connect,
-            chat_id=event["chat_id"],
+            chat_id=event['chat_id'],
             msg=f'_{event["first_name"]}, введите и отправьте ваше сообщение:_',
             parse_mode='Markdown'
         )
         return 'MAIN_MENU'
     else:
-        phone = event['message']['text']
+        phone = event['user_reply']
         pattern = re.compile(r'^(\+7|7|8)?[\s\-]?\(?[489][0-9]{2}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}$')
         if pattern.findall(phone):
             connect['redis_db'].delete(f'tg_{event["chat_id"]}_current_course')
