@@ -467,6 +467,8 @@ async def listen_server():
                 update = updates['result'][-1]
                 params['offset'] = update['update_id'] + 1
                 event = await get_cleaned_event(update)
+                if not event:
+                    continue
                 await handle_event(connect, event)
             except ConnectionError:
                 sleep(5)
