@@ -472,6 +472,9 @@ async def listen_server():
                 sleep(5)
                 logger.warning(f'Соединение было прервано', stack_info=True)
                 continue
+            except client_exceptions.ClientResponseError as err:
+                sleep(1)
+                logger.exception(err)
             except client_exceptions.ServerTimeoutError:
                 logger.warning(f'Ошибка ReadTimeout', stack_info=True)
                 continue
