@@ -67,7 +67,7 @@ async def get_main_keyboard(column: int):
     return json.dumps({'inline_keyboard': buttons})
 
 
-async def get_callback_keyboard(buttons: list[tuple[str, str]], column: int, inline: bool = True):
+async def get_callback_keyboard(buttons: list[tuple[str, str]], column: int, inline: bool = True, menu: bool = True):
     keyboard, row = [], []
     i = 0
     for label, payload in buttons:
@@ -79,6 +79,8 @@ async def get_callback_keyboard(buttons: list[tuple[str, str]], column: int, inl
             i = 0
     if i != 0:
         keyboard.append(row)
+    if inline and menu:
+        keyboard.append([{'text': '☰ MENU', 'callback_data': 'start'}])
     if inline:
         return json.dumps({'inline_keyboard': keyboard})
     return json.dumps({'keyboard': keyboard, 'resize_keyboard': True})

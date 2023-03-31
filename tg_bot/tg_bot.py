@@ -15,7 +15,7 @@ from more_itertools import chunked
 from .keyboard import get_callback_keyboard, get_course_buttons, get_course_menu_buttons, check_phone_button
 from textwrap import dedent
 from django.conf import settings
-from .tg_api import send_message, send_photo, send_venue, send_media_group
+from .tg_api import send_message, send_photo, send_venue, send_media_group, delete_message
 
 
 logger = logging.getLogger('telegram')
@@ -64,20 +64,22 @@ async def send_main_menu_answer(connect, event):
     elif event['user_reply'] == 'search_us':
         office = await Office.objects.async_first()
         text = f'{event["first_name"]}, мы находимся по адресу:\n<b>{office.address}</b>\n<i>{office.description}</i>'
-        await send_photo(
-            connect,
-            chat_id=event['chat_id'],
-            photo=f'https://vk.com/{settings.OFFICE_PHOTO}',
-            caption=text,
-            parse_mode='HTML'
-        )
+        # await send_photo(
+        #     connect,
+        #     chat_id=event['chat_id'],
+        #     photo=f'https://vk.com/{settings.OFFICE_PHOTO}',
+        #     caption=text,
+        #     parse_mode='HTML'
+        # )
+        reply_markup = json.dumps({'inline_keyboard': [[{'text': '☰ MENU', 'callback_data': 'start'}]]})
         await send_venue(
             connect,
             chat_id=event['chat_id'],
             lat=str(office.lat),
             long=str(office.long),
             title=office.title,
-            address=office.address
+            address=office.address,
+            reply_markup=reply_markup
         )
     # запись/отмена участия на курсе
     elif event['user_reply'].split('_')[0] == 'en':
@@ -93,7 +95,8 @@ async def send_main_menu_answer(connect, event):
                 connect,
                 chat_id=event['chat_id'],
                 msg=dedent(text),
-                parse_mode='Markdown'
+                parse_mode='Markdown',
+                reply_markup=json.dumps({'inline_keyboard': [[{'text': '☰ MENU', 'callback_data': 'start'}]]})
             )
             await sync_to_async(course.clients.remove)(user_instance)
             await sync_to_async(course.save)()
@@ -163,7 +166,7 @@ async def entry_user_to_course(connect, event, user, course):
         connect,
         chat_id=event['chat_id'],
         msg=dedent(text),
-        reply_markup=await get_callback_keyboard([('☰ MENU', 'start')], 1, inline=False),
+        reply_markup=json.dumps({'inline_keyboard': [[{'text': '☰ MENU', 'callback_data': 'start'}]]}),
         parse_mode='Markdown'
     )
     await sync_to_async(course.clients.add)(user)
@@ -252,7 +255,7 @@ async def start(connect, event):
         connect,
         chat_id=event['chat_id'],
         msg=msg,
-        reply_markup=await get_callback_keyboard(buttons, 2)
+        reply_markup=await get_callback_keyboard(buttons, 2, menu=False)
     )
     return 'MAIN_MENU'
 
@@ -284,13 +287,15 @@ async def handle_course_info(connect, event):
                 attachment_sequence = [image.image_vk_id for image in random_images if image.image_vk_id]
 
         if course.name == 'Фотогалерея':
+            media = [{'type': 'photo', 'media': f'https://vk.com/{photo}'} for photo in attachment_sequence[:10]]
+            await send_media_group(connect, event['chat_id'], media=media)
             await send_message(
                 connect,
                 chat_id=event['chat_id'],
-                msg='Фото с прошедших курсов:',
+                msg='*ФОТО С ПРОШЕДШИХ КУРСОВ*',
+                parse_mode='Markdown',
+                reply_markup=await get_course_menu_buttons(back, course, event['chat_id'])
             )
-            media = [{'type': 'photo', 'media': f'https://vk.com/{photo}'} for photo in attachment_sequence[:10]]
-            await send_media_group(connect, event['chat_id'], media=media)
             return 'MAIN_MENU'
 
         text = f'''            
@@ -307,16 +312,11 @@ async def handle_course_info(connect, event):
             <b>РАСПИСАНИЕ КУРСА:</b>
             {await sync_to_async(lambda: course.short_description)()}
             '''
-
         await send_photo(
             connect,
             chat_id=event['chat_id'],
-            photo=f'https://vk.com/{random.choice(attachment_sequence)}'
-        )
-        await send_message(
-            connect,
-            chat_id=event['chat_id'],
-            msg=dedent(text),
+            photo=f'https://vk.com/{random.choice(attachment_sequence)}',
+            caption=dedent(text),
             reply_markup=await get_course_menu_buttons(back, course, event['chat_id']),
             parse_mode='HTML'
         )
@@ -389,6 +389,12 @@ async def enter_phone(connect, event):
 
 async def handle_event(connect, event):
     """Главный обработчик событий"""
+    if event.get('callback_query'):
+        await delete_message(
+            connect,
+            chat_id=event['chat_id'],
+            message_id=event['message_id']
+        )
     start_buttons = ['start', '/start', '/admin', 'начать', 'старт', '+', '☰ menu', '/menu']
     user, _ = await Client.objects.async_get_or_create(
         telegram_id=event['chat_id'],
@@ -424,6 +430,7 @@ async def get_cleaned_event(event):
             'first_name': event_info['chat']['first_name'],
             'last_name': event_info['chat'].get('last_name', ''),
             'username': event_info['chat'].get('username', ''),
+            'message_id': event_info['message_id'],
             'message': True
         }
     elif event.get('callback_query'):
@@ -435,6 +442,7 @@ async def get_cleaned_event(event):
             'last_name': event_info['message']['chat'].get('last_name', ''),
             'username': event_info['message']['chat'].get('username', ''),
             'callback_query_id': event_info['id'],
+            'message_id': event_info['message']['message_id'],
             'callback_query': True
         }
     # При необходимости добавить новые типы событий
@@ -443,10 +451,9 @@ async def get_cleaned_event(event):
 
 async def listen_server():
     """Получение событий сервера"""
-
     tg_token = settings.TG_TOKEN
     url = f'https://api.telegram.org/bot{tg_token}/getUpdates'
-    params = {'timeout': 5, 'limit': 1}
+    params = {'timeout': 25, 'limit': 1}
     async with aiohttp.ClientSession() as session:
         connect = {'session': session, 'token': tg_token, 'redis_db': settings.REDIS_DB}
         while True:

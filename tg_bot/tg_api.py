@@ -109,3 +109,15 @@ async def edit_message_reply_markup(connect, *, chat_id, message_id, reply_marku
     async with connect['session'].get(url, params=params) as res:
         res.raise_for_status()
         return json.loads(await res.text())
+
+
+async def delete_message(connect, *, chat_id, message_id):
+    """Изменение существующей клавиатуры"""
+    url = f"https://api.telegram.org/bot{connect['token']}/deletemessage"
+    params = {
+        'chat_id': chat_id,
+        'message_id': message_id
+    }
+    async with connect['session'].get(url, params=params) as res:
+        res.raise_for_status()
+        return json.loads(await res.text())
