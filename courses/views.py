@@ -1,3 +1,7 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect, HttpResponse, get_object_or_404
+from django.conf import settings
 
-# Create your views here.
+
+def home(request):
+    template = 'courses/index.html'
+    return render(request, template)
