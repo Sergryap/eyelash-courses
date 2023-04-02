@@ -4,7 +4,8 @@ from django.conf import settings
 
 def home(request):
     template = 'courses/index.html'
-    return render(request, template)
+    context = {'src_map': settings.SRC_MAP}
+    return render(request, template, context)
 
 
 def about(request):
@@ -14,4 +15,5 @@ def about(request):
 
 def contact(request):
     template = 'courses/contact.html'
-    return render(request, template)
+    context = {'src_map': settings.SRC_MAP}
+    return render(request, template, context)

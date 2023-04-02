@@ -34,6 +34,7 @@ SITE_HEADER = env.str('SITE_HEADER')
 INDEX_TITLE = env.str('INDEX_TITLE')
 SITE_TITLE = env.str('SITE_TITLE')
 OFFICE_PHOTO = env.str('OFFICE_PHOTO')
+SRC_MAP = env.str('SRC_MAP')
 REDIS_DB = redis.Redis(
     host=env.str('REDIS_HOST'),
     port=env.str('REDIS_PORT'),
