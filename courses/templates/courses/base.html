@@ -39,18 +39,17 @@
 		<div class="open"><i class="fas fa-cog fa-spin"></i></div>
 		<h4>COLOR OPTION</h4>
 		<ul>
-			<li><a class="color-2" onclick="setActiveStyleSheet('color-2'); return true;" href="index-1.html#!"><i class="fas fa-circle"></i></a> </li>
-			<li><a class="color-3" onclick="setActiveStyleSheet('color-3'); return true;" href="index-1.html#!"><i class="fas fa-circle"></i></a> </li>
-			<li><a class="color-4" onclick="setActiveStyleSheet('color-4'); return true;" href="index-1.html#!"><i class="fas fa-circle"></i></a> </li>
-			<li><a class="color-5" onclick="setActiveStyleSheet('color-5'); return true;" href="index-1.html#!"><i class="fas fa-circle"></i></a> </li>
-			<li><a class="color-6" onclick="setActiveStyleSheet('color-6'); return true;" href="index-1.html#!"><i class="fas fa-circle"></i></a> </li>
-			<li><a class="color-7" onclick="setActiveStyleSheet('color-7'); return true;" href="index-1.html#!"><i class="fas fa-circle"></i></a> </li>
-			<li><a class="color-8" onclick="setActiveStyleSheet('color-8'); return true;" href="index-1.html#!"><i class="fas fa-circle"></i></a> </li>
-			<li><a class="color-9" onclick="setActiveStyleSheet('color-9'); return true;" href="index-1.html#!"><i class="fas fa-circle"></i></a> </li>
+			<li><a class="color-2" onclick="setActiveStyleSheet('color-2'); return true;" href="{% url 'home' %}#!"><i class="fas fa-circle"></i></a> </li>
+			<li><a class="color-3" onclick="setActiveStyleSheet('color-3'); return true;" href="{% url 'home' %}#!"><i class="fas fa-circle"></i></a> </li>
+			<li><a class="color-4" onclick="setActiveStyleSheet('color-4'); return true;" href="{% url 'home' %}#!"><i class="fas fa-circle"></i></a> </li>
+			<li><a class="color-5" onclick="setActiveStyleSheet('color-5'); return true;" href="{% url 'home' %}#!"><i class="fas fa-circle"></i></a> </li>
+			<li><a class="color-6" onclick="setActiveStyleSheet('color-6'); return true;" href="{% url 'home' %}#!"><i class="fas fa-circle"></i></a> </li>
+			<li><a class="color-7" onclick="setActiveStyleSheet('color-7'); return true;" href="{% url 'home' %}#!"><i class="fas fa-circle"></i></a> </li>
+			<li><a class="color-8" onclick="setActiveStyleSheet('color-8'); return true;" href="{% url 'home' %}#!"><i class="fas fa-circle"></i></a> </li>
+			<li><a class="color-9" onclick="setActiveStyleSheet('color-9'); return true;" href="{% url 'home' %}#!"><i class="fas fa-circle"></i></a> </li>
 		</ul>
 		<button class="switcher-light">WIDE </button>
 		<button class="switcher-dark">BOX </button>
-		<a class="rtl-v" href="RTL_Genius/index.html">RTL </a>
 	</div>
 
 
@@ -75,14 +74,14 @@
 							</div>
 							<div class="cart-search float-right ul-li">
 								<ul>
-									<li><a href="index-1.html#"><i class="fas fa-shopping-bag"></i></a></li>
+									<li><a href="{% url 'home' %}#"><i class="fas fa-shopping-bag"></i></a></li>
 									<li>
 										<button type="button" class="toggle-overlay search-btn">
 											<i class="fas fa-search"></i>
 										</button>
 										<div class="search-body">
 											<div class="search-form">
-												<form action="index-1.html#">
+												<form action="{% url 'home' %}#">
 													<input class="search-input" type="search" placeholder="Search Here">
 													<div class="outer-close toggle-overlay">
 														<button type="button" class="search-close">
@@ -96,7 +95,7 @@
 								</ul>
 							</div>
 							<div class="log-in float-right">
-								<a  data-toggle="modal" data-target="#myModal" href="index-1.html#">log in</a>
+								<a  data-toggle="modal" data-target="#myModal" href="{% url 'home' %}#">log in</a>
 								<!-- The Modal -->
 								<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-hidden="true">
 									<div class="modal-dialog">
@@ -117,7 +116,7 @@
 											<!-- Modal body -->
 											<div class="modal-body">
 												<div class="facebook-login">
-													<a href="index-1.html#">
+													<a href="{% url 'home' %}#">
 														<div class="log-in-icon">
 															<i class="fab fa-facebook-f"></i>
 														</div>
@@ -126,8 +125,8 @@
 														</div>
 													</a>
 												</div>
-												<div class="alt-text text-center"><a href="index-1.html#">OR SIGN IN</a> </div>
-												<form class="contact_form" action="index-1.html#" method="POST" enctype="multipart/form-data">
+												<div class="alt-text text-center"><a href="{% url 'home' %}#">OR SIGN IN</a> </div>
+												<form class="contact_form" action="{% url 'home' %}#" method="POST" enctype="multipart/form-data">
 													<div class="contact-info">
 														<input class="name" name="Email" type="email" placeholder="Your@email.com*">
 													</div>
@@ -158,7 +157,7 @@
 										<li><a href="shop.html">shop</a></li>
 										<li><a href="contact.html">Contact Us</a></li>
 										<li class="menu-item-has-children ul-li-block">
-											<a href="index-1.html#!">Pages</a>
+											<a href="{% url 'home' %}#!">Pages</a>
 											<ul class="sub-menu">
 												<li><a href="teacher.html">Teacher</a></li>
 												<li><a href="teacher-details.html">Teacher Details</a></li>
@@ -175,10 +174,10 @@
 							</nav>
 
 							<div class="mobile-menu">
-								<div class="logo"><a href="index-1.html"><img src="{% static 'courses/img/logo/logo.png' %}" alt="Logo"></a></div>
+								<div class="logo"><a href="{% url 'home' %}"><img src="{% static 'courses/img/logo/logo.png' %}" alt="Logo"></a></div>
 								<nav>
 									<ul>
-										<li><a href="index-1.html">Home</a>
+										<li><a href="{% url 'home' %}l">Home</a>
 										</li>
 										<li><a href="about.html">About</a></li>
 										<li><a href="blog.html">Blog</a>
@@ -190,7 +189,7 @@
 										<li><a href="shop.html">Shop</a>
 										</li>
 										<li><a href="contact.html">Contact</a></li>
-										<li><a href="index-1.html#">Pages</a>
+										<li><a href="{% url 'home' %}l#">Pages</a>
 											<ul>
 												<li><a href="course.html">Course</a></li>
 												<li><a href="course-details.html">course sinlge</a></li>
@@ -238,24 +237,24 @@
 									<div class="footer-menu ul-li-block">
 										<h2 class="widget-title">Useful Links</h2>
 										<ul>
-											<li><a href="index-1.html#"><i class="fas fa-caret-right"></i>About Us</a></li>
-											<li><a href="index-1.html#"><i class="fas fa-caret-right"></i>Graphic Design</a></li>
-											<li><a href="index-1.html#"><i class="fas fa-caret-right"></i>Mobile Apps</a></li>
-											<li><a href="index-1.html#"><i class="fas fa-caret-right"></i>Responsive Website</a></li>
-											<li><a href="index-1.html#"><i class="fas fa-caret-right"></i>Graphic Design</a></li>
-											<li><a href="index-1.html#"><i class="fas fa-caret-right"></i>Mobile Apps</a></li>
+											<li><a href="{% url 'home' %}#"><i class="fas fa-caret-right"></i>About Us</a></li>
+											<li><a href="{% url 'home' %}#"><i class="fas fa-caret-right"></i>Graphic Design</a></li>
+											<li><a href="{% url 'home' %}#"><i class="fas fa-caret-right"></i>Mobile Apps</a></li>
+											<li><a href="{% url 'home' %}#"><i class="fas fa-caret-right"></i>Responsive Website</a></li>
+											<li><a href="{% url 'home' %}#"><i class="fas fa-caret-right"></i>Graphic Design</a></li>
+											<li><a href="{% url 'home' %}#"><i class="fas fa-caret-right"></i>Mobile Apps</a></li>
 										</ul>
 									</div>
 								</div>
 								<div class="footer-menu ul-li-block "  >
 									<h2 class="widget-title">Account Info</h2>
 									<ul>
-										<li><a href="index-1.html#"><i class="fas fa-caret-right"></i>Setting Account</a></li>
-										<li><a href="index-1.html#"><i class="fas fa-caret-right"></i>Login & Register</a></li>
-										<li><a href="index-1.html#"><i class="fas fa-caret-right"></i>Contact Us</a></li>
-										<li><a href="index-1.html#"><i class="fas fa-caret-right"></i>Graphic Design</a></li>
-										<li><a href="index-1.html#"><i class="fas fa-caret-right"></i>Mobile Apps</a></li>
-										<li><a href="index-1.html#"><i class="fas fa-caret-right"></i>Responsive Website</a></li>
+										<li><a href="{% url 'home' %}#"><i class="fas fa-caret-right"></i>Setting Account</a></li>
+										<li><a href="{% url 'home' %}#"><i class="fas fa-caret-right"></i>Login & Register</a></li>
+										<li><a href="{% url 'home' %}#"><i class="fas fa-caret-right"></i>Contact Us</a></li>
+										<li><a href="{% url 'home' %}#"><i class="fas fa-caret-right"></i>Graphic Design</a></li>
+										<li><a href="{% url 'home' %}#"><i class="fas fa-caret-right"></i>Mobile Apps</a></li>
+										<li><a href="{% url 'home' %}#"><i class="fas fa-caret-right"></i>Responsive Website</a></li>
 									</ul>
 								</div>
 							</div>
@@ -324,9 +323,9 @@
 								<div class="footer-social ul-li "  >
 									<h2 class="widget-title">Social Network</h2>
 									<ul>
-										<li><a href="index-1.html#"><i class="fab fa-facebook-f"></i></a></li>
-										<li><a href="index-1.html#"><i class="fab fa-twitter"></i></a></li>
-										<li><a href="index-1.html#"><i class="fab fa-google-plus-g"></i></a></li>
+										<li><a href="{% url 'home' %}#"><i class="fab fa-facebook-f"></i></a></li>
+										<li><a href="{% url 'home' %}#"><i class="fab fa-twitter"></i></a></li>
+										<li><a href="{% url 'home' %}#"><i class="fab fa-google-plus-g"></i></a></li>
 									</ul>
 								</div>
 							</div>
@@ -335,7 +334,7 @@
 									<h2 class="widget-title">Subscribe Newsletter</h2>
 
 									<div class="subs-form relative-position">
-										<form action="index-1.html#" method="post">
+										<form action="{% url 'home' %}#" method="post">
 											<input class="course" name="course" type="email" placeholder="Email Address.">
 											<div class="nws-button text-center  gradient-bg text-uppercase">
 												<button type="submit" value="Submit">Subscribe now</button> 
@@ -357,9 +356,9 @@
 							<div class="col-md-6">
 								<div class="copy-right-menu-item float-right ul-li">
 									<ul>
-										<li><a href="index-1.html#">License</a></li>
-										<li><a href="index-1.html#">Privacy & Policy</a></li>
-										<li><a href="index-1.html#">Term Of Service</a></li>
+										<li><a href="{% url 'home' %}#">License</a></li>
+										<li><a href="{% url 'home' %}#">Privacy & Policy</a></li>
+										<li><a href="{% url 'home' %}#">Term Of Service</a></li>
 									</ul>
 								</div>
 							</div>
