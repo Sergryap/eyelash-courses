@@ -17,3 +17,8 @@ def contact(request):
     template = 'courses/contact.html'
     context = {'src_map': settings.SRC_MAP}
     return render(request, template, context)
+
+
+def course(request):
+    template = 'courses/course.html'
+    return render(request, template)
