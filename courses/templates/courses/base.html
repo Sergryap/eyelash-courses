@@ -4,7 +4,7 @@
 <head>
 	<!-- Meta -->
 	<meta charset="utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	{% block addmeta %}{% endblock %}
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>{% block title %}{% endblock %}</title>
 
@@ -16,7 +16,7 @@
 	<link rel="stylesheet" href="{% static 'courses/css/video.min.css' %}">
 	<link rel="stylesheet" href="{% static 'courses/css/lightbox.css' %}">
 	<link rel="stylesheet" href="{% static 'courses/css/progess.css' %}">
-	<link rel="stylesheet" href="{% static 'courses/css/animate.min.css' %}">
+	{% block addlink %}{% endblock %}
 	<link rel="stylesheet" href="{% static 'courses/css/style.css' %}">
 	<link rel="stylesheet" href="{% static 'courses/css/responsive.css' %}">
 	<link rel="stylesheet"  href="{% static 'courses/css/colors/switch.css' %}">
@@ -155,7 +155,7 @@
 										</li>
 										<li><a href="{% url 'about' %}">About Us</a></li>
 <!--										<li><a href="shop.html">shop</a></li>-->
-										<li><a href="contact.html">Contact Us</a></li>
+										<li><a href="{% url 'contact' %}">Contact Us</a></li>
 										<li class="menu-item-has-children ul-li-block">
 											<a href="{% url 'home' %}#!">Pages</a>
 											<ul class="sub-menu">
@@ -188,7 +188,7 @@
 										</li>
 										<li><a href="shop.html">Shop</a>
 										</li>
-										<li><a href="contact.html">Contact</a></li>
+										<li><a href="{% url 'contact' %}">Contact</a></li>
 										<li><a href="{% url 'home' %}l#">Pages</a>
 											<ul>
 												<li><a href="course.html">Course</a></li>
@@ -251,7 +251,7 @@
 									<ul>
 										<li><a href="{% url 'home' %}#"><i class="fas fa-caret-right"></i>Setting Account</a></li>
 										<li><a href="{% url 'home' %}#"><i class="fas fa-caret-right"></i>Login & Register</a></li>
-										<li><a href="{% url 'home' %}#"><i class="fas fa-caret-right"></i>Contact Us</a></li>
+										<li><a href="{% url 'contact' %}#"><i class="fas fa-caret-right"></i>Contact Us</a></li>
 										<li><a href="{% url 'home' %}#"><i class="fas fa-caret-right"></i>Graphic Design</a></li>
 										<li><a href="{% url 'home' %}#"><i class="fas fa-caret-right"></i>Mobile Apps</a></li>
 										<li><a href="{% url 'home' %}#"><i class="fas fa-caret-right"></i>Responsive Website</a></li>
