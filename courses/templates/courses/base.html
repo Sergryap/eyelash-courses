@@ -153,8 +153,8 @@
 										<li class="menu-item-has-children ul-li-block">
 											<a href="{% url 'home' %}">Home</a>
 										</li>
-										<li><a href="about.html">About Us</a></li>
-										<li><a href="shop.html">shop</a></li>
+										<li><a href="{% url 'about' %}">About Us</a></li>
+<!--										<li><a href="shop.html">shop</a></li>-->
 										<li><a href="contact.html">Contact Us</a></li>
 										<li class="menu-item-has-children ul-li-block">
 											<a href="{% url 'home' %}#!">Pages</a>
@@ -179,7 +179,7 @@
 									<ul>
 										<li><a href="{% url 'home' %}l">Home</a>
 										</li>
-										<li><a href="about.html">About</a></li>
+										<li><a href="{% url 'about' %}">About</a></li>
 										<li><a href="blog.html">Blog</a>
 											<ul>
 												<li><a href="blog.html">Blog</a></li>
@@ -237,7 +237,7 @@
 									<div class="footer-menu ul-li-block">
 										<h2 class="widget-title">Useful Links</h2>
 										<ul>
-											<li><a href="{% url 'home' %}#"><i class="fas fa-caret-right"></i>About Us</a></li>
+											<li><a href="{% url 'about' %}#"><i class="fas fa-caret-right"></i>About Us</a></li>
 											<li><a href="{% url 'home' %}#"><i class="fas fa-caret-right"></i>Graphic Design</a></li>
 											<li><a href="{% url 'home' %}#"><i class="fas fa-caret-right"></i>Mobile Apps</a></li>
 											<li><a href="{% url 'home' %}#"><i class="fas fa-caret-right"></i>Responsive Website</a></li>
