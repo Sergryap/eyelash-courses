@@ -1,10 +1,23 @@
 from django.shortcuts import render, redirect, HttpResponse, get_object_or_404
 from django.conf import settings
+from courses.models import Course, Program
+from django.db.models import Q
 
 
 def home(request):
     template = 'courses/index.html'
-    context = {'src_map': settings.SRC_MAP}
+    courses = [
+        {
+            'instance': instance,
+            'image_url': instance.images.first().image.url
+        } for instance in Course.objects.filter(~Q(name='Фотогалерея')).prefetch_related('images')
+    ]
+
+    context = {
+        'src_map': settings.SRC_MAP,
+        'programs': Program.objects.all(),
+        'courses': courses
+    }
     return render(request, template, context)
 
 
