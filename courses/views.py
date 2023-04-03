@@ -27,3 +27,8 @@ def course(request):
 def course_details(request):
     template = 'courses/course-details.html'
     return render(request, template)
+
+
+def faq(request):
+    template = 'courses/faq.html'
+    return render(request, template)
