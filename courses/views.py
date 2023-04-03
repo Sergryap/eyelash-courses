@@ -22,3 +22,8 @@ def contact(request):
 def course(request):
     template = 'courses/course.html'
     return render(request, template)
+
+
+def course_details(request):
+    template = 'courses/course-details.html'
+    return render(request, template)
