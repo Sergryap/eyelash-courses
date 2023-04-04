@@ -48,7 +48,14 @@ def course(request):
 def course_details(request, slug: str):
     template = 'courses/course-details.html'
     course_instance = Course.objects.prefetch_related('images').get(slug=slug)
-    context = {'course': course_instance, 'course_image_url': course_instance.images.first().image.url}
+    context = {
+        'course': course_instance,
+        'images': [
+            {
+                'url': image.image.url, 'number': number
+            } for number, image in enumerate(course_instance.images.all(), start=1)
+        ]
+    }
     return render(request, template, context)
 
 

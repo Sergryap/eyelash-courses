@@ -33,12 +33,23 @@
 				<div class="row">
 					<div class="col-md-9">
 						<div class="course-details-item">
-							<div class="course-single-pic mb30">
-								<img src="{{ course_image_url }}" alt="">
+							<div class="about-gallery">
+								{% for image in images %}
+									{% if image.number == 1 %}
+										<div class="about-gallery-img grid-1">
+											<img src="{{ image.url }}" alt="">
+										</div>
+									{% elif image.number < 4 %}
+										<div class="about-gallery-img grid-2">
+											<img src="{{ image.url }}" alt="">
+										</div>
+									{% endif %}
+								{% endfor %}
 							</div>
+
 							<div class="course-single-text">
 								<div class="course-title mt10 headline relative-position">
-									<h3><a href="{% url 'course_details' course.slug %}#">Fully Responsive <b>Web Design &amp; Development.</b></a> <span class="trend-badge text-uppercase bold-font"><i class="fas fa-bolt"></i> TRENDING</span></h3>
+									<h3><a href="{% url 'course_details' course.slug %}#"><b>{{ course.name }}</b></a></h3>
 								</div>
 								<div class="course-details-content">
 									{% autoescape off %}{{ course.description }}{% endautoescape %}
