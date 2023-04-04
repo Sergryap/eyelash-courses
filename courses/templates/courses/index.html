@@ -25,7 +25,7 @@
 						<div class="layer-1-4">
 							<div id="course-btn">
 								<div class="genius-btn  text-center text-uppercase ul-li-block bold-font">
-									<a href="{% url 'home' %}#">Our Courses <i class="fas fa-caret-right"></i></a>
+									<a href="{% url 'course' %}">Our Courses <i class="fas fa-caret-right"></i></a>
 								</div>
 							</div>
 						</div>
@@ -678,44 +678,44 @@
 			<div class="container">
 				<div class="section-title mb45 headline text-center "  >
 					<span class="subtitle text-uppercase">ВЫБЕРИ СВОЙ КУРС</span>
-					<h2>Наши<span> курсы</span></h2>
+					<h2>Рсписание<span> курсов</span></h2>
 				</div>
 				<div class="best-course-area mb45">
 					<div class="row">
 						{% for course in courses %}
-						<div class="col-md-3">
-							<div class="best-course-pic-text relative-position "  >
-								<div class="best-course-pic relative-position">
-									<img src="{{ course.image_url }}" alt="">
+							<div class="col-md-3">
+								<div class="best-course-pic-text relative-position "  >
+									<div class="best-course-pic relative-position">
+										<img src="{{ course.image_url }}" alt="">
 
-									<div class="course-price text-center gradient-bg">
-										<span>$99.00</span>
+										<div class="course-price text-center gradient-bg">
+											<span>$99.00</span>
+										</div>
+										<div class="course-rate ul-li">
+											<ul>
+												<li><i class="fas fa-star"></i></li>
+												<li><i class="fas fa-star"></i></li>
+												<li><i class="fas fa-star"></i></li>
+												<li><i class="fas fa-star"></i></li>
+												<li><i class="fas fa-star"></i></li>
+											</ul>
+										</div>
+										<div class="course-details-btn">
+											<a href="{% url 'course_details' course.instance.slug %}">ПОДРОБНЕЕ <i class="fas fa-arrow-right"></i></a>
+										</div>
+										<div class="blakish-overlay"></div>
 									</div>
-									<div class="course-rate ul-li">
-										<ul>
-											<li><i class="fas fa-star"></i></li>
-											<li><i class="fas fa-star"></i></li>
-											<li><i class="fas fa-star"></i></li>
-											<li><i class="fas fa-star"></i></li>
-											<li><i class="fas fa-star"></i></li>
-										</ul>
-									</div>
-									<div class="course-details-btn">
-										<a href="{% url 'course_details' course.instance.slug %}">ПОДРОБНЕЕ <i class="fas fa-arrow-right"></i></a>
-									</div>
-									<div class="blakish-overlay"></div>
-								</div>
-								<div class="best-course-text">
-									<div class="course-title mb20 headline relative-position">
-										<h3><a href="{% url 'course_details' course.instance.slug %}">{{ course.instance.name }}</a></h3>
-									</div>
-									<div class="course-meta">
-										<span class="course-category"><a href="{% url 'home' %}#">Web Design</a></span>
-										<span class="course-author"><a href="{% url 'home' %}#">250 Students</a></span>
+									<div class="best-course-text">
+										<div class="course-title mb20 headline relative-position">
+											<h3><a href="{% url 'course_details' course.instance.slug %}">{{ course.instance.name }}</a></h3>
+										</div>
+										<div class="course-meta">
+											<span class="course-category"><a href="{% url 'course_details' course.instance.slug %}">{{ course.date }}</a></span>
+											<span class="course-author"><a href="{% url 'course_details' course.instance.slug %}">{{ course.instance.duration }} д.</a></span>
+										</div>
 									</div>
 								</div>
 							</div>
-						</div>
 						{% endfor %}
 						<!-- /course -->
 					</div>

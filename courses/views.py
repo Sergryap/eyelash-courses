@@ -9,7 +9,8 @@ def home(request):
     courses = [
         {
             'instance': instance,
-            'image_url': instance.images.first().image.url
+            'image_url': instance.images.first().image.url,
+            'date': instance.scheduled_at.strftime("%d.%m.%Y")
         } for instance in Course.objects.filter(~Q(name='Фотогалерея')).prefetch_related('images')
     ]
 
