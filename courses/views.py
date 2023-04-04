@@ -47,7 +47,8 @@ def course(request):
 
 def course_details(request, slug: str):
     template = 'courses/course-details.html'
-    context = {'course': Course.objects.get(slug=slug)}
+    course_instance = Course.objects.prefetch_related('images').get(slug=slug)
+    context = {'course': course_instance, 'course_image_url': course_instance.images.first().image.url}
     return render(request, template, context)
 
 
