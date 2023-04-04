@@ -219,13 +219,13 @@
 <!--									<span>$99.00</span>-->
 <!--								</div>-->
 								<div class="course-details-btn">
-									<a href="{% url 'home' %}#">ПОДРОБНЕЕ <i class="fas fa-arrow-right"></i></a>
+									<a href="{% url 'program_details' program.slug %}">ПОДРОБНЕЕ <i class="fas fa-arrow-right"></i></a>
 								</div>
 							</div>
 							<div class="course-item-text">
 								<div class="course-meta">
-									<span class="course-category bold-font"><a href="{% url 'home' %}#">Eyelash extension</a></span>
-									<span class="course-author bold-font"><a href="{% url 'home' %}#">Оксана Ряпина</a></span>
+									<span class="course-category bold-font"><a href="{% url 'program_details' program.slug %}">Eyelash extension</a></span>
+									<span class="course-author bold-font"><a href="{% url 'program_details' program.slug %}">Оксана Ряпина</a></span>
 									<div class="course-rate ul-li">
 										<ul>
 											<li><i class="fas fa-star"></i></li>
@@ -237,13 +237,13 @@
 									</div>
 								</div>
 								<div class="course-title mt10 headline pb45 relative-position">
-									<h3><a href="{% url 'home' %}#">{{ program.title }}</a></h3>
+									<h3><a href="{% url 'program_details' program.slug %}">{{ program.title }}</a></h3>
 								</div>
 								<div class="course-viewer ul-li">
 									<ul>
-										<li><a href="{% url 'home' %}"><i class="fas fa-user"></i> 1.220</a></li>
-										<li><a href="{% url 'home' %}"><i class="fas fa-comment-dots"></i> 1.015</a></li>
-										<li><a href="{% url 'home' %}">125k Unrolled</a></li>
+										<li><a href="{% url 'program_details' program.slug %}"><i class="fas fa-user"></i> 1.220</a></li>
+										<li><a href="{% url 'program_details' program.slug %}"><i class="fas fa-comment-dots"></i> 1.015</a></li>
+										<li><a href="{% url 'program_details' program.slug %}">125k Unrolled</a></li>
 									</ul>
 								</div>
 							</div>
@@ -686,7 +686,7 @@
 						<div class="col-md-3">
 							<div class="best-course-pic-text relative-position "  >
 								<div class="best-course-pic relative-position">
-									<img src="{{ course.image_url}}" alt="">
+									<img src="{{ course.image_url }}" alt="">
 
 									<div class="course-price text-center gradient-bg">
 										<span>$99.00</span>
@@ -701,7 +701,7 @@
 										</ul>
 									</div>
 									<div class="course-details-btn">
-										<a href="{% url 'course_details' course.instance.slug %}">COURSE DETAIL <i class="fas fa-arrow-right"></i></a>
+										<a href="{% url 'course_details' course.instance.slug %}">ПОДРОБНЕЕ <i class="fas fa-arrow-right"></i></a>
 									</div>
 									<div class="blakish-overlay"></div>
 								</div>

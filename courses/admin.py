@@ -139,6 +139,7 @@ class ParticipantsCountFilter(admin.SimpleListFilter):
 @admin.register(Program)
 class ProgramAdmin(admin.ModelAdmin):
     inlines = [CourseProgramInline]
+    prepopulated_fields = {'slug': ('title',)}
     list_display = ['title', 'short_description', 'description']
 
 

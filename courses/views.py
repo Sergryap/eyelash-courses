@@ -34,12 +34,26 @@ def contact(request):
 
 def course(request):
     template = 'courses/course.html'
-    return render(request, template)
+    context = {
+        'courses': [
+            {
+                'instance': instance,
+                'image_url': instance.images.first().image.url
+            } for instance in Course.objects.filter(~Q(name='Фотогалерея')).prefetch_related('images')
+        ]
+    }
+    return render(request, template, context)
 
 
 def course_details(request, slug: str):
     template = 'courses/course-details.html'
     context = {'course': Course.objects.get(slug=slug)}
+    return render(request, template, context)
+
+
+def program_details(request, slug: str):
+    template = 'courses/program-details.html'
+    context = {'program': Program.objects.get(slug=slug)}
     return render(request, template, context)
 
 
