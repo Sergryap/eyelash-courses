@@ -164,12 +164,13 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
         'get_count_participants', 'duration', 'published_in_bot'
     ]
     readonly_fields = ['get_course_preview']
+    prepopulated_fields = {'slug': ('name',)}
     list_editable = ['price', 'program', 'duration', 'published_in_bot']
     list_filter = ['scheduled_at', 'name', 'program', 'clients', ParticipantsCountFilter]
     save_on_top = True
     form = CourseForm
     fields = [
-        ('name', 'program'),
+        ('name', 'slug', 'program'),
         ('scheduled_at', 'price'),
         ('lecture', 'duration'),
         'short_description',

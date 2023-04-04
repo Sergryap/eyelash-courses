@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, HttpResponse, get_object_or_404
 from django.conf import settings
-from courses.models import Course, Program
+from courses.models import Course, Program, Lecturer
 from django.db.models import Q
 
 
@@ -37,9 +37,10 @@ def course(request):
     return render(request, template)
 
 
-def course_details(request):
+def course_details(request, slug: str):
     template = 'courses/course-details.html'
-    return render(request, template)
+    context = {'course': Course.objects.get(slug=slug)}
+    return render(request, template, context)
 
 
 def faq(request):

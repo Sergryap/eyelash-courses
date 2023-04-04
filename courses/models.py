@@ -220,6 +220,7 @@ class Course(models.Model):
         verbose_name='В боте',
         default=True
     )
+    slug = models.SlugField(null=True)
 
     @admin.display(description='Участников')
     def get_count_participants(self):
