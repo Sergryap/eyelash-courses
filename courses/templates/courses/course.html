@@ -38,7 +38,7 @@
 							<div class="best-course-pic relative-position">
 								<img src="{{ course.image_url }}" alt="">
 								<div class="course-price text-center gradient-bg">
-									<span>$99.00</span>
+									<span>{{ course.date }}</span>
 								</div>
 								<div class="course-rate ul-li">
 									<ul>
@@ -59,7 +59,7 @@
 									<h3><a href="{% url 'course_details' course.instance.slug %}#">{{ course.instance.name }}</a></h3>
 								</div>
 								<div class="course-meta">
-									<span class="course-category"><a href="{% url 'course_details' course.instance.slug %}#">{{ course.date }}</a></span>
+									<span class="course-category"><a href="{% url 'course_details' course.instance.slug %}#">{{ course.instance.program }}</a></span>
 									<span class="course-author"><a href="{% url 'course_details' course.instance.slug %}#">{{ course.instance.duration }} д.</a></span>
 								</div>
 							</div>
