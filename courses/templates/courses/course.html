@@ -52,7 +52,9 @@
 								<div class="course-details-btn">
 									<a href="{% url 'course_details' course.instance.slug %}">ПОДРОБНЕЕ <i class="fas fa-arrow-right"></i></a>
 								</div>
-								<div class="blakish-overlay"></div>
+								<a href="{% url 'course_details' course.instance.slug %}">
+									<div class="blakish-overlay"></div>
+								</a>
 							</div>
 							<div class="best-course-text">
 								<div class="course-title mb20 headline relative-position">

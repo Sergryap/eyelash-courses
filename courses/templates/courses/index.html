@@ -135,15 +135,14 @@
 				<div id="course-slide-item" class="course-slide">
 					{% for program in programs %}
 						<div class="course-item-pic-text " >
-							<div class="course-pic relative-position mb25">
-								<img src="{{ program.image.url }}" alt="">
-<!--								<div class="course-price text-center gradient-bg">-->
-<!--									<span>$99.00</span>-->
-<!--								</div>-->
-								<div class="course-details-btn">
-									<a href="{% url 'program_details' program.slug %}">ПОДРОБНЕЕ <i class="fas fa-arrow-right"></i></a>
+							<a href="{% url 'program_details' program.slug %}">
+								<div class="course-pic relative-position mb25">
+									<img src="{{ program.image.url }}" alt="">
+									<div class="course-details-btn">
+										<a href="{% url 'program_details' program.slug %}">ПОДРОБНЕЕ <i class="fas fa-arrow-right"></i></a>
+									</div>
 								</div>
-							</div>
+							</a>
 							<div class="course-item-text">
 								<div class="course-meta">
 									<span class="course-category bold-font"><a href="{% url 'program_details' program.slug %}">Eyelash extension</a></span>
@@ -576,7 +575,9 @@
 										<div class="course-details-btn">
 											<a href="{% url 'course_details' course.instance.slug %}">ПОДРОБНЕЕ <i class="fas fa-arrow-right"></i></a>
 										</div>
-										<div class="blakish-overlay"></div>
+										<a href="{% url 'course_details' course.instance.slug %}">
+											<div class="blakish-overlay"></div>
+										</a>
 									</div>
 									<div class="best-course-text">
 										<div class="course-title mb20 headline relative-position">
