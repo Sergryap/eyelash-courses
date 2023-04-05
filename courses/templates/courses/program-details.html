@@ -350,15 +350,12 @@
 										<div class="latest-news-area">
 											<div class="latest-news-thumbnile relative-position">
 												<img src="{{ course.image_url }}" alt="{{ course.instance.name }}">
-												<div class="hover-search">
-													<i class="fas fa-search"></i>
-												</div>
-												<div class="blakish-overlay"></div>
+												<a href="{% url 'course_details' course.instance.slug %}"><div class="blakish-overlay"></div></a>
 											</div>
 											<div class="date-meta">
 												<i class="fas fa-calendar-alt"></i> {{ course.date }}
 											</div>
-											<h3 class="latest-title bold-font"><a href="{% url 'course_details' course.instance.slug %}#">{{ course.instance.name }}</a></h3>
+											<h3 class="latest-title bold-font"><a href="{% url 'course_details' course.instance.slug %}">{{ course.instance.name }}</a></h3>
 										</div>
 									{% endfor %}
 									<!-- /post -->
