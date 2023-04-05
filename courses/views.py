@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, HttpResponse, get_object_or_404
 from django.conf import settings
-from courses.models import Course, Program, Lecturer
+from courses.models import Course, Program, Lecturer, Office
 from django.db.models import Q
 from django.utils import timezone
 
@@ -12,13 +12,14 @@ def home(request):
             'instance': instance,
             'image_url': instance.images.first().image.url,
             'date': instance.scheduled_at.strftime("%d.%m.%Y")
-        } for instance in Course.objects.filter(~Q(name='Фотогалерея')).prefetch_related('images')
+        } for instance in Course.objects.filter(~Q(name='Фотогалерея')).select_related('program').prefetch_related('images')
     ]
 
     context = {
         'src_map': settings.SRC_MAP,
         'programs': Program.objects.all(),
-        'courses': courses
+        'courses': courses,
+        'office': Office.objects.first()
     }
     return render(request, template, context)
 
@@ -42,7 +43,7 @@ def course(request):
                 'instance': instance,
                 'image_url': instance.images.first().image.url,
                 'date': instance.scheduled_at.strftime("%d.%m.%Y"),
-            } for instance in Course.objects.filter(~Q(name='Фотогалерея')).prefetch_related('images')
+            } for instance in Course.objects.filter(~Q(name='Фотогалерея')).select_related('program').prefetch_related('images')
         ]
     }
     return render(request, template, context)
