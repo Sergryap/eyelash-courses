@@ -38,7 +38,7 @@
 							</div>
 							<div class="course-single-text">
 								<div class="course-title mt10 headline relative-position">
-									<h3><a href="{% url 'program_details' program.slug %}#">Fully Responsive <b>Web Design &amp; Development.</b></a> <span class="trend-badge text-uppercase bold-font"><i class="fas fa-bolt"></i> TRENDING</span></h3>
+									<h3><a href="{% url 'program_details' program.slug %}#"><b>{{ program.title }}</b></a></h3>
 								</div>
 								<div class="course-details-content">
 									{% autoescape off %}{{ program.description }}{% endautoescape %}
@@ -342,101 +342,27 @@
 
 					<div class="col-md-3">
 						<div class="side-bar">
-							<div class="course-side-bar-widget">
-								<h3>Price <span>$69.99</span></h3>
-								<div class="genius-btn gradient-bg text-center text-uppercase float-left bold-font">
-									<a href="{% url 'program_details' program.slug %}#">Enroll THis course <i class="fas fa-caret-right"></i></a>
-								</div>
-								<div class="like-course">
-									<a href="{% url 'program_details' program.slug %}#"><i class="fas fa-heart"></i></a>
-								</div>
-							</div>
-							<div class="enrolled-student">
-								<div class="comment-ratting float-left ul-li">
-									<ul>
-										<li><i class="fas fa-star"></i></li>
-										<li><i class="fas fa-star"></i></li>
-										<li><i class="fas fa-star"></i></li>
-										<li><i class="fas fa-star"></i></li>
-										<li><i class="fas fa-star"></i></li>
-									</ul>
-								</div>
-								<div class="student-number bold-font">
-									250 Enrolled
-								</div>
-							</div>
-							<div class="couse-feature ul-li-block">
-								<ul>
-									<li>Lectures <span>20 Lectures</span></li>
-									<li>Language  <span>English, France</span></li>
-									<li>Video  <span>8 Hours</span></li>
-									<li>Duration <span>30 Days</span></li>
-									<li>Includes  <span>Breakfast</span></li>
-								</ul>
-							</div>
-
 							<div class="side-bar-widget">
-								<h2 class="widget-title text-capitalize"><span>Related </span>News.</h2>
+								<h2 class="widget-title text-capitalize"><span>Ближайшие </span>курсы</h2>
 								<div class="latest-news-posts">
-									<div class="latest-news-area">
-										<div class="latest-news-thumbnile relative-position">
-											<img src="{% static 'courses/img/blog/lb-1.jpg' %}" alt="">
-											<div class="hover-search">
-												<i class="fas fa-search"></i>
-											</div>
-											<div class="blakish-overlay"></div>
-										</div>
-										<div class="date-meta">
-											<i class="fas fa-calendar-alt"></i> 26 April 2018
-										</div>
-										<h3 class="latest-title bold-font"><a href="{% url 'program_details' program.slug %}#">Affiliate Marketing A Beginner’s Guide.</a></h3>
-									</div>
-									<!-- /post -->
 
-									<div class="latest-news-posts">
+									{% for course in courses %}
 										<div class="latest-news-area">
 											<div class="latest-news-thumbnile relative-position">
-												<img src="{% static 'courses/img/blog/lb-2.jpg' %}" alt="">
+												<img src="{{ course.image_url }}" alt="{{ course.instance.name }}">
 												<div class="hover-search">
 													<i class="fas fa-search"></i>
 												</div>
 												<div class="blakish-overlay"></div>
 											</div>
 											<div class="date-meta">
-												<i class="fas fa-calendar-alt"></i> 26 April 2018
+												<i class="fas fa-calendar-alt"></i> {{ course.date }}
 											</div>
-											<h3 class="latest-title bold-font"><a href="{% url 'program_details' program.slug %}#">No.1 The Best Online Course 2018.</a></h3>
+											<h3 class="latest-title bold-font"><a href="{% url 'course_details' course.instance.slug %}#">{{ course.instance.name }}</a></h3>
 										</div>
-										<!-- /post -->
-									</div>
+									{% endfor %}
+									<!-- /post -->
 
-									<div class="view-all-btn bold-font">
-										<a href="{% url 'program_details' program.slug %}#">View All News <i class="fas fa-chevron-circle-right"></i></a>
-									</div>
-								</div>
-							</div>
-
-							<div class="side-bar-widget">
-								<h2 class="widget-title text-capitalize"><span>Featured</span> Course.</h2>
-								<div class="featured-course">
-									<div class="best-course-pic-text relative-position">
-										<div class="best-course-pic relative-position">
-											<img src="{% static 'courses/img/blog/fb-1.jpg' %}" alt="">
-											<div class="trend-badge-2 text-center text-uppercase">
-												<i class="fas fa-bolt"></i>
-												<span>Trending</span>
-											</div>
-										</div>
-										<div class="best-course-text">
-											<div class="course-title mb20 headline relative-position">
-												<h3><a href="{% url 'program_details' program.slug %}#">Fully Responsive Web Design &amp; Development.</a></h3>
-											</div>
-											<div class="course-meta">
-												<span class="course-category"><a href="{% url 'program_details' program.slug %}#">Web Design</a></span>
-												<span class="course-author"><a href="{% url 'program_details' program.slug %}#">250 Students</a></span>
-											</div>
-										</div>
-									</div>
 								</div>
 							</div>
 						</div>

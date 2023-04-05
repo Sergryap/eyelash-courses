@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, HttpResponse, get_object_or_404
 from django.conf import settings
 from courses.models import Course, Program, Lecturer
 from django.db.models import Q
+from django.utils import timezone
 
 
 def home(request):
@@ -65,7 +66,21 @@ def course_details(request, slug: str):
 
 def program_details(request, slug: str):
     template = 'courses/program-details.html'
-    context = {'program': Program.objects.get(slug=slug)}
+    program = Program.objects.prefetch_related('courses').get(slug=slug)
+    courses = program.courses.prefetch_related('images')
+    context = {
+        'program': program,
+        'courses': [
+            {
+                'instance': course_ins,
+                'date': course_ins.scheduled_at.strftime("%d.%m.%Y"),
+                'image_url': course_ins.images.first().image.url,
+            } for course_ins in courses if (
+                    course_ins.scheduled_at > timezone.now()
+                    and course_ins.published_in_bot
+            )
+        ]
+    }
     return render(request, template, context)
 
 
