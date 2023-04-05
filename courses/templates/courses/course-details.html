@@ -356,7 +356,7 @@
 							<div class="course-side-bar-widget">
 								<h3>Price <span>$69.99</span></h3>
 								<div class="genius-btn gradient-bg text-center text-uppercase float-left bold-font">
-									<a href="{% url 'course_details' course.slug %}#">Enroll THis course <i class="fas fa-caret-right"></i></a>
+									<a href="{% url 'course_details' course.slug %}#">Записаться <i class="fas fa-caret-right"></i></a>
 								</div>
 								<div class="like-course">
 									<a href="{% url 'course_details' course.slug %}#"><i class="fas fa-heart"></i></a>
@@ -378,11 +378,11 @@
 							</div>
 							<div class="couse-feature ul-li-block">
 								<ul>
-									<li>Lectures <span>20 Lectures</span></li>
-									<li>Language  <span>English, France</span></li>
-									<li>Video  <span>8 Hours</span></li>
-									<li>Duration <span>30 Days</span></li>
-									<li>Includes  <span>Breakfast</span></li>
+									<li>Лектор <span>{{ course.lecture }}</span></li>
+									<li>Дата<span>{{ date }}</span></li>
+									<li>Участников  <span>{{ participants }}</span></li>
+									<li>Продолжительность <span>{{ course.duration }} д.</span></li>
+									<li>Кофе-брэйк  <span>Включен</span></li>
 								</ul>
 							</div>
 
