@@ -552,7 +552,7 @@
 			<div class="container">
 				<div class="section-title mb45 headline text-center "  >
 					<span class="subtitle text-uppercase">ВЫБЕРИ СВОЙ КУРС</span>
-					<h2>Рсписание<span> курсов</span></h2>
+					<h2>Расписание<span> курсов</span></h2>
 				</div>
 				<div class="best-course-area mb45">
 					<div class="row">
@@ -561,9 +561,8 @@
 								<div class="best-course-pic-text relative-position "  >
 									<div class="best-course-pic relative-position">
 										<img src="{{ course.image_url }}" alt="">
-
 										<div class="course-price text-center gradient-bg">
-											<span>$99.00</span>
+											<span>{{ course.date }}</span>
 										</div>
 										<div class="course-rate ul-li">
 											<ul>
@@ -584,7 +583,7 @@
 											<h3><a href="{% url 'course_details' course.instance.slug %}">{{ course.instance.name }}</a></h3>
 										</div>
 										<div class="course-meta">
-											<span class="course-category"><a href="{% url 'course_details' course.instance.slug %}">{{ course.date }}</a></span>
+											<span class="course-category"><a href="{% url 'course_details' course.instance.slug %}">{{ course.instance.program }}</a></span>
 											<span class="course-author"><a href="{% url 'course_details' course.instance.slug %}">{{ course.instance.duration }} д.</a></span>
 										</div>
 									</div>
@@ -594,8 +593,6 @@
 						<!-- /course -->
 					</div>
 				</div>
-
-				
 			</div>
 		</section>
 	<!-- End of best course
@@ -1281,13 +1278,10 @@
 						<div class="col-md-6">
 							<div class="contact-left-content " >
 								<div class="section-title  mb45 headline text-left">
-									<span class="subtitle ml42  text-uppercase">CONTACT US</span>
-									<h2><span>Get in Touch</span></h2>
-									<p>
-										Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet  ipsum dolor sit amet, consectetuer adipiscing elit.
-									</p>
+									<span class="subtitle ml42  text-uppercase">Контакты</span>
+									<h2><span>Как нас найти</span></h2>
+									<p>{{ office.description }}</p>
 								</div>
-
 								<div class="contact-address">
 									<div class="contact-address-details">
 										<div class="address-icon relative-position text-center float-left">
@@ -1295,8 +1289,8 @@
 										</div>
 										<div class="address-details ul-li-block">
 											<ul>
-												<li><span>Primary: </span>Last Vegas, 120 Graphic Street, US</li>
-												<li><span>Second: </span>Califorinia, 88 Design Street, US</li>
+												<li>{{ office.title }}</li>
+												<li>{{ office.address }}</li>
 											</ul>
 										</div>
 									</div>
@@ -1307,8 +1301,8 @@
 										</div>
 										<div class="address-details ul-li-block">
 											<ul>
-												<li><span>Primary: </span>(100) 3434 55666</li>
-												<li><span>Second: </span>(20) 3434 9999</li>
+												<li><span>Tel/Viber/WhatsApp: </span>+7(919) 442-35-36</li>
+												<li><span>Telegram: </span><a href="https://t.me/OksaStudio_bot">OksaStudioBot</a></li>
 											</ul>
 										</div>
 									</div>
@@ -1319,15 +1313,15 @@
 										</div>
 										<div class="address-details ul-li-block">
 											<ul>
-												<li><span>Primary: </span>info@geniuscourse.com</li>
-												<li><span>Second: </span>mail@genius.info</li>
+												<li><span>Admin Email: </span>master@oksa-studio.ru</li>
+												<li><span>Lecturer Email: </span>oksarap@mail.ru</li>
 											</ul>
 										</div>
 									</div>
 								</div>
 							</div>
 							<div class="genius-btn mt60 gradient-bg text-center text-uppercase ul-li-block bold-font ">
-								<a href="{% url 'home' %}#">Contact Us <i class="fas fa-caret-right"></i></a>
+								<a href="{% url 'contact' %}#">Contact Us <i class="fas fa-caret-right"></i></a>
 							</div>
 						</div>
 
