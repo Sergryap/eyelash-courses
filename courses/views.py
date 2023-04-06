@@ -6,22 +6,28 @@ from django.utils import timezone
 from datetime import datetime
 
 
-def home(request):
-    template = 'courses/index.html'
-    courses = [
+def get_courses():
+    return [
         {
             'instance': instance,
             'image_url': instance.images.first().image.url,
             'date': instance.scheduled_at.strftime("%d.%m.%Y"),
             'date_slug': instance.scheduled_at.strftime("%d-%m-%Y"),
             'lecturer': instance.lecture.slug,
-        } for instance in Course.objects.filter(~Q(name='Фотогалерея')).select_related('program').prefetch_related('images')
+        } for instance in (
+            Course.objects.filter(~Q(name='Фотогалерея'))
+            .select_related('program', 'lecture')
+            .prefetch_related('images')
+        )
     ]
 
+
+def home(request):
+    template = 'courses/index.html'
     context = {
         'src_map': settings.SRC_MAP,
         'programs': Program.objects.all(),
-        'courses': courses,
+        'courses': get_courses(),
         'office': Office.objects.first()
     }
     return render(request, template, context)
@@ -40,17 +46,7 @@ def contact(request):
 
 def course(request):
     template = 'courses/course.html'
-    context = {
-        'courses': [
-            {
-                'instance': instance,
-                'image_url': instance.images.first().image.url,
-                'date': instance.scheduled_at.strftime("%d.%m.%Y"),
-                'date_slug': instance.scheduled_at.strftime("%d-%m-%Y"),
-                'lecturer': instance.lecture.slug,
-            } for instance in Course.objects.filter(~Q(name='Фотогалерея')).select_related('program').prefetch_related('images')
-        ]
-    }
+    context = {'courses': get_courses()}
     return render(request, template, context)
 
 
