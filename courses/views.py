@@ -3,6 +3,7 @@ from django.conf import settings
 from courses.models import Course, Program, Lecturer, Office
 from django.db.models import Q
 from django.utils import timezone
+from datetime import datetime
 
 
 def home(request):
@@ -11,7 +12,9 @@ def home(request):
         {
             'instance': instance,
             'image_url': instance.images.first().image.url,
-            'date': instance.scheduled_at.strftime("%d.%m.%Y")
+            'date': instance.scheduled_at.strftime("%d.%m.%Y"),
+            'date_slug': instance.scheduled_at.strftime("%d-%m-%Y"),
+            'lecturer': instance.lecture.slug,
         } for instance in Course.objects.filter(~Q(name='Фотогалерея')).select_related('program').prefetch_related('images')
     ]
 
@@ -43,15 +46,23 @@ def course(request):
                 'instance': instance,
                 'image_url': instance.images.first().image.url,
                 'date': instance.scheduled_at.strftime("%d.%m.%Y"),
+                'date_slug': instance.scheduled_at.strftime("%d-%m-%Y"),
+                'lecturer': instance.lecture.slug,
             } for instance in Course.objects.filter(~Q(name='Фотогалерея')).select_related('program').prefetch_related('images')
         ]
     }
     return render(request, template, context)
 
 
-def course_details(request, slug: str):
+def course_details(request, slug: str, lecturer: str, date: str):
     template = 'courses/course-details.html'
-    course_instance = Course.objects.select_related('lecture').prefetch_related('images').get(slug=slug)
+    scheduled_at = datetime.strptime(date, '%d-%m-%Y')
+    course_instance = (
+        Course.objects
+        .filter(scheduled_at__date=scheduled_at, slug=slug, lecture__slug=lecturer)
+        .select_related('lecture')
+        .prefetch_related('images')[0]
+    )
     context = {
         'participants': max(course_instance.get_count_participants(), 2),
         'course': course_instance,
@@ -76,6 +87,8 @@ def program_details(request, slug: str):
                 'instance': course_ins,
                 'date': course_ins.scheduled_at.strftime("%d.%m.%Y"),
                 'image_url': course_ins.images.first().image.url,
+                'date_slug': course_ins.scheduled_at.strftime("%d-%m-%Y"),
+                'lecturer': course_ins.lecture.slug,
             } for course_ins in courses if (
                     course_ins.scheduled_at > timezone.now()
                     and course_ins.published_in_bot

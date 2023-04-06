@@ -50,19 +50,19 @@
 									</ul>
 								</div>
 								<div class="course-details-btn">
-									<a href="{% url 'course_details' course.instance.slug %}">ПОДРОБНЕЕ <i class="fas fa-arrow-right"></i></a>
+									<a href="{% url 'course_details' course.instance.slug course.lecturer course.date_slug %}">ПОДРОБНЕЕ <i class="fas fa-arrow-right"></i></a>
 								</div>
-								<a href="{% url 'course_details' course.instance.slug %}">
+								<a href="{% url 'course_details' course.instance.slug course.lecturer course.date_slug %}">
 									<div class="blakish-overlay"></div>
 								</a>
 							</div>
 							<div class="best-course-text">
 								<div class="course-title mb20 headline relative-position">
-									<h3><a href="{% url 'course_details' course.instance.slug %}#">{{ course.instance.name }}</a></h3>
+									<h3><a href="{% url 'course_details' course.instance.slug course.lecturer course.date_slug %}#">{{ course.instance.name }}</a></h3>
 								</div>
 								<div class="course-meta">
-									<span class="course-category"><a href="{% url 'course_details' course.instance.slug %}#">{{ course.instance.program }}</a></span>
-									<span class="course-author"><a href="{% url 'course_details' course.instance.slug %}#">{{ course.instance.duration }} д.</a></span>
+									<span class="course-category"><a href="{% url 'course_details' course.instance.slug course.lecturer course.date_slug %}#">{{ course.instance.program }}</a></span>
+									<span class="course-author"><a href="{% url 'course_details' course.instance.slug course.lecturer course.date_slug %}#">{{ course.instance.duration }} д.</a></span>
 								</div>
 							</div>
 						</div>

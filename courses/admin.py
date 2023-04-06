@@ -304,6 +304,7 @@ class ClientAdmin(ExportMixin, admin.ModelAdmin):
 @admin.register(Lecturer)
 class LecturerAdmin(admin.ModelAdmin):
     inlines = [CourseProgramInline]
+    prepopulated_fields = {'slug': ('first_name', 'last_name')}
 
 
 @admin.register(CourseClient)
