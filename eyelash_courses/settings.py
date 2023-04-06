@@ -41,6 +41,16 @@ REDIS_DB = redis.Redis(
     password=env.str('REDIS_PASSWORD')
 )
 
+EMAIL_HOST = env.str('EMAIL_HOST')
+EMAIL_PORT = env.int('EMAIL_PORT')
+EMAIL_HOST_USER = env.str('EMAIL_HOST_USER')
+RECIPIENTS_EMAIL = env.list('RECIPIENTS_EMAIL')
+EMAIL_HOST_PASSWORD = env.str('PASSWORD_EMAIL')
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+SERVER_EMAIL = EMAIL_HOST_USER
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
 logger = logging.getLogger('telegram')
 logger.setLevel(logging.WARNING)
 logger.addHandler(MyLogsHandler(TG_LOGGER_BOT, TG_LOGGER_CHAT))

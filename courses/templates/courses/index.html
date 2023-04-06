@@ -183,26 +183,22 @@
 									<p>Для получения консультации</p>
 								</div>
 								<div class="register-form-area">
-									<form class="contact_form" action="{% url 'home' %}#" method="POST" enctype="multipart/form-data">
+									<form class="contact_form" action="{% url 'home' %}" method="post">
+										{% csrf_token %}
 										<div class="contact-info">
-											<input class="name" name="name" type="text" placeholder="Ваше имя">
+											{{ form.name }}
 										</div>
 										<div class="contact-info">
-											<input class="nbm" name="nbm" type="number" placeholder="Ваш телефон">
+											{{ form.phone }}
 										</div>
 										<div class="contact-info">
-											<input class="email" name="email" type="email" placeholder="Email">
+											{{ form.email }}
 										</div>
-										<select>
-											<option value="9" selected="">Выбери курс:</option>
-											{% for course in courses %}
-												<option value="{{ course.number }}">{{ course.instance.name }}</option>
-											{% endfor %}
-										</select>
+										{{ form.course }}
 										<div class="contact-info">
-											<input type="text" id="datepicker" placeholder="Желаемая дата">
+											{{ form.date }}
 										</div>
-										<textarea  placeholder="Сообщение"></textarea>
+										{{ form.message }}
 										<div class="nws-button text-uppercase text-center white text-capitalize">
 											<button type="submit" value="Submit">ОТПРАВИТЬ</button>
 										</div> 

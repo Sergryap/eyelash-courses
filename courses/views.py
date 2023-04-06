@@ -1,5 +1,10 @@
+from textwrap import dedent
+
 from django.shortcuts import render, redirect, HttpResponse, get_object_or_404
 from django.conf import settings
+from django.core.mail import send_mail, BadHeaderError
+
+from courses.forms import ContactForm
 from courses.models import Course, Program, Lecturer, Office
 from django.db.models import Q
 from django.utils import timezone
@@ -25,11 +30,43 @@ def get_courses():
 
 def home(request):
     template = 'courses/index.html'
+
+    if request.method == 'POST':
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            message = form.cleaned_data['message']
+            name = form.cleaned_data['name']
+            phone = form.cleaned_data['phone']
+            from_email = form.cleaned_data['email']
+            desire_date = form.cleaned_data['date']
+            desire_course = form.cleaned_data['course']
+            text = f'''
+                Заявка на обучение:
+                Имя: {name},
+                Email: {from_email},
+                Тел.: {phone},
+                Желамая дата: {desire_date},
+                Курс: {desire_course}               
+                '''
+            try:
+                send_mail(
+                    f'Заявка от {name}: {phone}',
+                    dedent(text),
+                    settings.EMAIL_HOST_USER,
+                    settings.RECIPIENTS_EMAIL
+                )
+                print('test')
+            except BadHeaderError:
+                return HttpResponse('Ошибка в теме письма.')
+    else:
+        form = ContactForm()
+
     context = {
         'src_map': settings.SRC_MAP,
         'programs': Program.objects.all(),
         'courses': get_courses(),
-        'office': Office.objects.first()
+        'office': Office.objects.first(),
+        'form': form
     }
     return render(request, template, context)
 
