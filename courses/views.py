@@ -10,14 +10,15 @@ def get_courses():
     return [
         {
             'instance': instance,
+            'number': number,
             'image_url': instance.images.first().image.url,
             'date': instance.scheduled_at.strftime("%d.%m.%Y"),
             'date_slug': instance.scheduled_at.strftime("%d-%m-%Y"),
             'lecturer': instance.lecture.slug,
-        } for instance in (
+        } for number, instance in enumerate(
             Course.objects.filter(~Q(name='Фотогалерея'))
             .select_related('program', 'lecture')
-            .prefetch_related('images')
+            .prefetch_related('images'), start=10
         )
     ]
 

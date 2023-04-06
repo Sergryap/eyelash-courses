@@ -179,32 +179,32 @@
 						<div class="about-resigter-form backgroud-style relative-position">
 							<div class="register-content">
 								<div class="register-fomr-title text-center">
-									<h3 class="bold-font"><span>Get a</span> Free Registration.</h3>
-									<p>More Than 122K Online Available Courses</p>
+									<h3 class="bold-font"><span>Оставь заявку</span> прямо сейчас</h3>
+									<p>Для получения консультации</p>
 								</div>
 								<div class="register-form-area">
 									<form class="contact_form" action="{% url 'home' %}#" method="POST" enctype="multipart/form-data">
 										<div class="contact-info">
-											<input class="name" name="name" type="text" placeholder="Your Name.">
+											<input class="name" name="name" type="text" placeholder="Ваше имя">
 										</div>
 										<div class="contact-info">
-											<input class="nbm" name="nbm" type="number" placeholder="Your Number">
+											<input class="nbm" name="nbm" type="number" placeholder="Ваш телефон">
 										</div>
 										<div class="contact-info">
-											<input class="email" name="email" type="email" placeholder="Email Address.">
+											<input class="email" name="email" type="email" placeholder="Email">
 										</div>
 										<select>
-											<option value="9" selected="">Select Course.</option>
-											<option value="10">Web Design</option>
-											<option value="11">Web Development</option>
-											<option value="12">Php Core</option>
+											<option value="9" selected="">Выбери курс:</option>
+											{% for course in courses %}
+												<option value="{{ course.number }}">{{ course.instance.name }}</option>
+											{% endfor %}
 										</select>
 										<div class="contact-info">
-											<input type="text" id="datepicker" placeholder="Date.">
+											<input type="text" id="datepicker" placeholder="Желаемая дата">
 										</div>
-										<textarea  placeholder="Message."></textarea>
+										<textarea  placeholder="Сообщение"></textarea>
 										<div class="nws-button text-uppercase text-center white text-capitalize">
-											<button type="submit" value="Submit">SUBMIT REQUEST </button> 
+											<button type="submit" value="Submit">ОТПРАВИТЬ</button>
 										</div> 
 									</form>
 								</div>
@@ -219,19 +219,19 @@
 					<div class="col-md-7">
 						<div class="about-us-text">
 							<div class="section-title relative-position mb20 headline text-left "  >
-								<span class="subtitle ml42 text-uppercase">SORT ABOUT US</span>
-								<h2>We are <span>Genius Course</span>
-								work since 1980.</h2>
-								<p>We take our mission of increasing global access to quality education seriously. We connect learners to the best universities and institutions from around the world.</p>
+								<span class="subtitle ml42 text-uppercase">ПОЧЕМУ ВЫБИРАЮТ НАС</span>
+								<h2>Работаем с <span>2017 г.</span>
+								выпустили более 1000 успешных специалистов</h2>
+								<p>Обучение организовано так, чтобы после него вы смогли уже самостоятельно принимать клиентов и зарабатывать. Поэтому работаем не большими группами на результат, а не на поток</p>
 							</div>
 							<div class="about-content-text">
-								<p class=""  >Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam volutpat. Ut wisi enim ad minim veniam. magna aliquam volutpat. Ut wisi enim ad minim veniam.</p>
+								<p class="">Лучшие наши выпускники могут стать сотрудниками Oksa Studio сразу после стажировки. Предоставляем оборудованные рабочие места и материалы. Нарабатываем индивидуальный постоянный поток клиентов</p>
 								<div class="about-list mb65 ul-li-block "  >
 									<ul>
-										<li>Professional And Experienced Since 1980</li>
-										<li>We Connect Learners To The Best  Universities From Around The World</li>
-										<li>Our Mission Increasing Global Access To Quality Aducation</li>
-										<li>100K Online Available Courses</li>
+										<li>Различные форматы обучения</li>
+										<li>Бесплатные материалы и инструменты</li>
+										<li>Поддержка после обучения</li>
+										<li>Возможность трудоустройства</li>
 									</ul>
 								</div>
 								<div class="about-btn "  >
@@ -239,7 +239,7 @@
 										<a href="{% url 'home' %}#">About Us <i class="fas fa-caret-right"></i></a>
 									</div>
 									<div class="genius-btn gradient-bg text-center text-uppercase ul-li-block bold-font">
-										<a href="{% url 'home' %}#">contact us <i class="fas fa-caret-right"></i></a>
+										<a href="{% url 'contact' %}#">Контакты <i class="fas fa-caret-right"></i></a>
 									</div>
 								</div>
 							</div>
