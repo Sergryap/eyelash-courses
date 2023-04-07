@@ -1,10 +1,10 @@
 from textwrap import dedent
-
 from django.shortcuts import render, redirect, HttpResponse, get_object_or_404
 from django.conf import settings
 from django.core.mail import send_mail, BadHeaderError
 
 from courses.forms import ContactForm
+from django.contrib import messages
 from courses.models import Course, Program, Lecturer, Office
 from django.db.models import Q
 from django.utils import timezone
@@ -55,9 +55,17 @@ def home(request):
                     settings.EMAIL_HOST_USER,
                     settings.RECIPIENTS_EMAIL
                 )
-                print('test')
             except BadHeaderError:
                 return HttpResponse('Ошибка в теме письма.')
+        else:
+            error_msg = {
+                'phone': 'Введите правильный номер',
+                'email': 'Введите правильный email'
+            }
+            data = {field: msg for field, msg in error_msg.items() if field in form.errors}
+            msg = '\n'.join([msg for msg in data.values()])
+            messages.error(request, msg)
+            form = ContactForm(form.cleaned_data | data)
     else:
         form = ContactForm()
 

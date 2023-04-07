@@ -1,6 +1,7 @@
 from django import forms
 from django.db.models import Q
-from phonenumber_field.formfields import PhoneNumberField
+from django.utils import timezone
+from phonenumber_field.formfields import PhoneNumberField, RegionalPhoneNumberWidget
 
 from courses.models import Course
 
@@ -20,7 +21,6 @@ class ContactForm(forms.Form):
 		widget=forms.TextInput(
 			attrs={
 				'class': "name",
-				'name': "name",
 				'onfocus': "this.placeholder = ''",
 				'onblur': "this.placeholder = 'Введите ваше имя'",
 				'placeholder': "Ваше имя"
@@ -28,10 +28,10 @@ class ContactForm(forms.Form):
 		max_length=100, label='Ваше имя')
 
 	phone = PhoneNumberField(
-		widget=forms.TextInput(
+		widget=RegionalPhoneNumberWidget(
+			region='RU',
 			attrs={
 				'class': "nbm",
-				'name': "nbm",
 				'onfocus': "this.placeholder = ''",
 				'onblur': "this.placeholder = 'Введите ваше телефон'",
 				'placeholder': "Ваш телефон"
@@ -42,7 +42,6 @@ class ContactForm(forms.Form):
 		widget=forms.EmailInput(
 			attrs={
 				'class': "email",
-				'name': "email",
 				'onfocus': "this.placeholder = ''",
 				'onblur': "this.placeholder = 'Введите Email'",
 				'placeholder': "Email"
@@ -61,14 +60,18 @@ class ContactForm(forms.Form):
 
 	courses = [
 		{
-			'name': instance.name,
-			'number': number,
-		} for number, instance in enumerate(Course.objects.filter(~Q(name='Фотогалерея')), start=10)
+			'name': instance.name
+		} for instance in Course.objects.filter(
+			~Q(name='Фотогалерея'), scheduled_at__gt=timezone.now(), published_in_bot=True
+		)
 	]
-	choices = [('9', 'Выбери курс')]
+	choices = [('Change', 'Выбери курс')]
 	for course in courses:
 		choices.append(
-			(course['number'], course['name'])
+			(course['name'], course['name'])
 		)
 
-	course = forms.CharField(widget=forms.Select(choices=choices))
+	course = forms.CharField(
+		widget=forms.Select(choices=choices),
+		required=False
+	)

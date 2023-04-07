@@ -183,7 +183,7 @@
 									<p>Для получения консультации</p>
 								</div>
 								<div class="register-form-area">
-									<form class="contact_form" action="{% url 'home' %}" method="post">
+									<form class="contact_form" action="{% url 'home' %}#about-us" method="post" enctype="multipart/form-data">
 										{% csrf_token %}
 										<div class="contact-info">
 											{{ form.name }}
@@ -201,8 +201,11 @@
 										{{ form.message }}
 										<div class="nws-button text-uppercase text-center white text-capitalize">
 											<button type="submit" value="Submit">ОТПРАВИТЬ</button>
-										</div> 
+										</div>
 									</form>
+									{% for message in messages %}
+										<div class="message {{ message.tags }}" style="color: red">{{ message }}</div>
+									{% endfor %}
 								</div>
 							</div>
 						</div>
