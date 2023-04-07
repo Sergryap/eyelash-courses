@@ -11,7 +11,23 @@ from datetime import datetime
 from eyelash_courses.logger import send_message as send_tg_msg
 
 
-def get_courses():
+def get_courses(past=False, future=False):
+    months = {
+        1: 'Январь', 2: 'Февраль', 3: 'Март', 4: 'Апрель',
+        5: 'Май', 6: 'Июнь', 7: 'Июль', 8: 'Август',
+        9: 'Сентябрь', 10: 'Октябрь', 11: 'Ноябрь', 12: 'Декабрь'
+    }
+    all_courses = (
+            Course.objects.filter(~Q(name='Фотогалерея'), published_in_bot=True)
+            .select_related('program', 'lecture').prefetch_related('images')
+        )
+    if past and not future:
+        courses = all_courses.filter(scheduled_at__lte=timezone.now())
+    elif not past and future:
+        courses = all_courses.filter(scheduled_at__gt=timezone.now())
+    else:
+        courses = all_courses
+
     return [
         {
             'instance': instance,
@@ -19,12 +35,13 @@ def get_courses():
             'image_url': instance.images.first().image.url,
             'date': instance.scheduled_at.strftime("%d.%m.%Y"),
             'date_slug': instance.scheduled_at.strftime("%d-%m-%Y"),
+            'readable_date': {
+                'day': instance.scheduled_at.day,
+                'month': months[instance.scheduled_at.month],
+                'year': instance.scheduled_at.year
+            },
             'lecturer': instance.lecture.slug,
-        } for number, instance in enumerate(
-            Course.objects.filter(~Q(name='Фотогалерея'))
-            .select_related('program', 'lecture')
-            .prefetch_related('images'), start=10
-        )
+        } for number, instance in enumerate(courses, start=1)
     ]
 
 
@@ -78,7 +95,8 @@ def home(request):
     context = {
         'src_map': settings.SRC_MAP,
         'programs': Program.objects.all(),
-        'courses': get_courses(),
+        'courses': get_courses(future=True),
+        'past_courses': get_courses(past=True),
         'office': Office.objects.first(),
         'form': form
     }
@@ -98,7 +116,10 @@ def contact(request):
 
 def course(request):
     template = 'courses/course.html'
-    context = {'courses': get_courses()}
+    context = {
+        'future_courses': get_courses(future=True),
+        'past_courses': get_courses(past=True)
+    }
     return render(request, template, context)
 
 
@@ -127,8 +148,49 @@ def course_details(request, slug: str, lecturer: str, date: str):
 def program_details(request, slug: str):
     template = 'courses/program-details.html'
     program = Program.objects.prefetch_related('courses').get(slug=slug)
-    courses = program.courses.prefetch_related('images')
+    courses = program.courses.select_related('lecture').prefetch_related('images')
+
+    if request.method == 'POST':
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            name = form.cleaned_data['name']
+            phone = form.cleaned_data['phone']
+            from_email = form.cleaned_data['email']
+            text = f'''
+                Заявка на индивидуальную программу:
+                Имя: {name}
+                Email: {from_email}
+                Тел.: {phone}
+                программа: {program.title}             
+                '''
+            try:
+                send_mail(
+                    f'Заявка от {name}: {phone}',
+                    dedent(text),
+                    settings.EMAIL_HOST_USER,
+                    settings.RECIPIENTS_EMAIL
+                )
+                send_tg_msg(
+                    token=settings.TG_LOGGER_BOT,
+                    chat_id=settings.TG_LOGGER_CHAT,
+                    msg=dedent(text)
+                )
+            except BadHeaderError:
+                return HttpResponse('Ошибка в теме письма.')
+        else:
+            error_msg = {
+                'phone': 'Введите правильный номер',
+                'email': 'Введите правильный email'
+            }
+            data = {field: msg for field, msg in error_msg.items() if field in form.errors}
+            msg = '\n'.join([msg for msg in data.values()])
+            messages.error(request, msg)
+            form = ContactForm(form.cleaned_data | data)
+    else:
+        form = ContactForm()
+
     context = {
+        'form': form,
         'program': program,
         'courses': [
             {
@@ -143,6 +205,7 @@ def program_details(request, slug: str):
             )
         ]
     }
+
     return render(request, template, context)
 
 

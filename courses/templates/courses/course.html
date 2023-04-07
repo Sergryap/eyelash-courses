@@ -24,7 +24,8 @@
 <!-- End of breadcrumb section
 	============================================= -->
 
-<section id="best-course" class="best-course-section">
+{% if future_courses %}
+<section id="best-course" class="best-course-section" style="padding: 125px 0px 50px 0px;">
 	<div class="container">
 		<div class="section-title mb45 headline text-center">
 			<span class="subtitle text-uppercase">ВЫБЕРИ СВОЙ КУРС</span>
@@ -32,7 +33,7 @@
 		</div>
 		<div class="best-course-area mb45">
 			<div class="row">
-				{% for course in courses %}
+				{% for course in future_courses %}
 					<div class="col-md-4">
 						<div class="best-course-pic-text relative-position">
 							<div class="best-course-pic relative-position">
@@ -72,5 +73,57 @@
 		</div>
 	</div>
 </section>
+{% endif %}
+
+{% if past_courses %}
+<section id="past-course" class="best-course-section">
+	<div class="container">
+		<div class="section-title mb45 headline text-center">
+			<span class="subtitle text-uppercase">МОМЕНТЫ ПРОШЛОГО</span>
+			<h2>Прошедшие курсы <span>Oksa Studio</span></h2>
+		</div>
+		<div class="best-course-area mb45">
+			<div class="row">
+				{% for course in past_courses %}
+					<div class="col-md-4">
+						<div class="best-course-pic-text relative-position">
+							<div class="best-course-pic relative-position">
+								<img src="{{ course.image_url }}" alt="">
+								<div class="course-price text-center gradient-bg">
+									<span>{{ course.date }}</span>
+								</div>
+								<div class="course-rate ul-li">
+									<ul>
+										<li><i class="fas fa-star"></i></li>
+										<li><i class="fas fa-star"></i></li>
+										<li><i class="fas fa-star"></i></li>
+										<li><i class="fas fa-star"></i></li>
+										<li><i class="fas fa-star"></i></li>
+									</ul>
+								</div>
+								<div class="course-details-btn">
+									<a href="{% url 'course_details' course.instance.slug course.lecturer course.date_slug %}">ПОДРОБНЕЕ <i class="fas fa-arrow-right"></i></a>
+								</div>
+								<a href="{% url 'course_details' course.instance.slug course.lecturer course.date_slug %}">
+									<div class="blakish-overlay"></div>
+								</a>
+							</div>
+							<div class="best-course-text">
+								<div class="course-title mb20 headline relative-position">
+									<h3><a href="{% url 'course_details' course.instance.slug course.lecturer course.date_slug %}#">{{ course.instance.name }}</a></h3>
+								</div>
+								<div class="course-meta">
+									<span class="course-category"><a href="{% url 'course_details' course.instance.slug course.lecturer course.date_slug %}#">{{ course.instance.program }}</a></span>
+									<span class="course-author"><a href="{% url 'course_details' course.instance.slug course.lecturer course.date_slug %}#">{{ course.instance.duration }} д.</a></span>
+								</div>
+							</div>
+						</div>
+					</div>
+				{% endfor %}
+			</div>
+		</div>
+	</div>
+</section>
+{% endif %}
 
 {% endblock %}

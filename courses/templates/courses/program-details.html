@@ -343,9 +343,9 @@
 					<div class="col-md-3">
 						<div class="side-bar">
 							<div class="side-bar-widget">
-								<h2 class="widget-title text-capitalize"><span>Ближайшие </span>курсы</h2>
+								<h2 class="widget-title text-capitalize" style="z-index: 2;"><span>Ближайшие </span>курсы</h2>
 								<div class="latest-news-posts">
-
+									{% if courses %}
 									{% for course in courses %}
 										<div class="latest-news-area">
 											<div class="latest-news-thumbnile relative-position">
@@ -358,8 +358,42 @@
 											<h3 class="latest-title bold-font"><a href="{% url 'course_details' course.instance.slug course.lecturer course.date_slug %}">{{ course.instance.name }}</a></h3>
 										</div>
 									{% endfor %}
+									{% else %}
+										<div>
+											<div class="about-resigter-form backgroud-style relative-position" style="margin-top: 0px;">
+												<div class="register-content">
+													<div class="register-fomr-title text-center">
+														<h3 class="bold-font" style="font-size: 30px;"><span>Оставь заявку</span> прямо сейчас</h3>
+														<p>Для получения консультации</p>
+													</div>
+													<div class="register-form-area">
+														<form class="contact_form" action="" method="post" enctype="multipart/form-data">
+															{% csrf_token %}
+															<div class="contact-info" style="margin-top: 10px;">
+																{{ form.name }}
+															</div>
+															<div class="contact-info" style="margin-top: 10px;">
+																{{ form.phone }}
+															</div>
+															<div class="contact-info" style="margin-top: 10px;">
+																{{ form.email }}
+															</div>
+															<div class="nws-button text-uppercase text-center white text-capitalize" style="margin-top: 30px;">
+																<button type="submit" value="Submit">ОТПРАВИТЬ</button>
+															</div>
+														</form>
+														{% for message in messages %}
+															<div class="message {{ message.tags }}" style="color: red">{{ message }}</div>
+														{% endfor %}
+													</div>
+												</div>
+											</div>
+											<div class="bg-mockup">
+												<img src="{% static 'courses/img/about/phone.png' %}" alt="">
+											</div>
+										</div>
+									{% endif %}
 									<!-- /post -->
-
 								</div>
 							</div>
 						</div>
