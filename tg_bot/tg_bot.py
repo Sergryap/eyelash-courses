@@ -298,7 +298,7 @@ async def handle_course_info(connect, event):
             )
             return 'MAIN_MENU'
 
-        text = f'''            
+        text_1 = f'''            
             <b>{course.name.upper()}:</b>
 
             Дата: <b><i>{course_date}</i></b>
@@ -307,16 +307,16 @@ async def handle_course_info(connect, event):
             Продолжительность: <b><i>{course.duration} д.</i></b>
 
             <b>О ПРОГРАММЕ КУРСА:</b>
-            {await sync_to_async(lambda: course.program.short_description)()}
-
-            <b>РАСПИСАНИЕ КУРСА:</b>
-            {await sync_to_async(lambda: course.short_description)()}
             '''
+        text_2 = await sync_to_async(lambda: course.program.short_description)()
+        text_3 = '<b>РАСПИСАНИЕ КУРСА:</b>'
+        text_4 = await sync_to_async(lambda: course.short_description)()
+        text = dedent(text_1) + '\n' + text_2 + '\n\n' + text_3 + '\n' + text_4
         await send_photo(
             connect,
             chat_id=event['chat_id'],
             photo=f'https://vk.com/{random.choice(attachment_sequence)}',
-            caption=dedent(text),
+            caption=text,
             reply_markup=await get_course_menu_buttons(back, course, event['chat_id']),
             parse_mode='HTML'
         )
