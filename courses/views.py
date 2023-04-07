@@ -42,11 +42,12 @@ def home(request):
             desire_course = form.cleaned_data['course']
             text = f'''
                 Заявка на обучение:
-                Имя: {name},
-                Email: {from_email},
-                Тел.: {phone},
-                Желамая дата: {desire_date},
-                Курс: {desire_course}               
+                Имя: {name}
+                Email: {from_email}
+                Тел.: {phone}
+                Желамая дата: {desire_date}
+                Курс: {desire_course}    
+                Сообщение: {message}           
                 '''
             try:
                 send_mail(
