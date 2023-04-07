@@ -2,13 +2,13 @@ from textwrap import dedent
 from django.shortcuts import render, redirect, HttpResponse, get_object_or_404
 from django.conf import settings
 from django.core.mail import send_mail, BadHeaderError
-
 from courses.forms import ContactForm
 from django.contrib import messages
 from courses.models import Course, Program, Lecturer, Office
 from django.db.models import Q
 from django.utils import timezone
 from datetime import datetime
+from eyelash_courses.logger import send_message as send_tg_msg
 
 
 def get_courses():
@@ -55,6 +55,11 @@ def home(request):
                     dedent(text),
                     settings.EMAIL_HOST_USER,
                     settings.RECIPIENTS_EMAIL
+                )
+                send_tg_msg(
+                    token=settings.TG_LOGGER_BOT,
+                    chat_id=settings.TG_LOGGER_CHAT,
+                    msg=dedent(text)
                 )
             except BadHeaderError:
                 return HttpResponse('Ошибка в теме письма.')
