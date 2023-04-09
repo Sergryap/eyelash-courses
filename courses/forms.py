@@ -58,7 +58,7 @@ class ContactForm(forms.Form):
 			}),
 		label='Желаемая дата', required=False)
 
-	programs = Course.objects.all()
+	programs = Program.objects.all()
 	choices = [('Change', 'Выбери курс')]
 	if programs:
 		for program in programs:
