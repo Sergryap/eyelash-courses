@@ -58,19 +58,16 @@ class ContactForm(forms.Form):
 			}),
 		label='Желаемая дата', required=False)
 
-	courses = [
-		{
-			'name': instance.name
-		} for instance in Course.objects.filter(
+	all_courses = Course.objects.filter(
 			~Q(name='Фотогалерея'), scheduled_at__gt=timezone.now(), published_in_bot=True
 		)
-	]
 	choices = [('Change', 'Выбери курс')]
-	for course in courses:
-		choices.append(
-			(course['name'], course['name'])
-		)
-
+	if all_courses:
+		courses = [{'name': instance.name} for instance in all_courses]
+		for course in courses:
+			choices.append(
+				(course['name'], course['name'])
+			)
 	course = forms.CharField(
 		widget=forms.Select(choices=choices),
 		required=False
