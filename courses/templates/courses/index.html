@@ -86,6 +86,7 @@
 
 	<!-- Start popular course
 		============================================= -->
+		{% if programs %}
 		<section id="popular-course" class="popular-course-section">
 			<div class="container">
 				<div class="section-title mb45 headline text-center"  >
@@ -126,6 +127,7 @@
 				</div>
 			</div>
 		</section>
+		{% endif %}
 	<!-- End popular course
 		============================================= -->
 
@@ -307,6 +309,7 @@
 
 	<!-- Start latest section
 		============================================= -->
+		{% if courses %}
 		<section id="latest-area" class="latest-area-section">
 			<div class="container">
 				<div class="row">
@@ -397,6 +400,7 @@
 				</div>
 			</div>
 		</section>
+		{% endif %}
 	<!-- End latest section
 		============================================= -->
 
@@ -404,6 +408,7 @@
 
 	<!-- Start of best course
 		============================================= -->
+		{% if courses %}
 		<section id="best-course" class="best-course-section">
 			<div class="container">
 				<div class="section-title mb45 headline text-center "  >
@@ -453,11 +458,13 @@
 				</div>
 			</div>
 		</section>
+		{% endif %}
 	<!-- End of best course
 		============================================= -->
 
 	<!-- Start of course teacher
 		============================================= -->
+		{% if teachers %}
 		<section id="course-teacher" class="course-teacher-section">
 			<div class="jarallax">
 				<div class="container">
@@ -679,6 +686,7 @@
 				</div>
 			</div>
 		</section>
+		{% endif %}
 	<!-- End of course teacher
 		============================================= -->
 
@@ -838,8 +846,8 @@
 		<section id="faq" class="faq-section">
 			<div class="container">
 				<div class="section-title mb45 headline text-center "  >
-					<span class="subtitle text-uppercase">GENIUS COURSE FAQ</span>
-					<h2>Frequently<span> Ask & Questions</span></h2>
+					<span class="subtitle text-uppercase">FAQ</span>
+					<h2>Остались<span> вопросы?</span></h2>
 				</div>
 				<div class="faq-tab">
 					<div class="faq-tab-ques ul-li">
@@ -862,25 +870,38 @@
 								<div class="row">
 									<div class="col-md-6">
 										<div class="ques-ans mb45 headline "  >
-											<h3> What is Genius Courses?</h3>
-											<p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam volutpat. Ut wisi enim ad minim veniam.</p>
+											<h3> Реально ли стать мастером за один курс?</h3>
+											<p>
+												Не будем, конечно, вводить никого в заблуждение и говорить, что сразу после курса вы станете топовым востребованным мастером. Ведь цель наших курсов - заложить базовые навыки наращивания ресниц, научить вас правильно работать с инструментами и материалом, освоить основные техники, что сделать за 2 дня более чем реально!
+												И получив эту базу, в дальнейшем вы сможете двигаться вперёд к любым вершинам мастерства. И то, как вы будете продвигаться к обозначенной цели, зависит не только от преподавателя, но и во многом от ваших стремлений и усилий.
+												Поэтому, пройдя обучение у нас, можно стать начинающим мастером с большими перспективами роста и развития.
+											</p>
 										</div>
 
 										<div class="ques-ans mb45 headline "  >
-											<h3> What Lorem Ipsum Dolor Sit Amet Consectuerer?</h3>
-											<p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam volutpat. Ut wisi enim ad minim veniam.</p>
+											<h3> А если я все-таки не смогу освоить практические навыки?</h3>
+											<p>
+												Да, конечно, такое возможно, и это зависит от ваших индивидуальных особенностей.
+												Кому-то достаточно прослушать теоретическую часть, выполнить работу на модели под руководством наставника, чтобы уже делать приличные работы. Но бывают случаи, когда ученица все понимает, но руки "не слушаются". И в этом случае двух дней практики может не хватить для полноценного закрепления базовых навыков.
+												Поэтому для таких случаев вы можете выбрать дополнительное практическое сопровождение после обучения, в ходе которого под присмотром и с корректировкой ошибок и недочётов вы будете отрабатывать технику на моделях до тех пор пока не почувствуете уверенность.
+											</p>
 										</div>
 									</div>
 
 									<div class="col-md-6">
 										<div class="ques-ans mb45 headline "  >
-											<h3> How to Register or Make An Account in Genius?</h3>
-											<p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam volutpat. Ut wisi enim ad minim veniam.</p>
+											<h3> Получу ли я качественные знания?</h3>
+											<p>
+												Безусловно, наши преподаватели всегда дают только нужную и полезную информацию, благодаря которой можно легко научится наращивать ресницы после практической отработки навыков. И для того, чтобы полученные в ходе обучения знания не теряли своей актуальности, наши преподаватели регулярно посещают различные мастер-классы по наращиванию ресниц, где они узнают последние тендении lash-индустрии.
+											</p>
 										</div>
 
 										<div class="ques-ans mb45 headline "  >
-											<h3> Adipiscing Diamet Nonnumy Nibh Euismod?</h3>
-											<p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam volutpat. Ut wisi enim ad minim veniam.</p>
+											<h3> Как мне найти первых клиентов, если я хочу работать самостоятельно?</h3>
+											<p>
+												Для того чтобы выстроить для себя как для частного мастера постоянный поток клиентов, необходимо проделать определенную немалую и специфическую работу, и делать её нужно будет регулярно в условиях постоянно растущей конкуренции. К примеру, в нашей студии для этого работает целая команда.
+												Если конкретно, то вам необходимо будет освоить различные технологии интернет-маркетинга и при этом еще не забыть как качественно наращивать ресницы. Поэтому, хотя бы в первое время своей работы, пока вы только осваиваете навыки работы, рекомендуем вам поработать мастером в студии.
+											</p>
 										</div>
 									</div>
 								</div>
