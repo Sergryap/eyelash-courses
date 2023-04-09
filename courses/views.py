@@ -78,6 +78,7 @@ def home(request):
                     chat_id=settings.TG_LOGGER_CHAT,
                     msg=dedent(text)
                 )
+                messages.success(request, 'Отправлено!')
             except BadHeaderError:
                 return HttpResponse('Ошибка в теме письма.')
         else:

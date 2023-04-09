@@ -3,7 +3,7 @@ from django.db.models import Q
 from django.utils import timezone
 from phonenumber_field.formfields import PhoneNumberField, RegionalPhoneNumberWidget
 
-from courses.models import Course
+from courses.models import Course, Program
 
 
 class ContactForm(forms.Form):
@@ -58,15 +58,12 @@ class ContactForm(forms.Form):
 			}),
 		label='Желаемая дата', required=False)
 
-	all_courses = Course.objects.filter(
-			~Q(name='Фотогалерея'), scheduled_at__gt=timezone.now(), published_in_bot=True
-		)
+	programs = Course.objects.all()
 	choices = [('Change', 'Выбери курс')]
-	if all_courses:
-		courses = [{'name': instance.name} for instance in all_courses]
-		for course in courses:
+	if programs:
+		for program in programs:
 			choices.append(
-				(course['name'], course['name'])
+				(program.title, program.title)
 			)
 	course = forms.CharField(
 		widget=forms.Select(choices=choices),
