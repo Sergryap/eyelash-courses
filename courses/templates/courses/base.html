@@ -222,56 +222,18 @@
 							</div>
 							<div class="col-md-3">
 								<div class="footer-widget "  >
-									<h2 class="widget-title">Photo Gallery</h2>
+									<h2 class="widget-title">Фото с курсов</h2>
 									<div class="photo-list ul-li">
 										<ul>
-											<li>
-												<img src="{% static 'courses/img/gallery/g-1.jpg' %}" alt="">
-												<div class="blakish-overlay"></div>
-												<div class="pop-up-icon">
-													<a href="{% static 'courses/img/gallery/g-1.jpg' %}" data-lightbox="roadtrip">
-														<i class="fas fa-search"></i>
-													</a>
-												</div>
-											</li>
-											<li>
-												<img src="{% static 'courses/img/gallery/g-2.jpg' %}" alt="">
-												<div class="blakish-overlay"></div>
-												<div class="pop-up-icon">
-													<a href="{% static 'courses/img/gallery/g-2.jpg' %}" data-lightbox="roadtrip">
-														<i class="fas fa-search"></i>
-													</a>
-												</div>
-											</li>
-											<li>
-												<img src="{% static 'courses/img/gallery/g-3.jpg' %}" alt="">
-												<div class="blakish-overlay"></div>
-												<div class="pop-up-icon">
-													<a href="{% static 'courses/img/gallery/g-3.jpg' %}" data-lightbox="roadtrip">	<i class="fas fa-search"></i></a>
-												</div>
-											</li>
-											<li>
-												<img src="{% static 'courses/img/gallery/g-4.jpg' %}" alt="">
-												<div class="blakish-overlay"></div>
-												<div class="pop-up-icon">
-													<a href="{% static 'courses/img/gallery/g-4.jpg' %}" data-lightbox="roadtrip">	<i class="fas fa-search"></i></a>
-												</div>
-											</li>
-											<li>
-												<img src="{% static 'courses/img/gallery/g-5.jpg' %}" alt="">
-												<div class="blakish-overlay"></div>
-												<div class="pop-up-icon">
-													<a href="{% static 'courses/img/gallery/g-5.jpg' %}" data-lightbox="roadtrip">	<i class="fas fa-search"></i></a>
-												</div>
-											</li>
-											<li>
-												<img src="{% static 'courses/img/gallery/g-6.jpg' %}" alt="">
-												<div class="blakish-overlay"></div>
-												<div class="pop-up-icon">
-													<a href="{% static 'courses/img/gallery/g-6.jpg' %}" data-lightbox="roadtrip">	<i class="fas fa-search"></i></a>
-												</div>
-
-											</li>
+											{% for photo in random_images %}
+												<li>
+													<img src="{{ photo.image.url }}" alt="" style="height: 55px">
+													<div class="blakish-overlay"></div>
+													<div class="pop-up-icon">
+														<a href="{{ photo.image.url }}" data-lightbox="roadtrip"><i class="fas fa-search"></i></a>
+													</div>
+												</li>
+											{% endfor %}
 										</ul>
 									</div>
 								</div>
