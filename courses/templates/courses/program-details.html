@@ -378,13 +378,16 @@
 															<div class="contact-info" style="margin-top: 10px;">
 																{{ form.email }}
 															</div>
+															<input type="hidden" name="type_form" value="registration">
 															<div class="nws-button text-uppercase text-center white text-capitalize" style="margin-top: 30px;">
 																<button type="submit" value="Submit">ОТПРАВИТЬ</button>
 															</div>
 														</form>
+														{% if not footer_form %}
 														{% for message in messages %}
 															<div class="message {{ message.tags }}" style="color: red">{{ message }}</div>
 														{% endfor %}
+														{% endif %}
 													</div>
 												</div>
 											</div>

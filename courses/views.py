@@ -48,7 +48,7 @@ def get_courses(past=False, future=False):
 def home(request):
     template = 'courses/index.html'
 
-    if request.method == 'POST':
+    if request.method == 'POST' and request.POST['type_form'] == 'registration':
         form = ContactForm(request.POST)
         if form.is_valid():
             message = form.cleaned_data['message']
@@ -151,7 +151,7 @@ def program_details(request, slug: str):
     program = Program.objects.prefetch_related('courses').get(slug=slug)
     courses = program.courses.select_related('lecture').prefetch_related('images')
 
-    if request.method == 'POST':
+    if request.method == 'POST' and request.POST['type_form'] == 'registration':
         form = ContactForm(request.POST)
         if form.is_valid():
             name = form.cleaned_data['name']
@@ -176,6 +176,7 @@ def program_details(request, slug: str):
                     chat_id=settings.TG_LOGGER_CHAT,
                     msg=dedent(text)
                 )
+                messages.success(request, 'Отправлено!')
             except BadHeaderError:
                 return HttpResponse('Ошибка в теме письма.')
         else:

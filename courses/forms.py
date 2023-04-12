@@ -69,3 +69,16 @@ class ContactForm(forms.Form):
 		widget=forms.Select(choices=choices),
 		required=False
 	)
+
+
+class SubscribeForm(forms.Form):
+	email = forms.EmailField(
+		widget=forms.EmailInput(
+			attrs={
+				'class': "course",
+				'onfocus': "this.placeholder = ''",
+				'onblur': "this.placeholder = 'Введите Email'",
+				'placeholder': "Email",
+				'style': "padding: 0px 0px;"
+			})
+	)

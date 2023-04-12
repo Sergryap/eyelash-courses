@@ -26,6 +26,8 @@ TG_TOKEN = env.str('TG_TOKEN')
 VK_USER_TOKEN = env.str('VK_USER_TOKEN')
 TG_LOGGER_BOT = env.str('TG_LOGGER_BOT')
 TG_LOGGER_CHAT = env.str('TG_LOGGER_CHAT')
+TG_BOT_NAME = env.str('TG_BOT_NAME')
+YOUTUBE_CHANEL_ID = env.str('YOUTUBE_CHANEL_ID')
 VK_GROUP_ID = env.int('VK_GROUP')
 ADMIN_IDS = env.list('ADMIN_IDS')
 TG_ADMIN_IDS = env.list('TG_ADMIN_IDS')
@@ -50,6 +52,7 @@ EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
 SERVER_EMAIL = EMAIL_HOST_USER
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+PHONE_NUMBER = env.str('PHONE_NUMBER')
 
 logger = logging.getLogger('telegram')
 logger.setLevel(logging.WARNING)
@@ -94,7 +97,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'courses.context_processors.get_random_images',
+                'courses.context_processors.get_footer_variables',
             ],
         },
     },

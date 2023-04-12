@@ -228,7 +228,8 @@ h1, h2, h3, h4, h5, h6 {
   margin-left: 42px; }
 
 .mb65 {
-  margin-bottom: 65px; }
+  margin-bottom: 65px;
+  margin-top: 20px; }
 
 .mt60 {
   margin-top: 60px; }
@@ -4557,7 +4558,7 @@ ul.product-tab li.active:after {
     bottom: -15px; }
 
 .subscribe-form {
-  margin-left: 70px; }
+  margin-left: 0px; }
 
 .copy-right-menu {
   padding: 30px 0px;

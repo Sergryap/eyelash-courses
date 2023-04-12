@@ -222,7 +222,7 @@
 											<li><a href="{% url 'home' %}#"><i class="fas fa-caret-right"></i>Объемное наращивание</a></li>
 											<li><a href="{% url 'home' %}#"><i class="fas fa-caret-right"></i>Эффекты наращивания</a></li>
 											<li><a href="{% url 'home' %}#"><i class="fas fa-caret-right"></i>Практика</a></li>
-											<li><a href="{% url 'home' %}#"><i class="fas fa-caret-right"></i>Oksa Studio Bot</a></li>
+											<li><a href="https://t.me/{{ tg_bot_name }}"><i class="fas fa-caret-right"></i>Oksa Studio Bot</a></li>
 										</ul>
 									</div>
 								</div>
@@ -230,29 +230,36 @@
 						</div>
 					</div> 
 					<!-- /footer-widget-content -->
-					<div class="footer-social-subscribe mb65">
+					<div class="footer-social-subscribe mb65" id="footer_oksa_studio">
 						<div class="row">
 							<div class="col-md-3">
 								<div class="footer-social ul-li "  >
 									<h2 class="widget-title">Мы в соцсетях</h2>
 									<ul>
-										<li><a href="{% url 'home' %}#"><i class="fab fa-facebook-f"></i></a></li>
-										<li><a href="{% url 'home' %}#"><i class="fab fa-twitter"></i></a></li>
-										<li><a href="{% url 'home' %}#"><i class="fab fa-google-plus-g"></i></a></li>
+										<li><a href="https://vk.com/club{{ vk_group_id }}" target="_blank"><i class="fab fa-vk"></i></a></li>
+										<li><a href="https://t.me/{{ tg_bot_name }}" target="_blank"><i class="fab fa-telegram"></i></a></li>
+										<li><a href="https://www.youtube.com/channel/{{ youtube_chanel_id }}/featured" target="_blank"><i class="fab fa-youtube"></i></a></li>
+										<li><a href="viber://add?number={{ phone_number }}" target="_blank"><i class="fab fa-viber"></i></a></li>
 									</ul>
 								</div>
 							</div>
 							<div class="col-md-9">
 								<div class="subscribe-form "  >
-									<h2 class="widget-title">Telegram бот</h2>
+									<h2 class="widget-title">Будь в курсе:</h2>
 
 									<div class="subs-form relative-position">
-										<form action="{% url 'home' %}#" method="post">
-											<input class="course" name="course" type="email" placeholder="Email Address.">
+										<form action="#footer_oksa_studio" method="post">{% csrf_token %}
+											{{ subscribe_form.email }}
+											<input type="hidden" name="type_form" value="subscribe">
 											<div class="nws-button text-center  gradient-bg text-uppercase">
-												<button type="submit" value="Submit">Subscribe now</button> 
+												<button type="submit" value="Submit">Подпишись сейчас</button>
 											</div>
 										</form>
+										{% if footer_form %}
+										{% for message in messages %}
+										<div class="message {{ message.tags }}" style="color: red">{{ message }}</div>
+										{% endfor %}
+										{% endif %}
 									</div>
 								</div>
 							</div>
