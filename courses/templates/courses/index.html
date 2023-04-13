@@ -703,18 +703,22 @@
 					<h2>Наши <span>выпускники</span></h2>
 				</div>
 				<div id="best-product-slide-item" class="best-product-slide">
+					{% for photo in graduate_photos %}
 					<div class="product-img-text "  >
 						<div class="product-img text-center mb20">
-							<img src="{% static 'courses/img/product/bp-1.png' %}" alt="">
+							<img src="{{ photo.image.url }}" alt="">
 						</div>
 						<div class="product-text-content relative-position">
+							{% if photo.title %}
 							<div class="best-title-price float-left">
 								<div class="course-title headline">
-									<h3><a href="{% url 'home' %}#">Mobile Apps Books.</a></h3>
+									<h3>{{ photo.title }}</h3>
 								</div>
 							</div>
+							{% endif %}
 						</div>
 					</div>
+					{% endfor %}
 				</div>
 			</div>
 		</section>

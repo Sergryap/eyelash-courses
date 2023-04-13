@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib import admin
 from django import forms
 from django.utils.html import format_html
-from courses.models import Client, Course, Lecturer, Program, CourseClient, CourseImage, Office
+from courses.models import Client, Course, Lecturer, Program, CourseClient, CourseImage, Office, GraduatePhoto
 from adminsortable2.admin import SortableAdminMixin, SortableTabularInline, SortableAdminBase
 from django.db.models import Count, Value
 from import_export import resources
@@ -316,3 +316,10 @@ class CourseClientAdmin(admin.ModelAdmin):
     @admin.display(description='Дата курса и время')
     def course_date(self, obj):
         return obj.course.scheduled_at
+
+
+@admin.register(GraduatePhoto)
+class GraduatePhotoAdmin(admin.ModelAdmin, PreviewMixin):
+    list_display = ['id', 'title', 'get_preview']
+    readonly_fields = ['get_preview']
+    list_editable = ['title']

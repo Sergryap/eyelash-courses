@@ -4,7 +4,7 @@ from django.conf import settings
 from django.core.mail import send_mail, BadHeaderError
 from courses.forms import ContactForm
 from django.contrib import messages
-from courses.models import Course, Program, Lecturer, Office
+from courses.models import Course, Program, Lecturer, Office, GraduatePhoto
 from django.db.models import Q
 from django.utils import timezone
 from datetime import datetime
@@ -99,6 +99,7 @@ def home(request):
         'courses': get_courses(future=True),
         'past_courses': get_courses(past=True),
         'office': Office.objects.first(),
+        'graduate_photos': GraduatePhoto.objects.all(),
         'form': form
     }
     return render(request, template, context)

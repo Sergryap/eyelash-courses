@@ -238,6 +238,16 @@ class Course(models.Model):
         ordering = ['scheduled_at']
 
 
+class GraduatePhoto(models.Model):
+    image = models.ImageField(upload_to='graduate_photos')
+    title = models.CharField(
+        verbose_name='Выпуск',
+        max_length=100,
+        blank=True,
+        null=True
+    )
+
+
 class CourseImage(models.Model):
     image = models.ImageField(
         upload_to='courses',
