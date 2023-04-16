@@ -44,7 +44,8 @@ class ContactForm(forms.Form):
 				'class': "email",
 				'onfocus': "this.placeholder = ''",
 				'onblur': "this.placeholder = 'Введите Email'",
-				'placeholder': "Email"
+				'placeholder': "Email",
+				'id': "id_email_top"
 			}),
 		label='Email', required=False)
 
@@ -79,6 +80,7 @@ class SubscribeForm(forms.Form):
 				'onfocus': "this.placeholder = ''",
 				'onblur': "this.placeholder = 'Введите Email'",
 				'placeholder': "Email",
+				'id': "id_email_footer",
 				'style': "padding: 0px 0px;"
 			})
 	)
