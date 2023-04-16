@@ -4601,4 +4601,11 @@ ul.product-tab li.active:after {
   outline-width: 0;
 }
 
+.youtube-background {
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-attachment: fixed;
+  background-size: cover;
+  aspect-ratio: 16/9;
+}
 /*---------------------------------------------------- */
