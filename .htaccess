@@ -1,0 +1,3 @@
+#Header always edit Set-Cookie ^(.*)$ "$1; HttpOnly; Secure; SameSite=lax"
+Header always edit Set-Cookie (.*) "$1; SameSite=None; Secure"
+#Header always edit Set-Cookie (.*) "$1; SameSite=Strict"
