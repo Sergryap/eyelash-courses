@@ -83,6 +83,123 @@
 	<!-- End of slider section
 		============================================= -->
 
+	<!-- Start of best course
+		============================================= -->
+		{% if courses %}
+		<section id="who-suits" class="best-course-section" style="padding: 125px 0px 0px 0px;">
+			<div class="container">
+				<div class="section-title mb45 headline text-center"  >
+					<span class="subtitle text-uppercase">Найди себя</span>
+					<h2><span>Для кого </span>наши курсы</h2>
+				</div>
+
+				<div class="row" style="margin-bottom: 85px;">
+					<div class="col-md-5">
+						<img src="{% static 'courses/img/pain/girl-in-the-office.jpg' %}">
+					</div>
+					<div class="col-md-7">
+						<div class="about-us-text" style="padding-top: 0px;">
+							<div class="section-title relative-position mb20 headline text-left "  >
+								<p>Надоела рутина на работе?</p>
+							</div>
+							<div class="about-list mb65 ul-li-block ">
+								<ul>
+									<li>Устала заниматься нелюбимым делом, вставать на работу в 7 утра, угождать недовольному начальству и ждать милости в день зарплаты?</li>
+									<li>А что впереди? Все ждёшь, когда тебя повысят? Ждёшь подходящее удобное время для новых свершений? А сколько ты уже ждёшь?</li>
+									<li>Хочется ярких красок, интересного общения и непрерывного развития</li>
+								</ul>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="row" style="margin-bottom: 85px;">
+					<div class="col-md-5">
+						<img src="{% static 'courses/img/pain/woman-with-child.jpg' %}">
+					</div>
+					<div class="col-md-7">
+						<div class="about-us-text" style="padding-top: 0px;">
+							<div class="section-title relative-position mb20 headline text-left "  >
+								<p>Засиделась в декрете?</p>
+							</div>
+							<div class="about-list mb65 ul-li-block ">
+								<ul>
+									<li>Или наоборот: засиделась в декрете, потеряла квалификацию</li>
+									<li>Но душа требует работы, развития в индустрии красоты</li>
+									<li>Хочется наконец-то уже интересного общения с людьми, делится впечатления от работы и жизни.</li>
+								</ul>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="row" style="margin-bottom: 85px;">
+					<div class="col-md-5">
+						<img src="{% static 'courses/img/pain/student-of-external-school.jpg' %}">
+					</div>
+					<div class="col-md-7">
+						<div class="about-us-text" style="padding-top: 0px;">
+							<div class="section-title relative-position mb20 headline text-left "  >
+								<p>Учишься на заочном?</p>
+							</div>
+							<div class="about-list mb65 ul-li-block ">
+								<ul>
+									<li>Учишься на заочном, не хватает денег на новые наряды, любимое хобби.</li>
+									<li>Хочется почувствовать себя самостоятельной, способной зарабатывать хорошие деньги нужным и творческим делом.</li>
+									<li>Да и просто получить признание за свою деятельность.</li>
+								</ul>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="row" style="margin-bottom: 85px;">
+					<div class="col-md-5">
+						<img src="{% static 'courses/img/pain/prohodila-kursy-po-narashchivaniyu-resnic.jpg' %}">
+					</div>
+					<div class="col-md-7">
+						<div class="about-us-text" style="padding-top: 0px;">
+							<div class="section-title relative-position mb20 headline text-left "  >
+								<p>Уже проходила курсы?</p>
+							</div>
+							<div class="about-list mb65 ul-li-block ">
+								<ul>
+									<li>Уже проходила курсы в другой школе, но поняла что ничему не научилась, да и обучения на курсах фактически не было, одно название.</li>
+									<li>Обучалась наращиванию ресниц в другой школе, но после этого прошло много времени и закрепить полученные навыки так и не получилось, да и забылось многое.</li>
+									<li>Прошла курсы, но боишься начинать работать самостоятельно, не хватает практики и опыта.</li>
+								</ul>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="row">
+					<div class="col-md-5">
+						<img src="{% static 'courses/img/pain/manicurist-oksa-studio.jpg' %}">
+					</div>
+					<div class="col-md-7">
+						<div class="about-us-text" style="padding-top: 0px;">
+							<div class="section-title relative-position mb20 headline text-left "  >
+								<p>Для мастеров других направлений</p>
+							</div>
+							<div class="about-list mb65 ul-li-block ">
+								<ul>
+									<li>Все еще не предоставляешь услугу по наращиванию ресниц в своем салоне или в частной практике.</li>
+									<li>Клиенты интересуются, но приходится отказывать.</li>
+									<li>Хочешь увеличить средний чек, предоставляя дополнительную услугу по наращиванию ресниц.</li>
+									<li>Хочешь получить конкурентное преимущество, предоставляя дополнительно услугу по наращиванию ресниц.</li>
+								</ul>
+							</div>
+						</div>
+					</div>
+				</div>
+
+			</div>
+		</section>
+		{% endif %}
+	<!-- End of best course
+		============================================= -->
+
 
 	<!-- Start popular course
 		============================================= -->
@@ -506,7 +623,7 @@
 
 	<!-- Start of best product section
 		============================================= -->
-		<section id="best-product" class="best-product-section">
+		<section id="best-product" class="best-product-section" style="padding: 0px 0px 50px 0px;">
 			<div class="container">
 				<div class="section-title-2 mb65 headline text-left "  >
 					<h2>Наши <span>выпускники</span></h2>
@@ -727,120 +844,6 @@
 		</section>
 	<!-- End FAQ section
 		============================================= -->
-
-
-	<!-- Start Course category
-		============================================= -->
-		<section id="course-category" class="course-category-section">
-			<div class="container">
-				<div class="section-title mb45 headline text-center "  >
-					<span class="subtitle text-uppercase">COURSES CATEGORIES</span>
-					<h2>Browse Courses<span> By Category.</span></h2>
-				</div>
-				<div class="category-item">
-					<div class="row">
-						<div class="col-md-3">
-							<div class="category-icon-title text-center "  >
-								<div class="category-icon">
-									<i class="text-gradiant flaticon-technology"></i>
-								</div>
-								<div class="category-title">
-									<h4>Responsive Website</h4>
-								</div>
-							</div>
-						</div>
-						<!-- /category -->
-
-						<div class="col-md-3">
-							<div class="category-icon-title text-center "  >
-								<div class="category-icon">
-									<i class="text-gradiant flaticon-app-store"></i>
-								</div>
-								<div class="category-title">
-									<h4>IOS Applications</h4>
-								</div>
-							</div>
-						</div>
-						<!-- /category -->
-
-						<div class="col-md-3">
-							<div class="category-icon-title text-center "  >
-								<div class="category-icon">
-									<i class="text-gradiant flaticon-artist-tools"></i>
-								</div>
-								<div class="category-title">
-									<h4>Graphic Design</h4>
-								</div>
-							</div>
-						</div>
-						<!-- /category -->
-
-						<div class="col-md-3">
-							<div class="category-icon-title text-center "  >
-								<div class="category-icon">
-									<i class="text-gradiant flaticon-business"></i>
-								</div>
-								<div class="category-title">
-									<h4>Marketing</h4>
-								</div>
-							</div>
-						</div>
-						<!-- /category -->
-
-						<div class="col-md-3">
-							<div class="category-icon-title text-center "  >
-								<div class="category-icon">
-									<i class="text-gradiant flaticon-dna"></i>
-								</div>
-								<div class="category-title">
-									<h4>Science</h4>
-								</div>
-							</div>
-						</div>
-						<!-- /category -->
-
-						<div class="col-md-3">
-							<div class="category-icon-title text-center "  >
-								<div class="category-icon">
-									<i class="text-gradiant flaticon-cogwheel"></i>
-								</div>
-								<div class="category-title">
-									<h4>Enginering</h4>
-								</div>
-							</div>
-						</div>
-						<!-- /category -->
-
-						<div class="col-md-3">
-							<div class="category-icon-title text-center "  >
-								<div class="category-icon">
-									<i class="text-gradiant flaticon-technology-1"></i>
-								</div>
-								<div class="category-title">
-									<h4>Photography</h4>
-								</div>
-							</div>
-						</div>
-						<!-- /category -->
-
-						<div class="col-md-3">
-							<div class="category-icon-title text-center "  >
-								<div class="category-icon">
-									<i class="text-gradiant flaticon-technology-2"></i>
-								</div>
-								<div class="category-title">
-									<h4>Mobile Application</h4>
-								</div>
-							</div>
-						</div>
-						<!-- /category -->
-					</div>
-				</div>
-			</div>
-		</section>
-	<!-- End Course category
-		============================================= -->
-
 
 	<!-- Start of contact area
 		============================================= -->
