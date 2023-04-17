@@ -193,7 +193,7 @@ def program_details(request, slug: str):
     courses = program.courses.select_related('lecture').prefetch_related('images')
 
     if request.method == 'POST' and request.POST['type_form'] == 'registration':
-        form = ContactForm(request.POST)
+        form = CourseForm(request.POST)
         if form.is_valid():
             name = form.cleaned_data['name']
             phone = form.cleaned_data['phone']
@@ -228,9 +228,9 @@ def program_details(request, slug: str):
             data = {field: msg for field, msg in error_msg.items() if field in form.errors}
             msg = '\n'.join([msg for msg in data.values()])
             messages.error(request, msg)
-            form = ContactForm(form.cleaned_data | data)
+            form = CourseForm(form.cleaned_data | data)
     else:
-        form = ContactForm()
+        form = CourseForm()
 
     context = {
         'form': form,

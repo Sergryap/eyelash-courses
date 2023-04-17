@@ -475,24 +475,22 @@
 								<h2>Последние <span>Курсы </span></h2>
 							</div>
 							<div class="latest-news-posts">
-
-								{% for course in past_courses %}
-								{% if course.number < 4 %}
-									<div class="latest-news-area">
-										<div class="latest-news-thumbnile relative-position" style="height: 80px;">
-											<img src="{{ course.image_url }}" alt="">
-											<a href="{% url 'course_details' course.instance.slug course.lecturer course.date_slug %}">
-												<div class="blakish-overlay" style="height: 100%;"></div>
-											</a>
-										</div>
-										<div class="date-meta">
-											<i class="fas fa-calendar-alt"></i> {{ course.readable_date.day }} {{ course.readable_date.month }} {{ course.readable_date.year }}
-										</div>
-										<h3 class="latest-title bold-font"><a href="{% url 'course_details' course.instance.slug course.lecturer course.date_slug %}">{{ course.instance.name }}</a></h3>
+							{% for course in past_courses %}
+							{% if course.number < 4 %}
+								<div class="latest-news-area">
+									<div class="latest-news-thumbnile relative-position" style="height: 80px;">
+										<img src="{{ course.image_url }}" alt="">
+										<a href="{% url 'course_details' course.instance.slug course.lecturer course.date_slug %}">
+											<div class="blakish-overlay" style="height: 100%;"></div>
+										</a>
 									</div>
-								{% endif %}
-								{% endfor %}
-								<!-- /post -->
+									<div class="date-meta">
+										<i class="fas fa-calendar-alt"></i> {{ course.readable_date.day }} {{ course.readable_date.month }} {{ course.readable_date.year }}
+									</div>
+									<h3 class="latest-title bold-font"><a href="{% url 'course_details' course.instance.slug course.lecturer course.date_slug %}">{{ course.instance.name }}</a></h3>
+								</div>
+							{% endif %}
+							{% endfor %}
 							</div>
 						</div>
 					</div>

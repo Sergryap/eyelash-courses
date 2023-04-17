@@ -26,198 +26,64 @@
 			<div class="container">
 				<div class="row">
 					<div class="col-md-9">
-						<div class="course-details-item">
-							<div class="course-single-pic mb30">
-								<img src="{{ program.image.url }}" alt="">
-							</div>
-							<div class="course-single-text">
-								<div class="course-title mt10 headline relative-position">
-									<h3><a href="{% url 'program_details' program.slug %}#"><b>Программа: {{ program.title }}</b></a></h3>
-								</div>
-								<div class="course-details-content">
-									{% autoescape off %}{{ program.description }}{% endautoescape %}
-								</div>
-							</div>
+						<div class="course-single-pic mb30">
+							<img src="{{ program.image.url }}" alt="">
 						</div>
-						<!-- /course-details -->
-
-						<div class="couse-comment">
-							<div class="blog-comment-area ul-li about-teacher-2">
-								<ul class="comment-list">
-									<li>
-										<div class="author-name-rate">
-											<div class="author-name float-left">
-												BY: <span>FRANK LAMPARD</span> 
-											</div>
-											<div class="comment-ratting float-right ul-li">
-												<ul>
-													<li><i class="fas fa-star"></i></li>
-													<li><i class="fas fa-star"></i></li>
-													<li><i class="fas fa-star"></i></li>
-													<li><i class="fas fa-star"></i></li>
-													<li><i class="fas fa-star"></i></li>
-												</ul>
-											</div>
-											<div class="time-comment float-right">3 Days ago</div>
-										</div>
-										<div class="author-designation-comment">
-											<h3>Great Course!! Recommended for Everyone</h3>
-											<p>
-												Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation.
-											</p>
-										</div>
-									</li>
-
-									<li>
-										<div class="author-name-rate">
-											<div class="author-name float-left">
-												BY: <span>FRANK LAMPARD</span> 
-											</div>
-											<div class="comment-ratting float-right ul-li">
-												<ul>
-													<li><i class="fas fa-star"></i></li>
-													<li><i class="fas fa-star"></i></li>
-													<li><i class="fas fa-star"></i></li>
-													<li><i class="fas fa-star"></i></li>
-													<li><i class="fas fa-star"></i></li>
-												</ul>
-											</div>
-											<div class="time-comment float-right">3 Days ago</div>
-										</div>
-										<div class="author-designation-comment">
-											<h3>Great Course!! Recommended for Everyone</h3>
-											<p>
-												Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation.
-											</p>
-										</div>
-									</li>
-								</ul>
-
-								<div class="reply-comment-box">
-									<div class="review-option">
-										<div class="section-title-2  headline text-left float-left">
-											<h2>Ваш  <span>отзыв</span></h2>
-										</div>
-										<div class="review-stars-item float-right mt15">
-											<span>Оцените: </span>
-											<form class="rating">
-												<label>
-													<input type="radio" name="stars" value="1" />
-													<span class="icon"><i class="fas fa-star"></i></span>
-												</label>
-												<label>
-													<input type="radio" name="stars" value="2" />
-													<span class="icon"><i class="fas fa-star"></i></span>
-													<span class="icon"><i class="fas fa-star"></i></span>
-												</label>
-												<label>
-													<input type="radio" name="stars" value="3" />
-													<span class="icon"><i class="fas fa-star"></i></span>
-													<span class="icon"><i class="fas fa-star"></i></span>
-													<span class="icon"><i class="fas fa-star"></i></span>   
-												</label>
-												<label>
-													<input type="radio" name="stars" value="4" />
-													<span class="icon"><i class="fas fa-star"></i></span>
-													<span class="icon"><i class="fas fa-star"></i></span>
-													<span class="icon"><i class="fas fa-star"></i></span>
-													<span class="icon"><i class="fas fa-star"></i></span>
-												</label>
-												<label>
-													<input type="radio" name="stars" value="5" />
-													<span class="icon"><i class="fas fa-star"></i></span>
-													<span class="icon"><i class="fas fa-star"></i></span>
-													<span class="icon"><i class="fas fa-star"></i></span>
-													<span class="icon"><i class="fas fa-star"></i></span>
-													<span class="icon"><i class="fas fa-star"></i></span>
-												</label>
-											</form>
-										</div>
-									</div>
-									<div class="teacher-faq-form">
-										<form method="POST" action="https://jthemes.net/no-form" data-lead="Residential">
-											<div class="row">
-												<div class="col-md-6">
-													<label for="name">Your Name</label>
-													<input type="text" name="name" id="name" required="required">
-												</div>
-												<div class="col-md-6">
-													<label for="phone">Email Address</label>
-													<input type="tel" name="phone" id="phone" required="required">
-												</div>
-											</div>
-											<label for="comments">Message</label>
-											<textarea name="comments" id="comments" rows="2" cols="20" required="required"></textarea>
-											<div class="nws-button text-center  gradient-bg text-uppercase">
-												<button type="submit" value="Submit">Send Message now</button> 
-											</div>
-										</form>
-									</div>
-								</div>
+						<div class="course-single-text">
+							<div class="course-title mt10 headline relative-position">
+								<h3><a href="{% url 'program_details' program.slug %}#"><b>Программа: {{ program.title }}</b></a></h3>
+							</div>
+							<div class="course-details-content">
+								{% autoescape off %}{{ program.description }}{% endautoescape %}
 							</div>
 						</div>
 					</div>
 
 					<div class="col-md-3">
-						<div class="side-bar">
-							<div class="side-bar-widget">
-								<h2 class="widget-title text-capitalize" style="z-index: 2;"><span>Ближайшие </span>курсы</h2>
-								<div class="latest-news-posts">
-									{% if courses %}
-									{% for course in courses %}
-										<div class="latest-news-area">
-											<div class="latest-news-thumbnile relative-position">
-												<img src="{{ course.image_url }}" alt="{{ course.instance.name }}">
-												<a href="{% url 'course_details' course.instance.slug course.lecturer course.date_slug %}"><div class="blakish-overlay"></div></a>
-											</div>
-											<div class="date-meta">
-												<i class="fas fa-calendar-alt"></i> {{ course.date }}
-											</div>
-											<h3 class="latest-title bold-font"><a href="{% url 'course_details' course.instance.slug course.lecturer course.date_slug %}">{{ course.instance.name }}</a></h3>
+						{% if courses %}<h2 class="widget-title text-capitalize" style="z-index: 2;"><span>Ближайшие </span>курсы</h2>{% endif %}
+						{% if courses %}
+						{% for course in courses %}
+							<div class="latest-news-area">
+								<div class="latest-news-thumbnile relative-position">
+									<img src="{{ course.image_url }}" alt="{{ course.instance.name }}">
+									<a href="{% url 'course_details' course.instance.slug course.lecturer course.date_slug %}"><div class="blakish-overlay"></div></a>
+								</div>
+								<div class="date-meta">
+									<i class="fas fa-calendar-alt"></i> {{ course.date }}
+								</div>
+								<h3 class="latest-title bold-font"><a href="{% url 'course_details' course.instance.slug course.lecturer course.date_slug %}">{{ course.instance.name }}</a></h3>
+							</div>
+						{% endfor %}
+						{% else %}
+							<div class="register-content">
+								<div class="register-fomr-title text-center">
+									<h3 class="bold-font" style="font-size: 20px;color: black; margin-bottom: 30px; line-height: 1.8;">Оставь заявку <br><span>чтобы узнать о предстоящих курсах по программе<br>{{ program.title }}</span></h3>
+								</div>
+								<div class="register-form-area">
+									<form class="contact_form" action="" method="post" enctype="multipart/form-data">
+										{% csrf_token %}
+										<div class="contact-info" style="margin-top: 10px;">
+											{{ form.name }}
 										</div>
+										<div class="contact-info" style="margin-top: 10px;">
+											{{ form.phone }}
+										</div>
+										<div class="contact-info" style="margin-top: 10px;">
+											{{ form.email }}
+										</div>
+										<input type="hidden" name="type_form" value="registration">
+										<div class="nws-button text-uppercase text-center white text-capitalize" style="margin-top: 30px;">
+											<button type="submit" value="Submit">ОТПРАВИТЬ</button>
+										</div>
+									</form>
+									{% if not footer_form %}
+									{% for message in messages %}
+										<div class="message {{ message.tags }}" style="color: red">{{ message }}</div>
 									{% endfor %}
-									{% else %}
-										<div>
-											<div class="about-resigter-form backgroud-style relative-position" style="margin-top: 0px;">
-												<div class="register-content">
-													<div class="register-fomr-title text-center">
-														<h3 class="bold-font" style="font-size: 30px;"><span>Оставь заявку</span> прямо сейчас</h3>
-														<p>Для получения консультации</p>
-													</div>
-													<div class="register-form-area">
-														<form class="contact_form" action="" method="post" enctype="multipart/form-data">
-															{% csrf_token %}
-															<div class="contact-info" style="margin-top: 10px;">
-																{{ form.name }}
-															</div>
-															<div class="contact-info" style="margin-top: 10px;">
-																{{ form.phone }}
-															</div>
-															<div class="contact-info" style="margin-top: 10px;">
-																{{ form.email }}
-															</div>
-															<input type="hidden" name="type_form" value="registration">
-															<div class="nws-button text-uppercase text-center white text-capitalize" style="margin-top: 30px;">
-																<button type="submit" value="Submit">ОТПРАВИТЬ</button>
-															</div>
-														</form>
-														{% if not footer_form %}
-														{% for message in messages %}
-															<div class="message {{ message.tags }}" style="color: red">{{ message }}</div>
-														{% endfor %}
-														{% endif %}
-													</div>
-												</div>
-											</div>
-											<div class="bg-mockup">
-												<img src="{% static 'courses/img/about/phone.png' %}" alt="">
-											</div>
-										</div>
 									{% endif %}
-									<!-- /post -->
 								</div>
 							</div>
-						</div>
+						{% endif %}
 					</div>
 				</div>
 			</div>

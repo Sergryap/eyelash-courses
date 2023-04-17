@@ -86,58 +86,6 @@
 									</li>
 								</ul>
 							</div>
-							<div class="log-in float-right">
-								<a  data-toggle="modal" data-target="#myModal" href="{% url 'home' %}#">log in</a>
-								<!-- The Modal -->
-								<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-hidden="true">
-									<div class="modal-dialog">
-										<div class="modal-content">
-
-											<!-- Modal Header -->
-											<div class="modal-header backgroud-style">
-												<div class="gradient-bg"></div>
-												<div class="popup-logo">
-													<img src="{% static 'courses/img/logo/p-logo.jpg' %}" alt="">
-												</div>
-												<div class="popup-text text-center">
-													<h2> <span>Login</span> Your Account.</h2>
-													<p>Login to our website, or <span>REGISTER</span></p>
-												</div>
-											</div>
-
-											<!-- Modal body -->
-											<div class="modal-body">
-												<div class="facebook-login">
-													<a href="{% url 'home' %}#">
-														<div class="log-in-icon">
-															<i class="fab fa-facebook-f"></i>
-														</div>
-														<div class="log-in-text text-center">
-															Login with Facebook
-														</div>
-													</a>
-												</div>
-												<div class="alt-text text-center"><a href="{% url 'home' %}#">OR SIGN IN</a> </div>
-												<form class="contact_form" action="{% url 'home' %}#" method="POST" enctype="multipart/form-data">
-													<div class="contact-info">
-														<input class="name" name="Email" type="email" placeholder="Your@email.com*">
-													</div>
-													<div class="contact-info">
-														<input class="pass" name="name" type="password" placeholder="Your password*">
-													</div>
-													<div class="nws-button text-center white text-capitalize">
-														<button type="submit" value="Submit">LOg in Now</button> 
-													</div> 
-												</form>
-												<div class="log-in-footer text-center">
-													<p>* Denotes mandatory field.</p>
-													<p>** At least one telephone number is required.</p>
-												</div>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
 							<!-- Collect the nav links, forms, and other content for toggling -->
 							<nav class="navbar-menu float-right">
 								<div class="nav-menu ul-li">
@@ -145,8 +93,8 @@
 										<li class="menu-item-has-children ul-li-block">
 											<a href="{% url 'home' %}">Home</a>
 										</li>
-										<li><a href="{% url 'about' %}">О нас</a></li>
-										<li><a href="{% url 'contact' %}">Контакты</a></li>
+										<li><a href="{% url 'home' %}#about-us">О нас</a></li>
+										<li><a href="{% url 'home' %}#contact-area">Контакты</a></li>
 										<li><a href="{% url 'course' %}">Курсы</a></li>
 									</ul>
 								</div>
@@ -157,8 +105,8 @@
 								<nav>
 									<ul>
 										<li><a href="{% url 'home' %}">Home</a></li>
-										<li><a href="{% url 'about' %}">О нас</a></li>
-										<li><a href="{% url 'contact' %}">Контакты</a></li>
+										<li><a href="{% url 'home' %}#about-us">О нас</a></li>
+										<li><a href="{% url 'home' %}#contact-area">Контакты</a></li>
 										<li><a href="{% url 'course' %}">Курсы</a></li>
 
 									</ul>
@@ -217,7 +165,7 @@
 									<div class="footer-menu ul-li-block">
 										<h2 class="widget-title">Полезные ссылки</h2>
 										<ul>
-											<li><a href="{% url 'about' %}#"><i class="fas fa-caret-right"></i>О нас</a></li>
+											<li><a href="{% url 'home' %}#about-us"><i class="fas fa-caret-right"></i>О нас</a></li>
 											<li><a href="/program/klassicheskoe-narashivanie/"><i class="fas fa-caret-right"></i>Базовый курс</a></li>
 											<li><a href="{% url 'home' %}#"><i class="fas fa-caret-right"></i>Объемное наращивание</a></li>
 											<li><a href="{% url 'home' %}#"><i class="fas fa-caret-right"></i>Эффекты наращивания</a></li>
