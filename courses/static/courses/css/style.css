@@ -4269,7 +4269,7 @@ ul.product-tab li.active:after {
   .couse-feature li {
     font-size: 17px;
     font-weight: 500;
-    color: #c4c4c4;
+    color: #747474;
     position: relative;
     padding: 5px 0px;
     border: 1px solid #eeeeee;
@@ -4278,7 +4278,6 @@ ul.product-tab li.active:after {
     .couse-feature li:after {
       top: 5px;
       left: 110px;
-      content: ':';
       position: absolute; }
   .couse-feature span {
     position: relative;

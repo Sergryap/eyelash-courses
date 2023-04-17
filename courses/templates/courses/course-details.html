@@ -50,139 +50,22 @@
 								</div>
 							</div>
 						</div>
-						<!-- /course-details -->
-
-						<div class="couse-comment">
-							<div class="blog-comment-area ul-li about-teacher-2">
-								<ul class="comment-list">
-									<li>
-										<div class="author-name-rate">
-											<div class="author-name float-left">
-												BY: <span>FRANK LAMPARD</span> 
-											</div>
-											<div class="comment-ratting float-right ul-li">
-												<ul>
-													<li><i class="fas fa-star"></i></li>
-													<li><i class="fas fa-star"></i></li>
-													<li><i class="fas fa-star"></i></li>
-													<li><i class="fas fa-star"></i></li>
-													<li><i class="fas fa-star"></i></li>
-												</ul>
-											</div>
-											<div class="time-comment float-right">3 Days ago</div>
-										</div>
-										<div class="author-designation-comment">
-											<h3>Great Course!! Recommended for Everyone</h3>
-											<p>
-												Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation.
-											</p>
-										</div>
-									</li>
-
-									<li>
-										<div class="author-name-rate">
-											<div class="author-name float-left">
-												BY: <span>FRANK LAMPARD</span> 
-											</div>
-											<div class="comment-ratting float-right ul-li">
-												<ul>
-													<li><i class="fas fa-star"></i></li>
-													<li><i class="fas fa-star"></i></li>
-													<li><i class="fas fa-star"></i></li>
-													<li><i class="fas fa-star"></i></li>
-													<li><i class="fas fa-star"></i></li>
-												</ul>
-											</div>
-											<div class="time-comment float-right">3 Days ago</div>
-										</div>
-										<div class="author-designation-comment">
-											<h3>Great Course!! Recommended for Everyone</h3>
-											<p>
-												Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation.
-											</p>
-										</div>
-									</li>
-								</ul>
-
-								<div class="reply-comment-box">
-									<div class="review-option">
-										<div class="section-title-2  headline text-left float-left">
-											<h2>Add  <span>Reviews.</span></h2>
-										</div>
-										<div class="review-stars-item float-right mt15">
-											<span>Your Rating: </span>
-											<form class="rating">
-												<label>
-													<input type="radio" name="stars" value="1" />
-													<span class="icon"><i class="fas fa-star"></i></span>
-												</label>
-												<label>
-													<input type="radio" name="stars" value="2" />
-													<span class="icon"><i class="fas fa-star"></i></span>
-													<span class="icon"><i class="fas fa-star"></i></span>
-												</label>
-												<label>
-													<input type="radio" name="stars" value="3" />
-													<span class="icon"><i class="fas fa-star"></i></span>
-													<span class="icon"><i class="fas fa-star"></i></span>
-													<span class="icon"><i class="fas fa-star"></i></span>   
-												</label>
-												<label>
-													<input type="radio" name="stars" value="4" />
-													<span class="icon"><i class="fas fa-star"></i></span>
-													<span class="icon"><i class="fas fa-star"></i></span>
-													<span class="icon"><i class="fas fa-star"></i></span>
-													<span class="icon"><i class="fas fa-star"></i></span>
-												</label>
-												<label>
-													<input type="radio" name="stars" value="5" />
-													<span class="icon"><i class="fas fa-star"></i></span>
-													<span class="icon"><i class="fas fa-star"></i></span>
-													<span class="icon"><i class="fas fa-star"></i></span>
-													<span class="icon"><i class="fas fa-star"></i></span>
-													<span class="icon"><i class="fas fa-star"></i></span>
-												</label>
-											</form>
-										</div>
-									</div>
-									<div class="teacher-faq-form">
-										<form method="POST" action="https://jthemes.net/no-form" data-lead="Residential">
-											<div class="row">
-												<div class="col-md-6">
-													<label for="name">Your Name</label>
-													<input type="text" name="name" id="name" required="required">
-												</div>
-												<div class="col-md-6">
-													<label for="phone">Email Address</label>
-													<input type="tel" name="phone" id="phone" required="required">
-												</div>
-											</div>
-											<label for="comments">Message</label>
-											<textarea name="comments" id="comments" rows="2" cols="20" required="required"></textarea>
-											<div class="nws-button text-center  gradient-bg text-uppercase">
-												<button type="submit" value="Submit">Send Message now</button> 
-											</div>
-										</form>
-									</div>
-								</div>
-							</div>
-						</div>
 					</div>
 
 					<div class="col-md-3">
 						<div class="side-bar">
 							<div class="couse-feature ul-li-block">
 								<ul>
-									<li>Лектор <span>{{ course.lecture }}</span></li>
-									<li>Дата<span>{{ date }}</span></li>
-									<li>Участников  <span>{{ participants }}</span></li>
-									<li>Продолжительность <span>{{ course.duration }} д.</span></li>
-									<li>Кофе-брэйк  <span>Включен</span></li>
+									<li>Лектор : <span>{{ course.lecture }}</span></li>
+									<li>Дата : <span>{{ date }}</span></li>
+									<li>Участников : <span>{{ participants }}</span></li>
+									<li>Продолжительность : <span>{{ course.duration }} д.</span></li>
+									<li>Кофе-брэйк : <span>Включен</span></li>
 								</ul>
 							</div>
-							<div class="side-bar-widget" style="margin: 80px 0px;">
+							<div class="side-bar-widget" style="margin: 50px 0px;">
 								<div class="register-fomr-title text-center">
-									<h3 class="bold-font" style="font-size: 25px;color: black;"><span>Ваша заявка</span></h3>
+									<h3 class="bold-font" style="font-size: 25px;color: black; margin-bottom: 30px;"><span>Ваша заявка</span></h3>
 								</div>
 								<div class="register-form-area">
 									<form class="contact_form" action="" method="post" enctype="multipart/form-data">

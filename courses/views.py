@@ -2,7 +2,7 @@ from textwrap import dedent
 from django.shortcuts import render, redirect, HttpResponse, get_object_or_404
 from django.conf import settings
 from django.core.mail import send_mail, BadHeaderError
-from courses.forms import ContactForm
+from courses.forms import ContactForm, CourseForm
 from django.contrib import messages
 from courses.models import Course, Program, Lecturer, Office, GraduatePhoto
 from django.db.models import Q
@@ -135,7 +135,7 @@ def course_details(request, slug: str, lecturer: str, date: str):
         .prefetch_related('images')[0]
     )
     if request.method == 'POST' and request.POST['type_form'] == 'registration':
-        form = ContactForm(request.POST)
+        form = CourseForm(request.POST)
         if form.is_valid():
             name = form.cleaned_data['name']
             phone = form.cleaned_data['phone']
@@ -170,9 +170,9 @@ def course_details(request, slug: str, lecturer: str, date: str):
             data = {field: msg for field, msg in error_msg.items() if field in form.errors}
             msg = '\n'.join([msg for msg in data.values()])
             messages.error(request, msg)
-            form = ContactForm(form.cleaned_data | data)
+            form = CourseForm(form.cleaned_data | data)
     else:
-        form = ContactForm()
+        form = CourseForm()
     context = {
         'form': form,
         'participants': max(course_instance.get_count_participants(), 2),
