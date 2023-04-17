@@ -11,13 +11,7 @@
 			<div class="container">
 				<div class="page-breadcrumb-content text-center">
 					<div class="page-breadcrumb-title">
-						<h2 class="breadcrumb-head black bold">Genius <span>Course Details.</span></h2>
-					</div>
-					<div class="page-breadcrumb-item ul-li">
-						<ul class="breadcrumb text-uppercase black">
-							<li class="breadcrumb-item"><a href="{% url 'home' %}#">Home</a></li>
-							<li class="breadcrumb-item active">Details</li>
-						</ul>
+						<h2 class="breadcrumb-head black bold"><span>{{ course.name }}</span></h2>
 					</div>
 				</div>
 			</div>
@@ -54,186 +48,14 @@
 								<div class="course-details-content">
 									{% autoescape off %}{{ course.description }}{% endautoescape %}
 								</div>
-
-								<div class="course-details-category ul-li">
-									<span>Course <b>Section:</b></span>
-									<ul>
-										<li><a href="/#">SEction 1 </a></li>
-										<li><a href="/#">SEction 2 </a></li>
-										<li><a href="/#">SEction 3 </a></li>
-										<li><a href="/#">SEction 4  </a></li>
-										<li><a href="/#">SEction 5  </a></li>
-									</ul>
-								</div>
 							</div>
 						</div>
 						<!-- /course-details -->
-
-						<div class="affiliate-market-guide mb65">
-							<div class="section-title-2 mb20 headline text-left">
-								<h2><span>Affiliate Marketing</span> A Begginer's Guide</h2>
-							</div>
-
-							<div class="affiliate-market-accordion">
-								<div id="accordion" class="panel-group">
-									<div class="panel">
-										<div class="panel-title" id="headingOne">
-											<div class="ac-head">
-												
-												<button class="btn btn-link" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-													<span>01</span>	Designing Website Using Photoshop 
-												</button>
-												<div class="course-by">
-													BY: <b>TONI KROSS</b> 
-												</div>
-												<div class="leanth-course">
-													<span>60 Minuttes</span>
-													<span>Adobe photoshop</span>
-												</div>
-											</div>
-										</div>
-										<div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
-											<div class="panel-body">
-												Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore.
-											</div>
-										</div>
-									</div>
-									<div class="panel">
-										<div class="panel-title" id="headingTwo">
-											<div class="ac-head">
-												
-												<button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
-													<span>02</span>	Designing Website Using Photoshop 
-												</button>
-												<div class="course-by">
-													BY: <b>TONI KROSS</b> 
-												</div>
-												<div class="leanth-course">
-													<span>60 Minuttes</span>
-													<span>Adobe photoshop</span>
-												</div>
-											</div>
-										</div>
-										<div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
-											<div class="panel-body">
-												Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam volutpat. Ut wisi enim ad minim veniam consectetuer adipiscing elit, sed diam nonummy.
-											</div>
-										</div>
-									</div>
-									<div class="panel">
-										<div class="panel-title" id="headingThree">
-											<div class="ac-head">
-												<button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseThree" aria-expanded="true" aria-controls="collapseThree">
-													<span>03</span>	Designing Website Using Photoshop 
-												</button>
-												<div class="course-by">
-													BY: <b>TONI KROSS</b> 
-												</div>
-												<div class="leanth-course">
-													<span>60 Minuttes</span>
-													<span>Adobe photoshop</span>
-												</div>
-											</div>
-										</div>
-										<div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordion">
-											<div class="panel-body">
-												Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam volutpat. Ut wisi enim ad minim veniam consectetuer adipiscing elit, sed diam nonummy.
-											</div>
-										</div>
-									</div>
-									<div class="panel">
-										<div class="panel-title" id="headingFoure">
-											<div class="ac-head">
-												<button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseFoure" aria-expanded="true" aria-controls="collapseFoure">
-													<span>04</span>	Designing Website Using Photoshop 
-												</button>
-												<div class="course-by">
-													BY: <b>TONI KROSS</b> 
-												</div>
-												<div class="leanth-course">
-													<span>60 Minuttes</span>
-													<span>Adobe photoshop</span>
-												</div>
-											</div>
-										</div>
-										<div id="collapseFoure" class="collapse" data-parent="#accordion">
-											<div class="panel-body">
-												Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam volutpat. Ut wisi enim ad minim veniam consectetuer adipiscing elit, sed diam nonummy.
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-						<!-- /market guide -->
-
-						<div class="course-review">
-							<div class="section-title-2 mb20 headline text-left">
-								<h2>Course <span>Reviews:</span></h2>
-							</div>
-							<div class="row">
-								<div class="col-md-6">
-									<div class="ratting-preview">
-										<div class="row">
-											<div class="col-md-4">
-												<div class="avrg-rating ul-li">
-													<b>Average Rating</b>
-													<span class="avrg-rate">5.0</span>
-													<ul>
-														<li><i class="fas fa-star"></i></li>
-														<li><i class="fas fa-star"></i></li>
-														<li><i class="fas fa-star"></i></li>
-														<li><i class="fas fa-star"></i></li>
-														<li><i class="fas fa-star"></i></li>
-													</ul>
-													<b>1.225 Ratings</b>
-												</div>
-											</div>
-											<div class="col-md-8">
-												<div class="avrg-rating ul-li">
-													<span>Details</span>
-													<div class="rating-overview">
-														<span class="start-item">5 Starts</span>
-														<span class="start-bar"></span>
-														<span class="start-count">1.225</span>
-													</div>
-													<div class="rating-overview">
-														<span class="start-item">4 Starts</span>
-														<span class="start-bar"></span>
-														<span class="start-count">0</span>
-													</div>
-													<div class="rating-overview">
-														<span class="start-item">3 Starts</span>
-														<span class="start-bar"></span>
-														<span class="start-count">0</span>
-													</div>
-													<div class="rating-overview">
-														<span class="start-item">2 Starts</span>
-														<span class="start-bar"></span>
-														<span class="start-count">0</span>
-													</div>
-													<div class="rating-overview">
-														<span class="start-item">1 Starts</span>
-														<span class="start-bar"></span>
-														<span class="start-count">0</span>
-													</div>
-												</div>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-						<!-- /review overview -->
 
 						<div class="couse-comment">
 							<div class="blog-comment-area ul-li about-teacher-2">
 								<ul class="comment-list">
 									<li>
-										<div class=" comment-avater">
-											<img src="{% static 'courses/img/blog/ath-2.jpg' %}" alt="">
-										</div>
-
 										<div class="author-name-rate">
 											<div class="author-name float-left">
 												BY: <span>FRANK LAMPARD</span> 
@@ -258,10 +80,6 @@
 									</li>
 
 									<li>
-										<div class=" comment-avater">
-											<img src="{% static 'courses/img/blog/ath.jpg' %}" alt="">
-										</div>
-
 										<div class="author-name-rate">
 											<div class="author-name float-left">
 												BY: <span>FRANK LAMPARD</span> 
@@ -353,29 +171,6 @@
 
 					<div class="col-md-3">
 						<div class="side-bar">
-							<div class="course-side-bar-widget">
-								<h3>Price <span>$69.99</span></h3>
-								<div class="genius-btn gradient-bg text-center text-uppercase float-left bold-font">
-									<a href="/#">Записаться <i class="fas fa-caret-right"></i></a>
-								</div>
-								<div class="like-course">
-									<a href="/#"><i class="fas fa-heart"></i></a>
-								</div>
-							</div>
-							<div class="enrolled-student">
-								<div class="comment-ratting float-left ul-li">
-									<ul>
-										<li><i class="fas fa-star"></i></li>
-										<li><i class="fas fa-star"></i></li>
-										<li><i class="fas fa-star"></i></li>
-										<li><i class="fas fa-star"></i></li>
-										<li><i class="fas fa-star"></i></li>
-									</ul>
-								</div>
-								<div class="student-number bold-font">
-									250 Enrolled
-								</div>
-							</div>
 							<div class="couse-feature ul-li-block">
 								<ul>
 									<li>Лектор <span>{{ course.lecture }}</span></li>
@@ -385,69 +180,32 @@
 									<li>Кофе-брэйк  <span>Включен</span></li>
 								</ul>
 							</div>
-
-							<div class="side-bar-widget">
-								<h2 class="widget-title text-capitalize"><span>Related </span>News.</h2>
-								<div class="latest-news-posts">
-									<div class="latest-news-area">
-										<div class="latest-news-thumbnile relative-position">
-											<img src="{% static 'courses/img/blog/lb-1.jpg' %}" alt="">
-											<div class="hover-search">
-												<i class="fas fa-search"></i>
-											</div>
-											<div class="blakish-overlay"></div>
-										</div>
-										<div class="date-meta">
-											<i class="fas fa-calendar-alt"></i> 26 April 2018
-										</div>
-										<h3 class="latest-title bold-font"><a href="/#">Affiliate Marketing A Beginner’s Guide.</a></h3>
-									</div>
-									<!-- /post -->
-
-									<div class="latest-news-posts">
-										<div class="latest-news-area">
-											<div class="latest-news-thumbnile relative-position">
-												<img src="{% static 'courses/img/blog/lb-2.jpg' %}" alt="">
-												<div class="hover-search">
-													<i class="fas fa-search"></i>
-												</div>
-												<div class="blakish-overlay"></div>
-											</div>
-											<div class="date-meta">
-												<i class="fas fa-calendar-alt"></i> 26 April 2018
-											</div>
-											<h3 class="latest-title bold-font"><a href="/#">No.1 The Best Online Course 2018.</a></h3>
-										</div>
-										<!-- /post -->
-									</div>
-
-									<div class="view-all-btn bold-font">
-										<a href="/#">View All News <i class="fas fa-chevron-circle-right"></i></a>
-									</div>
+							<div class="side-bar-widget" style="margin: 80px 0px;">
+								<div class="register-fomr-title text-center">
+									<h3 class="bold-font" style="font-size: 25px;color: black;"><span>Ваша заявка</span></h3>
 								</div>
-							</div>
-
-							<div class="side-bar-widget">
-								<h2 class="widget-title text-capitalize"><span>Featured</span> Course.</h2>
-								<div class="featured-course">
-									<div class="best-course-pic-text relative-position">
-										<div class="best-course-pic relative-position">
-											<img src="{% static 'courses/img/blog/fb-1.jpg' %}" alt="">
-											<div class="trend-badge-2 text-center text-uppercase">
-												<i class="fas fa-bolt"></i>
-												<span>Trending</span>
-											</div>
+								<div class="register-form-area">
+									<form class="contact_form" action="" method="post" enctype="multipart/form-data">
+										{% csrf_token %}
+										<div class="contact-info" style="margin-top: 10px;">
+											{{ form.name }}
 										</div>
-										<div class="best-course-text">
-											<div class="course-title mb20 headline relative-position">
-												<h3><a href="/#">Fully Responsive Web Design &amp; Development.</a></h3>
-											</div>
-											<div class="course-meta">
-												<span class="course-category"><a href="/#">Web Design</a></span>
-												<span class="course-author"><a href="/#">250 Students</a></span>
-											</div>
+										<div class="contact-info" style="margin-top: 10px;">
+											{{ form.phone }}
 										</div>
-									</div>
+										<div class="contact-info" style="margin-top: 10px;">
+											{{ form.email }}
+										</div>
+										<input type="hidden" name="type_form" value="registration">
+										<div class="nws-button text-uppercase text-center white text-capitalize" style="margin-top: 30px;">
+											<button type="submit" value="Submit">ОТПРАВИТЬ</button>
+										</div>
+									</form>
+									{% if not footer_form %}
+									{% for message in messages %}
+										<div class="message {{ message.tags }}" style="color: red">{{ message }}</div>
+									{% endfor %}
+									{% endif %}
 								</div>
 							</div>
 						</div>

@@ -134,7 +134,47 @@ def course_details(request, slug: str, lecturer: str, date: str):
         .select_related('lecture')
         .prefetch_related('images')[0]
     )
+    if request.method == 'POST' and request.POST['type_form'] == 'registration':
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            name = form.cleaned_data['name']
+            phone = form.cleaned_data['phone']
+            from_email = form.cleaned_data['email']
+            text = f'''
+                Заявка на курс:
+                Имя: {name}
+                Email: {from_email}
+                Тел.: {phone}
+                Курс: {course_instance.name}             
+                '''
+            try:
+                send_mail(
+                    f'Заявка от {name}: {phone}',
+                    dedent(text),
+                    settings.EMAIL_HOST_USER,
+                    settings.RECIPIENTS_EMAIL
+                )
+                send_tg_msg(
+                    token=settings.TG_LOGGER_BOT,
+                    chat_id=settings.TG_LOGGER_CHAT,
+                    msg=dedent(text)
+                )
+                messages.success(request, 'Отправлено!')
+            except BadHeaderError:
+                return HttpResponse('Ошибка в теме письма.')
+        else:
+            error_msg = {
+                'phone': 'Введите правильный номер',
+                'email': 'Введите правильный email'
+            }
+            data = {field: msg for field, msg in error_msg.items() if field in form.errors}
+            msg = '\n'.join([msg for msg in data.values()])
+            messages.error(request, msg)
+            form = ContactForm(form.cleaned_data | data)
+    else:
+        form = ContactForm()
     context = {
+        'form': form,
         'participants': max(course_instance.get_count_participants(), 2),
         'course': course_instance,
         'date': course_instance.scheduled_at.strftime("%d.%m.%Y"),
