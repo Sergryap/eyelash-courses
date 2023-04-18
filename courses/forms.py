@@ -4,7 +4,7 @@ from courses.models import Course, Program
 
 
 class NamePhoneEmailMixin:
-	def __init__(self, email_id: str = None, padding: str = None):
+	def __init__(self, email_id: str, padding: str = None):
 		self.attrs_name = {
 			'class': "name",
 			'onfocus': "this.placeholder = ''",
