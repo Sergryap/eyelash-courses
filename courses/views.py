@@ -12,16 +12,12 @@ from datetime import datetime
 from eyelash_courses.logger import send_message as send_tg_msg
 
 
-def get_courses(past=False, future=False):
+def get_courses(all_courses: Course, past=False, future=False):
     months = {
         1: 'Январь', 2: 'Февраль', 3: 'Март', 4: 'Апрель',
         5: 'Май', 6: 'Июнь', 7: 'Июль', 8: 'Август',
         9: 'Сентябрь', 10: 'Октябрь', 11: 'Ноябрь', 12: 'Декабрь'
     }
-    all_courses = (
-            Course.objects.filter(~Q(name='Фотогалерея'), published_in_bot=True)
-            .select_related('program', 'lecture').prefetch_related('images')
-        )
     if past and not future:
         courses = all_courses.filter(scheduled_at__lte=timezone.now())
     elif not past and future:
@@ -48,7 +44,10 @@ def get_courses(past=False, future=False):
 
 def home(request):
     template = 'courses/index.html'
-
+    all_courses = (
+        Course.objects.filter(~Q(name='Фотогалерея'), published_in_bot=True)
+        .select_related('program', 'lecture').prefetch_related('images')
+    )
     if request.method == 'POST' and request.POST['type_form'] == 'registration':
         form = ContactForm(request.POST)
         if form.is_valid():
@@ -88,8 +87,8 @@ def home(request):
     context = {
         'src_map': settings.SRC_MAP,
         'programs': Program.objects.all(),
-        'courses': get_courses(future=True),
-        'past_courses': get_courses(past=True),
+        'courses': get_courses(all_courses, future=True),
+        'past_courses': get_courses(all_courses, past=True),
         'office': Office.objects.first(),
         'graduate_photos': GraduatePhoto.objects.all(),
         'form': form
@@ -110,9 +109,13 @@ def contact(request):
 
 def course(request):
     template = 'courses/course.html'
+    all_courses = (
+        Course.objects.filter(~Q(name='Фотогалерея'), published_in_bot=True)
+        .select_related('program', 'lecture').prefetch_related('images')
+    )
     context = {
-        'future_courses': get_courses(future=True),
-        'past_courses': get_courses(past=True)
+        'future_courses': get_courses(all_courses, future=True),
+        'past_courses': get_courses(all_courses, past=True)
     }
     return render(request, template, context)
 
