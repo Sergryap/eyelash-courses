@@ -61,7 +61,7 @@ def home(request):
             text = f'''
                 Заявка на обучение:
                 Имя: {name}
-                Email: {from_email}
+                Email: {from_email.replace('@', '_собака_')}
                 Тел.: {phone}
                 Желаемая дата: {desire_date}
                 Курс: {desire_course}    
@@ -135,7 +135,7 @@ def course_details(request, slug: str, lecturer: str, date: str):
             text = f'''
                 Заявка на курс:
                 Имя: {name}
-                Email: {from_email}
+                Email: {from_email.replace('@', '_собака_')}
                 Тел.: {phone}
                 Курс: {course_instance.name}             
                 '''
@@ -184,7 +184,7 @@ def program_details(request, slug: str):
             text = f'''
                 Заявка на индивидуальную программу:
                 Имя: {name}
-                Email: {from_email}
+                Email: {from_email.replace('@', '_собака_')}
                 Тел.: {phone}
                 программа: {program.title}             
                 '''

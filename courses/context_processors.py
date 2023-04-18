@@ -23,7 +23,7 @@ def get_footer_variables(request):
             from_email = subscribe_form.cleaned_data['email']
             text = f'''
                 Подписка на новости:
-                Email: {from_email}
+                Email: {from_email.replace('@', '_собака_')}
                 '''
             try:
                 send_tg_msg(
@@ -33,7 +33,7 @@ def get_footer_variables(request):
                 )
                 messages.success(request, 'Отправлено!')
                 send_mail(
-                    f'Заявка от {from_email}',
+                    f'Подписка на новости',
                     dedent(text),
                     settings.EMAIL_HOST_USER,
                     settings.RECIPIENTS_EMAIL
