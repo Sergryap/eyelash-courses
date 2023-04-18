@@ -14,7 +14,13 @@ from textwrap import dedent
 
 def get_footer_variables(request):
     random_images = CourseImage.objects.annotate(number=Window(expression=DenseRank(), order_by=[Random()]))
-    end_index = min(len(random_images), 13)
+    end_index = min(len(random_images), 20)
+    height = 80
+    index_height = {(0, 4): 130, (5, 8): 100, (9, 13): 80, (14, 20): 60}
+    for i, px in index_height.items():
+        if i[0] <= end_index <= i[1]:
+            height = px
+            break
     footer_form = False
     if request.method == 'POST' and request.POST['type_form'] == 'subscribe':
         footer_form = True
@@ -61,5 +67,6 @@ def get_footer_variables(request):
         'tg_bot_name': settings.TG_BOT_NAME,
         'youtube_chanel_id': settings.YOUTUBE_CHANEL_ID,
         'subscribe_form': subscribe_form,
-        'footer_form': footer_form
+        'footer_form': footer_form,
+        'height_picture': height
     }
