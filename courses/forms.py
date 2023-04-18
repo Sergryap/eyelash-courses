@@ -1,13 +1,54 @@
 from django import forms
-from django.db.models import Q
-from django.utils import timezone
 from phonenumber_field.formfields import PhoneNumberField, RegionalPhoneNumberWidget
-
 from courses.models import Course, Program
 
 
-class ContactForm(forms.Form):
+class NamePhoneEmailMixin:
+	def __init__(self, email_id: str = None, padding: str = None):
+		self.attrs_name = {
+			'class': "name",
+			'onfocus': "this.placeholder = ''",
+			'onblur': "this.placeholder = 'Введите ваше имя'",
+			'placeholder': "Ваше имя"
+		}
+		self.attrs_phone = {
+			'class': "nbm",
+			'onfocus': "this.placeholder = ''",
+			'onblur': "this.placeholder = 'Введите ваше телефон'",
+			'placeholder': "Ваш телефон"
+		}
+		self.attrs_email = {
+			'class': "email",
+			'onfocus': "this.placeholder = ''",
+			'onblur': "this.placeholder = 'Введите Email'",
+			'placeholder': "Email",
+			'id': f"{email_id}"
+		}
+		if padding:
+			self.attrs_name.update({'style': f"padding: {padding};"})
+			self.attrs_phone.update({'style': f"padding: {padding};"})
+			self.attrs_email.update({'style': f"padding: {padding};"})
 
+	def get_name_phone_email(self):
+		name = forms.CharField(
+			widget=forms.TextInput(attrs=self.attrs_name),
+			max_length=100,
+			label='Ваше имя'
+		)
+		phone = PhoneNumberField(
+			widget=RegionalPhoneNumberWidget(region='RU', attrs=self.attrs_phone),
+			label='Ваш телефон'
+		)
+		email = forms.EmailField(
+			widget=forms.EmailInput(attrs=self.attrs_email),
+			label='Email',
+			required=False
+		)
+		return name, phone, email
+
+
+class ContactForm(forms.Form, NamePhoneEmailMixin):
+	name, phone, email = NamePhoneEmailMixin(email_id='id_email_top').get_name_phone_email()
 	message = forms.CharField(
 		widget=forms.Textarea(
 			attrs={
@@ -16,39 +57,6 @@ class ContactForm(forms.Form):
 				'placeholder': "Сообщение"
 			}),
 		max_length=500, label='Сообщение', required=False)
-
-	name = forms.CharField(
-		widget=forms.TextInput(
-			attrs={
-				'class': "name",
-				'onfocus': "this.placeholder = ''",
-				'onblur': "this.placeholder = 'Введите ваше имя'",
-				'placeholder': "Ваше имя"
-			}),
-		max_length=100, label='Ваше имя')
-
-	phone = PhoneNumberField(
-		widget=RegionalPhoneNumberWidget(
-			region='RU',
-			attrs={
-				'class': "nbm",
-				'onfocus': "this.placeholder = ''",
-				'onblur': "this.placeholder = 'Введите ваше телефон'",
-				'placeholder': "Ваш телефон"
-			}),
-		label='Ваш телефон')
-
-	email = forms.EmailField(
-		widget=forms.EmailInput(
-			attrs={
-				'class': "email",
-				'onfocus': "this.placeholder = ''",
-				'onblur': "this.placeholder = 'Введите Email'",
-				'placeholder': "Email",
-				'id': "id_email_top"
-			}),
-		label='Email', required=False)
-
 	date = forms.CharField(
 		widget=forms.TextInput(
 			attrs={
@@ -58,7 +66,6 @@ class ContactForm(forms.Form):
 				'placeholder': "Желаемая дата"
 			}),
 		label='Желаемая дата', required=False)
-
 	programs = Program.objects.all()
 	choices = [('Change', 'Выбери курс')]
 	if programs:
@@ -73,41 +80,7 @@ class ContactForm(forms.Form):
 
 
 class CourseForm(forms.Form):
-
-	name = forms.CharField(
-		widget=forms.TextInput(
-			attrs={
-				'class': "name",
-				'onfocus': "this.placeholder = ''",
-				'onblur': "this.placeholder = 'Введите ваше имя'",
-				'placeholder': "Ваше имя",
-				'style': "padding: 0px 0px;"
-			}),
-		max_length=100, label='Ваше имя')
-
-	phone = PhoneNumberField(
-		widget=RegionalPhoneNumberWidget(
-			region='RU',
-			attrs={
-				'class': "nbm",
-				'onfocus': "this.placeholder = ''",
-				'onblur': "this.placeholder = 'Введите ваше телефон'",
-				'placeholder': "Ваш телефон",
-				'style': "padding: 0px 0px;"
-			}),
-		label='Ваш телефон')
-
-	email = forms.EmailField(
-		widget=forms.EmailInput(
-			attrs={
-				'class': "email",
-				'onfocus': "this.placeholder = ''",
-				'onblur': "this.placeholder = 'Введите Email'",
-				'placeholder': "Email",
-				'id': "id_email_course",
-				'style': "padding: 0px 0px;"
-			}),
-		label='Email', required=False)
+	name, phone, email = NamePhoneEmailMixin(email_id='id_email_course', padding='0px 0px').get_name_phone_email()
 
 
 class SubscribeForm(forms.Form):
