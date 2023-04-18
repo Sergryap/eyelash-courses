@@ -53,6 +53,7 @@ EMAIL_USE_SSL = False
 SERVER_EMAIL = EMAIL_HOST_USER
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 PHONE_NUMBER = env.str('PHONE_NUMBER')
+PHONE_NUMBER_READABLE = env.str('PHONE_NUMBER_READABLE')
 
 logger = logging.getLogger('telegram')
 logger.setLevel(logging.WARNING)

@@ -56,6 +56,7 @@ def get_footer_variables(request):
     return {
         'random_images': random_images[:end_index],
         'phone_number': settings.PHONE_NUMBER,
+        'phone_number_readable': settings.PHONE_NUMBER_READABLE,
         'vk_group_id': settings.VK_GROUP_ID,
         'tg_bot_name': settings.TG_BOT_NAME,
         'youtube_chanel_id': settings.YOUTUBE_CHANEL_ID,

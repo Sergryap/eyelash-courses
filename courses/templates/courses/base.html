@@ -62,31 +62,7 @@
 						<div class="navbar-default">
 							<div class="navbar-header float-left">
 								<a class="navbar-brand text-uppercase" href="{% url 'home' %}"><img src="{% static 'courses/img/logo/oksa-studio-logo.png' %}" alt="logo"></a>
-							</div><!-- /.navbar-header -->
-
-							<div class="cart-search float-right ul-li">
-								<ul>
-									<li><a href="{% url 'home' %}#"><i class="fas fa-shopping-bag"></i></a></li>
-									<li>
-										<button type="button" class="toggle-overlay search-btn">
-											<i class="fas fa-search"></i>
-										</button>
-										<div class="search-body">
-											<div class="search-form">
-												<form action="{% url 'home' %}#">
-													<input class="search-input" type="search" placeholder="Search Here">
-													<div class="outer-close toggle-overlay">
-														<button type="button" class="search-close">
-															<i class="fas fa-times"></i>
-														</button>
-													</div>
-												</form>
-											</div>
-										</div>
-									</li>
-								</ul>
 							</div>
-							<!-- Collect the nav links, forms, and other content for toggling -->
 							<nav class="navbar-menu float-right">
 								<div class="nav-menu ul-li">
 									<ul>
@@ -96,6 +72,9 @@
 										<li><a href="{% url 'home' %}#about-us">О нас</a></li>
 										<li><a href="{% url 'home' %}#contact-area">Контакты</a></li>
 										<li><a href="{% url 'course' %}">Курсы</a></li>
+										<li style="color: white; font-style: italic; background: #996aff; padding: 1px 5px 1px 5px; margin: 0 0 0 5px; border-radius: 5px; font-weight: bold;">
+											{{ phone_number_readable }}
+										</li>
 									</ul>
 								</div>
 							</nav>
@@ -108,7 +87,6 @@
 										<li><a href="{% url 'home' %}#about-us">О нас</a></li>
 										<li><a href="{% url 'home' %}#contact-area">Контакты</a></li>
 										<li><a href="{% url 'course' %}">Курсы</a></li>
-
 									</ul>
 								</nav>
 
