@@ -1,3 +1,4 @@
+import smtplib
 from textwrap import dedent
 from django.shortcuts import render, redirect, HttpResponse, get_object_or_404
 from django.conf import settings
@@ -62,32 +63,23 @@ def home(request):
                 Имя: {name}
                 Email: {from_email}
                 Тел.: {phone}
-                Желамая дата: {desire_date}
+                Желаемая дата: {desire_date}
                 Курс: {desire_course}    
                 Сообщение: {message}           
                 '''
             try:
-                send_mail(
-                    f'Заявка от {name}: {phone}',
-                    dedent(text),
-                    settings.EMAIL_HOST_USER,
-                    settings.RECIPIENTS_EMAIL
-                )
-                send_tg_msg(
-                    token=settings.TG_LOGGER_BOT,
-                    chat_id=settings.TG_LOGGER_CHAT,
-                    msg=dedent(text)
-                )
+                submit_course_form_data(name, phone, text)
                 messages.success(request, 'Отправлено!')
             except BadHeaderError:
                 return HttpResponse('Ошибка в теме письма.')
+            except smtplib.SMTPDataError as err:
+                send_tg_msg(
+                    token=settings.TG_LOGGER_BOT,
+                    chat_id=settings.TG_LOGGER_CHAT,
+                    msg=str(err)
+                )
         else:
-            error_msg = {
-                'phone': 'Введите правильный номер',
-                'email': 'Введите правильный email'
-            }
-            data = {field: msg for field, msg in error_msg.items() if field in form.errors}
-            msg = '\n'.join([msg for msg in data.values()])
+            data, msg = get_error_data(form)
             messages.error(request, msg)
             form = ContactForm(form.cleaned_data | data)
     else:
@@ -148,27 +140,18 @@ def course_details(request, slug: str, lecturer: str, date: str):
                 Курс: {course_instance.name}             
                 '''
             try:
-                send_mail(
-                    f'Заявка от {name}: {phone}',
-                    dedent(text),
-                    settings.EMAIL_HOST_USER,
-                    settings.RECIPIENTS_EMAIL
-                )
-                send_tg_msg(
-                    token=settings.TG_LOGGER_BOT,
-                    chat_id=settings.TG_LOGGER_CHAT,
-                    msg=dedent(text)
-                )
+                submit_course_form_data(name, phone, text)
                 messages.success(request, 'Отправлено!')
             except BadHeaderError:
                 return HttpResponse('Ошибка в теме письма.')
+            except smtplib.SMTPDataError as err:
+                send_tg_msg(
+                    token=settings.TG_LOGGER_BOT,
+                    chat_id=settings.TG_LOGGER_CHAT,
+                    msg=str(err)
+                )
         else:
-            error_msg = {
-                'phone': 'Введите правильный номер',
-                'email': 'Введите правильный email'
-            }
-            data = {field: msg for field, msg in error_msg.items() if field in form.errors}
-            msg = '\n'.join([msg for msg in data.values()])
+            data, msg = get_error_data(form)
             messages.error(request, msg)
             form = CourseForm(form.cleaned_data | data)
     else:
@@ -206,27 +189,18 @@ def program_details(request, slug: str):
                 программа: {program.title}             
                 '''
             try:
-                send_mail(
-                    f'Заявка от {name}: {phone}',
-                    dedent(text),
-                    settings.EMAIL_HOST_USER,
-                    settings.RECIPIENTS_EMAIL
-                )
-                send_tg_msg(
-                    token=settings.TG_LOGGER_BOT,
-                    chat_id=settings.TG_LOGGER_CHAT,
-                    msg=dedent(text)
-                )
+                submit_course_form_data(name, phone, text)
                 messages.success(request, 'Отправлено!')
             except BadHeaderError:
                 return HttpResponse('Ошибка в теме письма.')
+            except smtplib.SMTPDataError as err:
+                send_tg_msg(
+                    token=settings.TG_LOGGER_BOT,
+                    chat_id=settings.TG_LOGGER_CHAT,
+                    msg=str(err)
+                )
         else:
-            error_msg = {
-                'phone': 'Введите правильный номер',
-                'email': 'Введите правильный email'
-            }
-            data = {field: msg for field, msg in error_msg.items() if field in form.errors}
-            msg = '\n'.join([msg for msg in data.values()])
+            data, msg = get_error_data(form)
             messages.error(request, msg)
             form = CourseForm(form.cleaned_data | data)
     else:
@@ -260,3 +234,27 @@ def faq(request):
 def teacher_details(request):
     template = 'courses/teacher-details.html'
     return render(request, template)
+
+
+def submit_course_form_data(name, phone, text):
+    send_tg_msg(
+        token=settings.TG_LOGGER_BOT,
+        chat_id=settings.TG_LOGGER_CHAT,
+        msg=dedent(text)
+    )
+    send_mail(
+        f'Заявка от {name}: {phone}',
+        dedent(text),
+        settings.EMAIL_HOST_USER,
+        settings.RECIPIENTS_EMAIL
+    )
+
+
+def get_error_data(form):
+    error_msg = {
+        'phone': 'Введите правильный номер',
+        'email': 'Введите правильный email'
+    }
+    data = {field: msg for field, msg in error_msg.items() if field in form.errors}
+    msg = '\n'.join([msg for msg in data.values()])
+    return data, msg

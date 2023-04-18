@@ -1,3 +1,5 @@
+import smtplib
+
 from django.db.models import Window
 from django.db.models.functions import DenseRank, Random
 from django.conf import settings
@@ -24,20 +26,26 @@ def get_footer_variables(request):
                 Email: {from_email}
                 '''
             try:
-                send_mail(
-                    f'Подписка на новости от {from_email}',
-                    dedent(text),
-                    settings.EMAIL_HOST_USER,
-                    settings.RECIPIENTS_EMAIL
-                )
                 send_tg_msg(
                     token=settings.TG_LOGGER_BOT,
                     chat_id=settings.TG_LOGGER_CHAT,
                     msg=dedent(text)
                 )
                 messages.success(request, 'Отправлено!')
+                send_mail(
+                    f'Заявка от {from_email}',
+                    dedent(text),
+                    settings.EMAIL_HOST_USER,
+                    settings.RECIPIENTS_EMAIL
+                )
             except BadHeaderError:
                 return HttpResponse('Ошибка в теме письма.')
+            except smtplib.SMTPDataError as err:
+                send_tg_msg(
+                    token=settings.TG_LOGGER_BOT,
+                    chat_id=settings.TG_LOGGER_CHAT,
+                    msg=str(err)
+                )
         else:
             error_msg = {'email': 'Введите правильный email'}
             messages.error(request, error_msg)
