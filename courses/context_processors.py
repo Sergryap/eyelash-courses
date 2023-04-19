@@ -52,8 +52,9 @@ def get_footer_variables(request):
     else:
         subscribe_form = SubscribeForm()
 
-    part_random_images = settings.REDIS_DB.get('random_images')
-    height = settings.REDIS_DB.get('height_images')
+    redis = settings.REDIS_DB
+    part_random_images = redis.get('random_images')
+    height = redis.get('height_images')
     if part_random_images and height:
         part_random_images = pickle.loads(part_random_images)
         height = int(height)
@@ -68,8 +69,8 @@ def get_footer_variables(request):
                 height = px
                 break
         io_random_images = pickle.dumps(part_random_images)
-        settings.REDIS_DB.set('random_images', io_random_images)
-        settings.REDIS_DB.set('height_images', height)
+        redis.set('random_images', io_random_images)
+        redis.set('height_images', height)
 
     base_data = {
         'random_images': part_random_images,
