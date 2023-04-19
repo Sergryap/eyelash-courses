@@ -67,8 +67,8 @@ def get_footer_variables(request):
             if i[0] <= end_index <= i[1]:
                 height = px
                 break
-        json_random_images = pickle.dumps(part_random_images)
-        settings.REDIS_DB.set('random_images', json_random_images)
+        io_random_images = pickle.dumps(part_random_images)
+        settings.REDIS_DB.set('random_images', io_random_images)
         settings.REDIS_DB.set('height_images', height)
 
     base_data = {
