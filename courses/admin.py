@@ -1,6 +1,8 @@
+import pickle
 import random
 
 from django.conf import settings
+from django.utils import timezone
 from django.contrib import admin
 from django import forms
 from django.utils.html import format_html
@@ -11,6 +13,7 @@ from import_export import resources
 from import_export.fields import Field
 from import_export.admin import ExportMixin
 from asgiref.sync import async_to_sync
+from django.db.models import Q
 from vk_bot.vk_lib import (
     upload_photos_in_album,
     delete_photos,
@@ -143,6 +146,12 @@ class ProgramAdmin(admin.ModelAdmin, PreviewMixin):
     list_display = ['title', 'get_preview', 'short_description', 'description']
     readonly_fields = ['get_preview']
 
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        items = Program.objects.all()
+        io_items = pickle.dumps(items)
+        settings.REDIS_DB.set('programs', io_items)
+
 
 @admin.register(Office)
 class OfficeAdmin(admin.ModelAdmin, PreviewMixin):
@@ -199,6 +208,22 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
+        redis = settings.REDIS_DB
+        all_courses = (
+            Course.objects.filter(~Q(name='Фотогалерея'), published_in_bot=True)
+            .select_related('program', 'lecture').prefetch_related('images')
+        )
+        io_all_courses = pickle.dumps(all_courses)
+        settings.REDIS_DB.set('all_courses', io_all_courses)
+        past_courses = all_courses.filter(scheduled_at__lte=timezone.now())
+        future_courses = all_courses.filter(scheduled_at__gt=timezone.now())
+        io_past_courses = pickle.dumps(past_courses)
+        io_future_courses = pickle.dumps(future_courses)
+        redis.set('past_courses', io_past_courses)
+        redis.set('future_courses', io_future_courses)
+        redis.expire('past_courses', 1800)
+        redis.expire('future_courses', 1800)
+
         if not obj.vk_album_id:
             album = async_to_sync(create_vk_album)(obj)
             obj.vk_album_id = album['response']['id']
