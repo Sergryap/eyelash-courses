@@ -1,3 +1,4 @@
+import pickle
 import smtplib
 from textwrap import dedent
 from django.shortcuts import render, redirect, HttpResponse, get_object_or_404
@@ -84,13 +85,21 @@ def home(request):
     else:
         form = ContactForm()
 
+    graduate_photos = settings.REDIS_DB.get('graduate_photos')
+    if graduate_photos:
+        graduate_photos = pickle.loads(graduate_photos)
+    else:
+        graduate_photos = GraduatePhoto.objects.all()
+        io_graduate_photos = pickle.dumps(graduate_photos)
+        settings.REDIS_DB.set('graduate_photos', io_graduate_photos)
+
     context = {
         'src_map': settings.SRC_MAP,
         'programs': Program.objects.all(),
         'courses': get_courses(all_courses, future=True),
         'past_courses': get_courses(all_courses, past=True),
         'office': Office.objects.first(),
-        'graduate_photos': GraduatePhoto.objects.all(),
+        'graduate_photos': graduate_photos,
         'form': form
     }
     return render(request, template, context)
