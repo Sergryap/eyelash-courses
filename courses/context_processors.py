@@ -1,4 +1,5 @@
 import smtplib
+import pickle
 
 from django.db.models import Window
 from django.db.models.functions import DenseRank, Random
@@ -13,14 +14,6 @@ from textwrap import dedent
 
 
 def get_footer_variables(request):
-    random_images = CourseImage.objects.annotate(number=Window(expression=DenseRank(), order_by=[Random()]))
-    end_index = min(len(random_images), 20)
-    height = 80
-    index_height = {(0, 4): 130, (5, 8): 100, (9, 13): 80, (14, 20): 60}
-    for i, px in index_height.items():
-        if i[0] <= end_index <= i[1]:
-            height = px
-            break
     footer_form = False
     if request.method == 'POST' and request.POST['type_form'] == 'subscribe':
         footer_form = True
@@ -59,8 +52,27 @@ def get_footer_variables(request):
     else:
         subscribe_form = SubscribeForm()
 
-    return {
-        'random_images': random_images[:end_index],
+    part_random_images = settings.REDIS_DB.get('random_images')
+    height = settings.REDIS_DB.get('height_images')
+    if part_random_images and height:
+        part_random_images = pickle.loads(part_random_images)
+        height = int(height)
+    else:
+        random_images = CourseImage.objects.annotate(number=Window(expression=DenseRank(), order_by=[Random()]))
+        end_index = min(len(random_images), 20)
+        part_random_images = random_images[:end_index]
+        height = 80
+        index_height = {(0, 4): 130, (5, 8): 100, (9, 13): 80, (14, 20): 60}
+        for i, px in index_height.items():
+            if i[0] <= end_index <= i[1]:
+                height = px
+                break
+        json_random_images = pickle.dumps(part_random_images)
+        settings.REDIS_DB.set('random_images', json_random_images)
+        settings.REDIS_DB.set('height_images', height)
+
+    base_data = {
+        'random_images': part_random_images,
         'phone_number': settings.PHONE_NUMBER,
         'phone_number_readable': settings.PHONE_NUMBER_READABLE,
         'vk_group_id': settings.VK_GROUP_ID,
@@ -70,3 +82,5 @@ def get_footer_variables(request):
         'footer_form': footer_form,
         'height_picture': height
     }
+
+    return base_data
