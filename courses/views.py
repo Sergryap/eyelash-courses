@@ -13,16 +13,41 @@ from datetime import datetime
 from eyelash_courses.logger import send_message as send_tg_msg
 
 
+def get_redis_or_get_db(key: str, obj_class):
+    redis = settings.REDIS_DB
+    items = redis.get(key)
+    if items:
+        items = pickle.loads(items)
+    else:
+        items = obj_class.objects.all()
+        io_items = pickle.dumps(items)
+        redis.set(key, io_items)
+    return items
+
+
 def get_courses(all_courses: Course, past=False, future=False):
     months = {
         1: 'Январь', 2: 'Февраль', 3: 'Март', 4: 'Апрель',
         5: 'Май', 6: 'Июнь', 7: 'Июль', 8: 'Август',
         9: 'Сентябрь', 10: 'Октябрь', 11: 'Ноябрь', 12: 'Декабрь'
     }
+    redis = settings.REDIS_DB
     if past and not future:
-        courses = all_courses.filter(scheduled_at__lte=timezone.now())
+        courses = redis.get('past_courses')
+        if courses:
+            courses = pickle.loads(courses)
+        else:
+            courses = all_courses.filter(scheduled_at__lte=timezone.now())
+            io_courses = pickle.dumps(courses)
+            redis.set('past_courses', io_courses)
     elif not past and future:
-        courses = all_courses.filter(scheduled_at__gt=timezone.now())
+        courses = redis.get('future_courses')
+        if courses:
+            courses = pickle.loads(courses)
+        else:
+            courses = all_courses.filter(scheduled_at__gt=timezone.now())
+            io_courses = pickle.dumps(courses)
+            redis.set('future_courses', io_courses)
     else:
         courses = all_courses
 
@@ -45,10 +70,6 @@ def get_courses(all_courses: Course, past=False, future=False):
 
 def home(request):
     template = 'courses/index.html'
-    all_courses = (
-        Course.objects.filter(~Q(name='Фотогалерея'), published_in_bot=True)
-        .select_related('program', 'lecture').prefetch_related('images')
-    )
     if request.method == 'POST' and request.POST['type_form'] == 'registration':
         form = ContactForm(request.POST)
         if form.is_valid():
@@ -85,21 +106,24 @@ def home(request):
     else:
         form = ContactForm()
 
-    graduate_photos = settings.REDIS_DB.get('graduate_photos')
-    if graduate_photos:
-        graduate_photos = pickle.loads(graduate_photos)
+    all_courses = settings.REDIS_DB.get('all_courses')
+    if all_courses:
+        all_courses = pickle.loads(all_courses)
     else:
-        graduate_photos = GraduatePhoto.objects.all()
-        io_graduate_photos = pickle.dumps(graduate_photos)
-        settings.REDIS_DB.set('graduate_photos', io_graduate_photos)
+        all_courses = (
+            Course.objects.filter(~Q(name='Фотогалерея'), published_in_bot=True)
+            .select_related('program', 'lecture').prefetch_related('images')
+        )
+        io_all_courses = pickle.dumps(all_courses)
+        settings.REDIS_DB.set('all_courses', io_all_courses)
 
     context = {
         'src_map': settings.SRC_MAP,
-        'programs': Program.objects.all(),
+        'programs': get_redis_or_get_db('programs', Program),
         'courses': get_courses(all_courses, future=True),
         'past_courses': get_courses(all_courses, past=True),
-        'office': Office.objects.first(),
-        'graduate_photos': graduate_photos,
+        'office': get_redis_or_get_db('office', Office).first(),
+        'graduate_photos': get_redis_or_get_db('graduate_photos', GraduatePhoto),
         'form': form
     }
     return render(request, template, context)
