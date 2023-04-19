@@ -1,28 +1,16 @@
 import pickle
 import smtplib
 from textwrap import dedent
-from django.shortcuts import render, redirect, HttpResponse, get_object_or_404
+from django.shortcuts import render, HttpResponse, get_object_or_404
 from django.conf import settings
 from django.core.mail import send_mail, BadHeaderError
 from courses.forms import ContactForm, CourseForm
 from django.contrib import messages
-from courses.models import Course, Program, Lecturer, Office, GraduatePhoto
+from courses.models import Course, Program, Office, GraduatePhoto
 from django.db.models import Q
 from django.utils import timezone
 from datetime import datetime
 from eyelash_courses.logger import send_message as send_tg_msg
-
-
-def get_redis_or_get_db(key: str, obj_class):
-    redis = settings.REDIS_DB
-    items = redis.get(key)
-    if items:
-        items = pickle.loads(items)
-    else:
-        items = obj_class.objects.all()
-        io_items = pickle.dumps(items)
-        redis.set(key, io_items)
-    return items
 
 
 def get_courses(all_courses: Course, past=False, future=False):
@@ -40,6 +28,7 @@ def get_courses(all_courses: Course, past=False, future=False):
             courses = all_courses.filter(scheduled_at__lte=timezone.now())
             io_courses = pickle.dumps(courses)
             redis.set('past_courses', io_courses)
+            redis.expire('past_courses', 1800)
     elif not past and future:
         courses = redis.get('future_courses')
         if courses:
@@ -48,6 +37,7 @@ def get_courses(all_courses: Course, past=False, future=False):
             courses = all_courses.filter(scheduled_at__gt=timezone.now())
             io_courses = pickle.dumps(courses)
             redis.set('future_courses', io_courses)
+            redis.expire('future_courses', 1800)
     else:
         courses = all_courses
 
@@ -106,17 +96,7 @@ def home(request):
     else:
         form = ContactForm()
 
-    all_courses = settings.REDIS_DB.get('all_courses')
-    if all_courses:
-        all_courses = pickle.loads(all_courses)
-    else:
-        all_courses = (
-            Course.objects.filter(~Q(name='Фотогалерея'), published_in_bot=True)
-            .select_related('program', 'lecture').prefetch_related('images')
-        )
-        io_all_courses = pickle.dumps(all_courses)
-        settings.REDIS_DB.set('all_courses', io_all_courses)
-
+    all_courses = get_redis_or_get_db_all_courses('all_courses')
     context = {
         'src_map': settings.SRC_MAP,
         'programs': get_redis_or_get_db('programs', Program),
@@ -129,23 +109,9 @@ def home(request):
     return render(request, template, context)
 
 
-def about(request):
-    template = 'courses/about.html'
-    return render(request, template)
-
-
-def contact(request):
-    template = 'courses/contact.html'
-    context = {'src_map': settings.SRC_MAP}
-    return render(request, template, context)
-
-
 def course(request):
     template = 'courses/course.html'
-    all_courses = (
-        Course.objects.filter(~Q(name='Фотогалерея'), published_in_bot=True)
-        .select_related('program', 'lecture').prefetch_related('images')
-    )
+    all_courses = get_redis_or_get_db_all_courses('all_courses')
     context = {
         'future_courses': get_courses(all_courses, future=True),
         'past_courses': get_courses(all_courses, past=True)
@@ -262,11 +228,6 @@ def program_details(request, slug: str):
     return render(request, template, context)
 
 
-def faq(request):
-    template = 'courses/faq.html'
-    return render(request, template)
-
-
 def teacher_details(request):
     template = 'courses/teacher-details.html'
     return render(request, template)
@@ -294,3 +255,30 @@ def get_error_data(form):
     data = {field: msg for field, msg in error_msg.items() if field in form.errors}
     msg = '\n'.join([msg for msg in data.values()])
     return data, msg
+
+
+def get_redis_or_get_db(key: str, obj_class):
+    redis = settings.REDIS_DB
+    items = redis.get(key)
+    if items:
+        items = pickle.loads(items)
+    else:
+        items = obj_class.objects.all()
+        io_items = pickle.dumps(items)
+        redis.set(key, io_items)
+    return items
+
+
+def get_redis_or_get_db_all_courses(key: str):
+    redis = settings.REDIS_DB
+    all_courses = redis.get(key)
+    if all_courses:
+        all_courses = pickle.loads(all_courses)
+    else:
+        all_courses = (
+            Course.objects.filter(~Q(name='Фотогалерея'), published_in_bot=True)
+            .select_related('program', 'lecture').prefetch_related('images')
+        )
+        io_all_courses = pickle.dumps(all_courses)
+        redis.set(key, io_all_courses)
+    return all_courses
