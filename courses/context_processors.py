@@ -59,18 +59,7 @@ def get_footer_variables(request):
         part_random_images = pickle.loads(part_random_images)
         height = int(height)
     else:
-        random_images = CourseImage.objects.annotate(number=Window(expression=DenseRank(), order_by=[Random()]))
-        end_index = min(len(random_images), 20)
-        part_random_images = random_images[:end_index]
-        height = 80
-        index_height = {(0, 4): 130, (5, 8): 100, (9, 13): 80, (14, 20): 60}
-        for i, px in index_height.items():
-            if i[0] <= end_index <= i[1]:
-                height = px
-                break
-        io_random_images = pickle.dumps(part_random_images)
-        redis.set('random_images', io_random_images)
-        redis.set('height_images', height)
+        part_random_images, height = set_random_images()
 
     base_data = {
         'random_images': part_random_images,
@@ -85,3 +74,20 @@ def get_footer_variables(request):
     }
 
     return base_data
+
+
+def set_random_images():
+    redis = settings.REDIS_DB
+    random_images = CourseImage.objects.annotate(number=Window(expression=DenseRank(), order_by=[Random()]))
+    end_index = min(len(random_images), 13)
+    part_random_images = random_images[:end_index]
+    height = 80
+    index_height = {(0, 4): 130, (5, 8): 100, (9, 13): 80, (14, 20): 60}
+    for i, px in index_height.items():
+        if i[0] <= end_index <= i[1]:
+            height = px
+            break
+    io_random_images = pickle.dumps(part_random_images)
+    redis.set('random_images', io_random_images)
+    redis.set('height_images', height)
+    return part_random_images, height

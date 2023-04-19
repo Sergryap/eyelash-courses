@@ -21,6 +21,7 @@ from vk_bot.vk_lib import (
     edit_vk_album,
     make_main_album_photo
 )
+from courses.context_processors import set_random_images
 
 
 admin.site.site_header = settings.SITE_HEADER
@@ -223,6 +224,7 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
         redis.set('future_courses', io_future_courses)
         redis.expire('past_courses', 1800)
         redis.expire('future_courses', 1800)
+        set_random_images()
 
         if not obj.vk_album_id:
             album = async_to_sync(create_vk_album)(obj)
