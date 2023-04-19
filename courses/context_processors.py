@@ -59,7 +59,7 @@ def get_footer_variables(request):
         part_random_images = pickle.loads(part_random_images)
         height = int(height)
     else:
-        part_random_images, height = set_random_images()
+        part_random_images, height = set_random_images(13)
 
     base_data = {
         'random_images': part_random_images,
@@ -76,10 +76,10 @@ def get_footer_variables(request):
     return base_data
 
 
-def set_random_images():
+def set_random_images(number):
     redis = settings.REDIS_DB
     random_images = CourseImage.objects.annotate(number=Window(expression=DenseRank(), order_by=[Random()]))
-    end_index = min(len(random_images), 13)
+    end_index = min(len(random_images), number)
     part_random_images = random_images[:end_index]
     height = 80
     index_height = {(0, 4): 130, (5, 8): 100, (9, 13): 80, (14, 20): 60}

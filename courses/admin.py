@@ -224,7 +224,7 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
         redis.set('future_courses', io_future_courses)
         redis.expire('past_courses', 1800)
         redis.expire('future_courses', 1800)
-        set_random_images()
+        set_random_images(13)
 
         if not obj.vk_album_id:
             album = async_to_sync(create_vk_album)(obj)
