@@ -46,6 +46,7 @@ def get_courses(all_courses: Course, past=False, future=False):
             'instance': instance,
             'number': number,
             'image_url': instance.images.first().image.url,
+            'image_preview_url': instance.images.first().image_preview.url,
             'date': instance.scheduled_at.strftime("%d.%m.%Y"),
             'date_slug': instance.scheduled_at.strftime("%d-%m-%Y"),
             'readable_date': {

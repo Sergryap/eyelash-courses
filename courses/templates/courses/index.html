@@ -471,7 +471,7 @@
 							{% if course.number < 4 %}
 								<div class="latest-news-area">
 									<div class="latest-news-thumbnile relative-position" style="height: 80px;">
-										<img src="{{ course.image_url }}" alt="">
+										<img src="{{ course.image_preview_url }}" alt="">
 										<a href="{% url 'course_details' course.instance.slug course.lecturer course.date_slug %}">
 											<div class="blakish-overlay" style="height: 100%;"></div>
 										</a>
