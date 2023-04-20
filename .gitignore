@@ -161,3 +161,4 @@ cython_debug/
 media/
 old.py
 /old/
+static/courses/
