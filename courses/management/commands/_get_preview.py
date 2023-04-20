@@ -7,8 +7,15 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 
 def get_preview(obj, attr='image_preview', width=130, height=130):
     file_path = obj.image.path
-    new_filename = f'{os.path.split(os.path.splitext(file_path)[0])[1]}_{attr}.jpg'
+    new_filename_exclude_ext = f'{os.path.split(os.path.splitext(file_path)[0])[1]}_{attr}'
+    new_filename = f'{new_filename_exclude_ext}.jpg'
     img = Image.open(file_path)
+    remove_files = [file for file in os.listdir(os.path.split(file_path)[0]) if new_filename_exclude_ext in file]
+    if os.path.isfile(getattr(obj, attr).path):
+        for file in remove_files:
+            print(f'Deleted: {file}')
+            os.remove(os.path.join(os.path.split(file_path)[0], file))
+    print(f'Created: {new_filename}')
     img.thumbnail((width, height))
     buffer = BytesIO()
     img.save(fp=buffer, format='JPEG')
