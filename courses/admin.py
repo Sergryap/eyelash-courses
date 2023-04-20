@@ -357,3 +357,9 @@ class GraduatePhotoAdmin(admin.ModelAdmin, PreviewMixin):
     list_display = ['id', 'title', 'get_preview']
     readonly_fields = ['get_preview']
     list_editable = ['title']
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        items = GraduatePhoto.objects.all()
+        io_items = pickle.dumps(items)
+        settings.REDIS_DB.set('graduate_photos', io_items)
