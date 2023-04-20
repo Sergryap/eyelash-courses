@@ -22,6 +22,7 @@ from vk_bot.vk_lib import (
     make_main_album_photo
 )
 from courses.context_processors import set_random_images
+from courses.management.commands._get_preview import get_preview
 
 
 admin.site.site_header = settings.SITE_HEADER
@@ -257,6 +258,8 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
         instances = formset.save(commit=False)
         images = [image for image in instances if isinstance(image, CourseImage)]
         if images:
+            for preview in images:
+                get_preview(preview)
             course_obj = images[0].course
             vk_album_id = course_obj.vk_album_id
             upload_photos = get_upload_photos(images)
@@ -296,6 +299,7 @@ class ImageAdmin(SortableAdminMixin, admin.ModelAdmin, PreviewMixin):
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
+        get_preview(obj)
         vk_album_id = obj.course.vk_album_id
         if not obj.image_vk_id and obj.upload_vk:
             async_to_sync(upload_photos_in_album)([obj], vk_album_id)
