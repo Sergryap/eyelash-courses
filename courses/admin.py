@@ -260,6 +260,7 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
         if images:
             for preview in images:
                 get_preview(preview)
+                get_preview(preview, attr='big_preview', width=370, height=320)
             course_obj = images[0].course
             vk_album_id = course_obj.vk_album_id
             upload_photos = get_upload_photos(images)
@@ -300,6 +301,7 @@ class ImageAdmin(SortableAdminMixin, admin.ModelAdmin, PreviewMixin):
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
         get_preview(obj)
+        get_preview(obj, attr='big_preview', width=370, height=320)
         vk_album_id = obj.course.vk_album_id
         if not obj.image_vk_id and obj.upload_vk:
             async_to_sync(upload_photos_in_album)([obj], vk_album_id)

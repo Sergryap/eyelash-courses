@@ -5,15 +5,16 @@ from io import BytesIO
 from django.core.files.uploadedfile import InMemoryUploadedFile
 
 
-def get_preview(odj):
-    file_path = odj.image.path
-    new_filename = f'{os.path.split(os.path.splitext(file_path)[0])[1]}_preview.jpg'
+def get_preview(obj, attr='image_preview', width=130, height=130):
+    file_path = obj.image.path
+    new_filename = f'{os.path.split(os.path.splitext(file_path)[0])[1]}_{attr}.jpg'
     img = Image.open(file_path)
-    img.thumbnail((130, 130))
+    img.thumbnail((width, height))
     buffer = BytesIO()
     img.save(fp=buffer, format='JPEG')
     file_content = ContentFile(buffer.getvalue())
-    odj.image_preview.save(
+    preview = getattr(obj, attr)
+    preview.save(
         new_filename,
         InMemoryUploadedFile(
             file=file_content,

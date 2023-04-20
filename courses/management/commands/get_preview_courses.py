@@ -15,3 +15,4 @@ class Command(BaseCommand):
         courses = CourseImage.objects.all()
         for course in courses:
             get_preview(course)
+            get_preview(course, attr='big_preview', width=370, height=320)
