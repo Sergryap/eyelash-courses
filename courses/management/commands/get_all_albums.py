@@ -1,5 +1,5 @@
 from django.core.management import BaseCommand
-from ._get_album import get_albums
+from ._get_album import get_albums, update_redis_courses
 
 
 class Command(BaseCommand):
@@ -7,3 +7,5 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         get_albums(options)
+        update_redis_courses()
+
