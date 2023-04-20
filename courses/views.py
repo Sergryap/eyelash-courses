@@ -47,6 +47,7 @@ def get_courses(all_courses: Course, past=False, future=False):
             'number': number,
             'image_url': instance.images.first().image.url,
             'image_preview_url': instance.images.first().image_preview.url,
+            'big_preview_url': instance.images.first().big_preview.url,
             'date': instance.scheduled_at.strftime("%d.%m.%Y"),
             'date_slug': instance.scheduled_at.strftime("%d-%m-%Y"),
             'readable_date': {
@@ -217,6 +218,7 @@ def program_details(request, slug: str):
                 'instance': course_ins,
                 'date': course_ins.scheduled_at.strftime("%d.%m.%Y"),
                 'image_url': course_ins.images.first().image.url,
+                'image_preview_url': course_ins.images.first().image_preview.url,
                 'date_slug': course_ins.scheduled_at.strftime("%d-%m-%Y"),
                 'lecturer': course_ins.lecture.slug,
             } for course_ins in courses if (

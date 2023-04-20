@@ -45,7 +45,7 @@
 						{% for course in courses %}
 							<div class="latest-news-area">
 								<div class="latest-news-thumbnile relative-position">
-									<img src="{{ course.image_url }}" alt="{{ course.instance.name }}">
+									<img src="{{ course.image_preview_url }}" alt="{{ course.instance.name }}">
 									<a href="{% url 'course_details' course.instance.slug course.lecturer course.date_slug %}"><div class="blakish-overlay"></div></a>
 								</div>
 								<div class="date-meta">
