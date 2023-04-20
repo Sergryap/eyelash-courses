@@ -68,11 +68,11 @@ class ContactForm(forms.Form, NamePhoneEmailMixin):
 		label='Желаемая дата', required=False)
 	programs = Program.objects.all()
 	choices = [('Change', 'Выбери курс')]
-	# if programs:
-	# 	for program in programs:
-	# 		choices.append(
-	# 			(program.title, program.title)
-	# 		)
+	if programs:
+		for program in programs:
+			choices.append(
+				(program.title, program.title)
+			)
 	course = forms.CharField(
 		widget=forms.Select(choices=choices),
 		required=False
