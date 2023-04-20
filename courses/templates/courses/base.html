@@ -127,7 +127,7 @@
 										<ul>
 											{% for photo in random_images %}
 												<li>
-													<img src="{{ photo.image.url }}" alt="" style="height: {{ height_picture }}px;">
+													<img src="{{ photo.image_preview.url }}" alt="" style="height: {{ height_picture }}px;">
 													<div class="blakish-overlay"></div>
 													<div class="pop-up-icon">
 														<a href="{{ photo.image.url }}" data-lightbox="roadtrip"><i class="fas fa-search"></i></a>
