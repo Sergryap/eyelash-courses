@@ -72,7 +72,7 @@ class Program(models.Model):
         blank=True,
         null=True,
     )
-    slug = models.SlugField(null=True)
+    slug = models.SlugField(null=True, default='default')
 
     def __str__(self):
         return f'{self.title}'
