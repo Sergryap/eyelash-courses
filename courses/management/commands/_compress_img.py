@@ -16,7 +16,7 @@ def get_size_format(b, factor=1024, suffix="B"):
     return f"{b:.2f}Y{suffix}"
 
 
-def compress_img(image_name, new_size_ratio=0.9, quality=90, width=None, height=None, to_jpg=True):
+def compress_img(image_name, new_size_ratio=1.0, quality=90, suffix='compressed', width=1920, height=980, to_jpg=True):
     img = Image.open(image_name)
     print("[*] Image shape:", img.size)
     image_size = os.path.getsize(image_name)
@@ -38,10 +38,10 @@ def compress_img(image_name, new_size_ratio=0.9, quality=90, width=None, height=
     # make new filename appending _compressed to the original file name
     if to_jpg:
         # change the extension to JPEG
-        new_filename = f"{filename}_preview.jpg"
+        new_filename = f"{filename}_{suffix}.jpg"
     else:
         # retain the same extension of the original image
-        new_filename = f"{filename}_preview{ext}"
+        new_filename = f"{filename}_{suffix}{ext}"
     try:
         # save the image with the corresponding quality and optimize set to True
         img.save(new_filename, quality=quality, optimize=True)
@@ -63,5 +63,5 @@ def compress_img(image_name, new_size_ratio=0.9, quality=90, width=None, height=
 
 
 if __name__ == '__main__':
-    file_name = '/home/sergryap/PycharmProjects/eyelash-courses/media/courses/2d2aeed86e795bd60c9f02805ddf6f69.jpg'
-    compress_img(file_name, new_size_ratio=1, width=120, height=120)
+    file_name = '/home/sergryap/PycharmProjects/eyelash-courses/courses/static/courses/img/banner/oksa-studio-main-img.jpg'
+    compress_img(file_name, new_size_ratio=1, quality=80, width=1920, height=980)
