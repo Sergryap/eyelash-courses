@@ -16,7 +16,7 @@ def get_size_format(b, factor=1024, suffix="B"):
     return f"{b:.2f}Y{suffix}"
 
 
-def compress_img(image_name, new_size_ratio=1.0, quality=90, suffix='compressed', width=1920, height=980, to_jpg=True):
+def compress_img(image_name, new_size_ratio=1.0, quality=90, suffix='_compressed', width=1920, height=980, to_jpg=True):
     img = Image.open(image_name)
     print("[*] Image shape:", img.size)
     image_size = os.path.getsize(image_name)
@@ -33,22 +33,14 @@ def compress_img(image_name, new_size_ratio=1.0, quality=90, suffix='compressed'
         img.thumbnail((width, height))
         # print new image shape
         print("[+] New Image shape:", img.size)
-    # split the filename and extension
     filename, ext = os.path.splitext(image_name)
-    # make new filename appending _compressed to the original file name
-    if to_jpg:
-        # change the extension to JPEG
-        new_filename = f"{filename}_{suffix}.jpg"
-    else:
-        # retain the same extension of the original image
-        new_filename = f"{filename}_{suffix}{ext}"
+    new_filename = f'{filename}{suffix}.jpg' if to_jpg else f'{filename}{suffix}{ext}'
     try:
         # save the image with the corresponding quality and optimize set to True
         img.save(new_filename, quality=quality, optimize=True)
     except OSError:
         # convert the image to RGB mode first
         img = img.convert("RGB")
-        # save the image with the corresponding quality and optimize set to True
         img.save(new_filename, quality=quality, optimize=True)
     print("[+] New file saved:", new_filename)
     # get the new image size in bytes
@@ -63,5 +55,5 @@ def compress_img(image_name, new_size_ratio=1.0, quality=90, suffix='compressed'
 
 
 if __name__ == '__main__':
-    file_name = '/home/sergryap/PycharmProjects/eyelash-courses/courses/static/courses/img/banner/oksa-studio-main-img.jpg'
-    compress_img(file_name, new_size_ratio=1, quality=80, width=1920, height=980)
+    file_name = '/home/sergryap/Изображения/20140126_130613_1.jpg'
+    compress_img(file_name, new_size_ratio=1, suffix='_2', quality=80, width=100, height=100)
