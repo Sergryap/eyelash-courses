@@ -11,7 +11,7 @@ def get_preview(obj, attr='image_preview', width=130, height=130):
     new_filename = f'{new_filename_exclude_ext}.jpg'
     img = Image.open(file_path)
     remove_files = [file for file in os.listdir(os.path.split(file_path)[0]) if new_filename_exclude_ext in file]
-    if os.path.isfile(getattr(obj, attr).path):
+    if hasattr(obj, attr) and getattr(obj, attr) and os.path.isfile(getattr(obj, attr).path):
         for file in remove_files:
             print(f'Deleted: {file}')
             os.remove(os.path.join(os.path.split(file_path)[0], file))
