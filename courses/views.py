@@ -11,6 +11,7 @@ from django.db.models import Q
 from django.utils import timezone
 from datetime import datetime
 from eyelash_courses.logger import send_message as send_tg_msg
+from .context_processors import set_random_images
 
 
 def get_courses(all_courses: Course, past=False, future=False):
@@ -262,13 +263,14 @@ def get_error_data(form):
 
 def get_redis_or_get_db(key: str, obj_class):
     redis = settings.REDIS_DB
-    items = redis.get(key)
-    if items:
-        items = pickle.loads(items)
-    else:
-        items = obj_class.objects.all()
-        io_items = pickle.dumps(items)
-        redis.set(key, io_items)
+    io_items = redis.get(key)
+    if io_items:
+        items = pickle.loads(io_items)
+        if items:
+            return items
+    items = obj_class.objects.all()
+    io_items = pickle.dumps(items)
+    redis.set(key, io_items)
     return items
 
 
@@ -277,11 +279,24 @@ def get_redis_or_get_db_all_courses(key: str):
     all_courses = redis.get(key)
     if all_courses:
         all_courses = pickle.loads(all_courses)
-    else:
-        all_courses = (
-            Course.objects.filter(~Q(name='Фотогалерея'), published_in_bot=True)
-            .select_related('program', 'lecture').prefetch_related('images')
-        )
-        io_all_courses = pickle.dumps(all_courses)
-        redis.set(key, io_all_courses)
+    return all_courses or set_courses_redis()
+
+
+def set_courses_redis():
+    redis = settings.REDIS_DB
+    all_courses = (
+        Course.objects.filter(~Q(name='Фотогалерея'), published_in_bot=True)
+        .select_related('program', 'lecture').prefetch_related('images')
+    )
+    io_all_courses = pickle.dumps(all_courses)
+    settings.REDIS_DB.set('all_courses', io_all_courses)
+    past_courses = all_courses.filter(scheduled_at__lte=timezone.now())
+    future_courses = all_courses.filter(scheduled_at__gt=timezone.now())
+    io_past_courses = pickle.dumps(past_courses)
+    io_future_courses = pickle.dumps(future_courses)
+    redis.set('past_courses', io_past_courses)
+    redis.set('future_courses', io_future_courses)
+    redis.expire('past_courses', 1800)
+    redis.expire('future_courses', 1800)
+    set_random_images(13)
     return all_courses

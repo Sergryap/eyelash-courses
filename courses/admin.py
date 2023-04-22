@@ -2,7 +2,6 @@ import pickle
 import random
 
 from django.conf import settings
-from django.utils import timezone
 from django.contrib import admin
 from django import forms
 from django.utils.html import format_html
@@ -13,7 +12,6 @@ from import_export import resources
 from import_export.fields import Field
 from import_export.admin import ExportMixin
 from asgiref.sync import async_to_sync
-from django.db.models import Q
 from vk_bot.vk_lib import (
     upload_photos_in_album,
     delete_photos,
@@ -21,9 +19,7 @@ from vk_bot.vk_lib import (
     edit_vk_album,
     make_main_album_photo
 )
-from courses.context_processors import set_random_images
 from courses.management.commands._get_preview import get_preview
-from courses.management.commands._set_courses_redis import set_courses_redis
 
 
 admin.site.site_header = settings.SITE_HEADER
@@ -151,9 +147,7 @@ class ProgramAdmin(admin.ModelAdmin, PreviewMixin):
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
-        items = Program.objects.all()
-        io_items = pickle.dumps(items)
-        settings.REDIS_DB.set('programs', io_items)
+        settings.REDIS_DB.set('programs', pickle.dumps(0))
 
 
 @admin.register(Office)
@@ -211,7 +205,7 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
-        set_courses_redis()
+        settings.REDIS_DB.set('all_courses', pickle.dumps(0))
         if not obj.vk_album_id:
             album = async_to_sync(create_vk_album)(obj)
             obj.vk_album_id = album['response']['id']
@@ -245,7 +239,7 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
         if images:
             for preview in images:
                 get_preview(preview)
-                get_preview(preview, attr='big_preview', width=370, height=320)
+                get_preview(preview, preview_attr='big_preview', width=370, height=320)
             course_obj = images[0].course
             vk_album_id = course_obj.vk_album_id
             upload_photos = get_upload_photos(images)
@@ -286,7 +280,7 @@ class ImageAdmin(SortableAdminMixin, admin.ModelAdmin, PreviewMixin):
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
         get_preview(obj)
-        get_preview(obj, attr='big_preview', width=370, height=320)
+        get_preview(obj, preview_attr='big_preview', width=370, height=320)
         vk_album_id = obj.course.vk_album_id
         if not obj.image_vk_id and obj.upload_vk:
             async_to_sync(upload_photos_in_album)([obj], vk_album_id)
@@ -345,6 +339,4 @@ class GraduatePhotoAdmin(admin.ModelAdmin, PreviewMixin):
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
-        items = GraduatePhoto.objects.all()
-        io_items = pickle.dumps(items)
-        settings.REDIS_DB.set('graduate_photos', io_items)
+        settings.REDIS_DB.set('graduate_photos', pickle.dumps(0))
