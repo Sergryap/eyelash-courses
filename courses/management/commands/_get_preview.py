@@ -3,12 +3,13 @@ from django.core.files.base import ContentFile
 from PIL import Image
 from io import BytesIO
 from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.db.models import ImageField
 
 
 def get_preview(
         obj,
         image_attr: str = 'image',
-        preview_attr='image_preview',
+        preview_attr: str = 'image_preview',
         suffix: str = None,
         width=231, height=130
 ):
@@ -24,6 +25,10 @@ def get_preview(
     height - максимальная ширина превью.
     """
 
+    if not (hasattr(obj, preview_attr) and hasattr(obj, preview_attr)):
+        return
+    if not (getattr(obj, image_attr) and os.path.isfile(getattr(obj, image_attr).path)):
+        return
     file_path = getattr(obj, image_attr).path
     suffix = suffix if suffix is not None else f'_{preview_attr}'
     new_filename_exclude_ext = f'{os.path.split(os.path.splitext(file_path)[0])[1]}{suffix}'
