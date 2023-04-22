@@ -1,7 +1,6 @@
 from django.core.management import BaseCommand
 from courses.models import *
 from ._get_preview import get_preview
-from ._set_courses_redis import set_courses_redis
 
 
 class Command(BaseCommand):
@@ -9,7 +8,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('-m', '--model', required=True, type=str, help='Имя модели, содержащей изображения')
-        parser.add_argument('-a', '--attribute', required=False, help='Поле модели для превью изображения')
+        parser.add_argument('-a', '--attribute', required=True, help='Поле модели для превью изображения')
         parser.add_argument('-wt', '--width', required=True, type=int, help='Ширина нового изображения, px')
         parser.add_argument('-ht', '--height', required=True, type=int, help='Высота нового изображения, px')
 
@@ -21,4 +20,4 @@ class Command(BaseCommand):
         print(model, attribute, width, height)
         instances = model.objects.all()
         for instance in instances:
-            get_preview(instance, attr=attribute, width=width, height=height)
+            get_preview(instance, preview_attr=attribute, width=width, height=height)
