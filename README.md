@@ -178,3 +178,33 @@ Restart=always
 [Install]
 WantedBy=multi-user.target
 ```
+
+##### Настройте регулярную очистку сессий:
+
+eyelash-courses-clearsession.service:
+
+```sh
+[Unit]
+Description=eyelash-courses clearsessions
+Requires=eyelash-courses.service
+
+[Service]
+User=root
+Group=root
+WorkingDirectory=/opt/eyelash-courses/
+ExecStart=/opt/eyelash-courses/venv/bin/python3 manage.py clearsessions
+```
+
+eyelash-courses-clearsession.timer:
+
+```sh
+[Unit]
+Description=Timer for Django clearsessions
+
+[Timer]
+OnBootSec=300
+OnUnitActiveSec=1w
+
+[Install]
+WantedBy=multi-user.target
+```
