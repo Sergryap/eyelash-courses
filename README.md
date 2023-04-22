@@ -1,6 +1,6 @@
 ## Сайт с ботами ВК и TG, с базой данных и интерфейсом admin Django для организации записи на обучающие курсы.
 
-#### На данный момент реализованы следующие возможности для клиентов при взаимодействии с ботом
+#### На данный момент реализованы следующие возможности
 
 Для ботов:
 
@@ -129,4 +129,52 @@ python3 manage.py createsuperuser
 #### Соберите статику для prod-версии:
 ```sh
 python3 manage.py collectstatic
+```
+
+#### Настройте Systemd:
+
+##### eyelash-courses.service:
+
+```sh
+[Unit]
+Description=eyelash-courses start
+After=network.target
+After=nginx.service
+After=redis.service
+After=postgres.service
+
+[Service]
+User=root
+Group=root
+WorkingDirectory=/opt/eyelash-courses/
+Environment="DEBUG=False"
+Environment="ALLOWED_HOSTS=<разрешенные хосты>"
+ExecStart=/opt/eyelash-courses/venv/bin/gunicorn -b 127.0.0.1:8000 --workers 3 eyelash_courses.wsgi:application
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=5
+PrivateTmp=true
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
+```
+
+##### bots-start.service:
+
+```sh
+[Unit]
+Description=bots start
+After=eyelash-courses.service
+
+[Service]
+User=root
+Group=root
+WorkingDirectory=/opt/eyelash-courses/
+ExecStart=/opt/eyelash-courses/venv/bin/python3 manage.py start_all_bot
+Restart=always 
+
+[Install]
+WantedBy=multi-user.target
 ```
