@@ -10,7 +10,7 @@ def get_preview(
         image_attr: str = 'image',
         preview_attr='image_preview',
         suffix: str = None,
-        width=130, height=130
+        width=231, height=130
 ):
 
     """
@@ -35,9 +35,14 @@ def get_preview(
             print(f'Deleted: {file}')
             os.remove(os.path.join(os.path.split(file_path)[0], file))
     print(f'Created: {new_filename}')
-    img.thumbnail((width, height))
     buffer = BytesIO()
-    img.save(fp=buffer, format='JPEG')
+    try:
+        img.thumbnail((width, height))
+        img.save(fp=buffer, format='JPEG')
+    except OSError:
+        img = img.convert("RGB")
+        img.thumbnail((width, height))
+        img.save(fp=buffer, format='JPEG')
     file_content = ContentFile(buffer.getvalue())
     preview = getattr(obj, preview_attr)
     preview.save(
