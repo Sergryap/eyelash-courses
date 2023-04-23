@@ -31,11 +31,12 @@ admin.site.empty_value_display = 'Нет данных'
 class PreviewMixin:
     @staticmethod
     @admin.display(description='Фото')
-    def get_preview(obj):
+    def get_image_preview(obj):
+        url = (obj.big_preview.url if hasattr(obj, 'big_preview') else obj.image.url) or obj.image.url
         return format_html(
-            '<img style="max-height:{height}" src="{url}"/>',
+            '<img style="max-height:{height}" src="{url}">',
             height='200px',
-            url=obj.image.url
+            url=url
         )
 
 
@@ -100,8 +101,8 @@ class CourseInline(admin.TabularInline):
 
 class CourseImageInline(SortableTabularInline, PreviewMixin):
     model = CourseImage
-    fields = ['position', 'image', 'get_preview', 'image_vk_id', 'upload_vk']
-    readonly_fields = ['get_preview', 'image_vk_id']
+    fields = ['position', 'image', 'get_image_preview', 'image_vk_id', 'upload_vk']
+    readonly_fields = ['get_image_preview', 'image_vk_id']
     extra = 3
 
 
@@ -142,18 +143,26 @@ class ParticipantsCountFilter(admin.SimpleListFilter):
 class ProgramAdmin(admin.ModelAdmin, PreviewMixin):
     inlines = [CourseProgramInline]
     prepopulated_fields = {'slug': ('title',)}
-    list_display = ['title', 'get_preview', 'short_description', 'description']
-    readonly_fields = ['get_preview']
+    list_display = ['title', 'get_image_preview', 'short_description', 'description']
+    readonly_fields = ['get_image_preview']
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
         settings.REDIS_DB.set('programs', pickle.dumps(0))
 
+    def delete_queryset(self, request, queryset):
+        super().delete_queryset(request, queryset)
+        settings.REDIS_DB.set('programs', pickle.dumps(0))
+
+    def delete_model(self, request, obj):
+        super().delete_model(request, obj)
+        settings.REDIS_DB.set('programs', pickle.dumps(0))
+
 
 @admin.register(Office)
 class OfficeAdmin(admin.ModelAdmin, PreviewMixin):
-    list_display = ['title', 'get_preview', 'address', 'long', 'lat']
-    readonly_fields = ['get_preview']
+    list_display = ['title', 'get_image_preview', 'address', 'long', 'lat']
+    readonly_fields = ['get_image_preview']
 
 
 class CourseForm(forms.ModelForm):
@@ -190,9 +199,9 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
         random_photo = random.choice(obj.images.all() or ['Фото не загружены'])
         if random_photo and isinstance(random_photo, CourseImage):
             return format_html(
-                '<img style="max-height:{height}" src="{url}"/>',
+                '<img style="max-height:{height}" src="{url}">',
                 height='150px',
-                url=random_photo.image.url
+                url=random_photo.big_preview.url or random_photo.image.url
             )
         return random_photo
 
@@ -219,14 +228,13 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
             if upload_photos:
                 async_to_sync(upload_photos_in_album)(upload_photos, vk_album_id)
 
-    # def delete_model(self, request, obj):
-    #     super().delete_model(request, obj)
-    #     async_to_sync(delete_album)(obj)
-    #
-    # def delete_queryset(self, request, queryset):
-    #     for course in queryset:
-    #         async_to_sync(delete_album)(course)
-    #     queryset.delete()
+    def delete_model(self, request, obj):
+        super().delete_model(request, obj)
+        settings.REDIS_DB.set('all_courses', pickle.dumps(0))
+
+    def delete_queryset(self, request, queryset):
+        super().delete_queryset(request, queryset)
+        settings.REDIS_DB.set('all_courses', pickle.dumps(0))
 
     def save_formset(self, request, form, formset, change):
         super().save_formset(request, form, formset, change)
@@ -272,9 +280,9 @@ def get_upload_photos(images):
 
 @admin.register(CourseImage)
 class ImageAdmin(SortableAdminMixin, admin.ModelAdmin, PreviewMixin):
-    list_display = ['id', 'get_preview', 'course', 'image_vk_id', 'upload_vk', 'position']
+    list_display = ['id', 'get_image_preview', 'course', 'image_vk_id', 'upload_vk', 'position']
     list_display_links = ['course']
-    readonly_fields = ['get_preview', 'image_vk_id']
+    readonly_fields = ['get_image_preview', 'image_vk_id']
     list_filter = ['course__program', 'course']
 
     def save_model(self, request, obj, form, change):
@@ -333,10 +341,18 @@ class CourseClientAdmin(admin.ModelAdmin):
 
 @admin.register(GraduatePhoto)
 class GraduatePhotoAdmin(admin.ModelAdmin, PreviewMixin):
-    list_display = ['id', 'title', 'get_preview']
-    readonly_fields = ['get_preview']
+    list_display = ['id', 'title', 'get_image_preview']
+    readonly_fields = ['get_image_preview']
     list_editable = ['title']
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
+        settings.REDIS_DB.set('graduate_photos', pickle.dumps(0))
+
+    def delete_model(self, request, obj):
+        super().delete_model(request, obj)
+        settings.REDIS_DB.set('graduate_photos', pickle.dumps(0))
+
+    def delete_queryset(self, request, queryset):
+        super().delete_queryset(request, queryset)
         settings.REDIS_DB.set('graduate_photos', pickle.dumps(0))

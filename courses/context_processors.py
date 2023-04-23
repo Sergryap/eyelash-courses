@@ -15,7 +15,7 @@ from textwrap import dedent
 
 def get_footer_variables(request):
     footer_form = False
-    if request.method == 'POST' and request.POST['type_form'] == 'subscribe':
+    if request.method == 'POST' and request.POST.get('type_form', False) == 'subscribe':
         footer_form = True
         subscribe_form = SubscribeForm(request.POST)
         if subscribe_form.is_valid():
