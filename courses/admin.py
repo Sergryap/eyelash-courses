@@ -201,7 +201,7 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
             return format_html(
                 '<img style="max-height:{height}" src="{url}">',
                 height='150px',
-                url=random_photo.big_preview.url or random_photo.image.url
+                url=random_photo.image.url
             )
         return random_photo
 
@@ -223,6 +223,9 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
             async_to_sync(edit_vk_album)(obj)
         images = obj.images.all()
         if images:
+            for preview in images:
+                get_preview(preview)
+                get_preview(preview, preview_attr='big_preview', width=370, height=320)
             vk_album_id = obj.vk_album_id
             upload_photos = get_upload_photos(images)
             if upload_photos:
