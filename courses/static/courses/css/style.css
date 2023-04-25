@@ -1719,6 +1719,22 @@ button.alt-menu-btn.float-left {
     position: absolute;
     background-color: #17d0cf; }
 
+.about-list-program li {
+  font-weight: 500;
+  color: #333333;
+  margin-bottom: 8px;
+  padding-left: 25px;
+  position: relative; }
+  .about-list-program li:before {
+    left: 0;
+    content: '';
+    width: 10px;
+    height: 10px;
+    top: 7px;
+    border-radius: 100%;
+    position: absolute;
+    background-color: #17d0cf; }
+
 .about-btn .genius-btn {
   display: inline-block;
   margin-right: 25px; }
