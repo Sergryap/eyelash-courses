@@ -11,6 +11,7 @@ from django.contrib import messages
 from django.shortcuts import HttpResponse
 from eyelash_courses.logger import send_message as send_tg_msg
 from textwrap import dedent
+# from .tasks import send_message_task
 
 
 def get_footer_variables(request):
@@ -24,6 +25,7 @@ def get_footer_variables(request):
                 Подписка на новости:
                 Email: {from_email.replace('@', '_собака_')}
                 '''
+            # send_message_task.delay(text=text)
             try:
                 send_tg_msg(
                     token=settings.TG_LOGGER_BOT,

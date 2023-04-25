@@ -20,6 +20,7 @@ from vk_bot.vk_lib import (
     make_main_album_photo
 )
 from courses.management.commands._get_preview import get_preview
+# from .tasks import course_admin_save_formset, upgrade_courses_images, upgrade_course_image
 
 
 admin.site.site_header = settings.SITE_HEADER
@@ -221,6 +222,7 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
             obj.save()
         else:
             async_to_sync(edit_vk_album)(obj)
+        # upgrade_courses_images.delay(obj)
         images = obj.images.all()
         if images:
             for preview in images:
@@ -246,6 +248,7 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
                 if deleted_image.image_vk_id:
                     async_to_sync(delete_photos)(deleted_image)
         instances = formset.save(commit=False)
+        # course_admin_save_formset.delay(instances)
         images = [image for image in instances if isinstance(image, CourseImage)]
         if images:
             for preview in images:
@@ -290,6 +293,7 @@ class ImageAdmin(SortableAdminMixin, admin.ModelAdmin, PreviewMixin):
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
+        # upgrade_course_image.delay(obj)
         get_preview(obj)
         get_preview(obj, preview_attr='big_preview', width=370, height=320)
         vk_album_id = obj.course.vk_album_id

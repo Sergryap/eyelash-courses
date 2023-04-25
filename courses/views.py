@@ -12,6 +12,7 @@ from django.utils import timezone
 from datetime import datetime
 from eyelash_courses.logger import send_message as send_tg_msg
 from .context_processors import set_random_images
+# from .tasks import send_message_task
 
 
 def get_courses(all_courses: Course, past=False, future=False):
@@ -81,6 +82,8 @@ def home(request):
                 Курс: {desire_course}    
                 Сообщение: {message}           
                 '''
+            # send_message_task.delay(name, phone, text)
+            # messages.success(request, 'Отправлено!')
             try:
                 submit_course_form_data(name, phone, text)
                 messages.success(request, 'Отправлено!')
@@ -144,6 +147,8 @@ def course_details(request, slug: str, lecturer: str, date: str):
                 Тел.: {phone}
                 Курс: {course_instance.name}             
                 '''
+            # send_message_task.delay(name, phone, text)
+            # messages.success(request, 'Отправлено!')
             try:
                 submit_course_form_data(name, phone, text)
                 messages.success(request, 'Отправлено!')
@@ -193,6 +198,8 @@ def program_details(request, slug: str):
                 Тел.: {phone}
                 программа: {program.title}             
                 '''
+            # send_message_task.delay(name, phone, text)
+            # messages.success(request, 'Отправлено!')
             try:
                 submit_course_form_data(name, phone, text)
                 messages.success(request, 'Отправлено!')

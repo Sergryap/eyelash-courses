@@ -42,6 +42,7 @@ REDIS_DB = redis.Redis(
     port=env.str('REDIS_PORT'),
     password=env.str('REDIS_PASSWORD')
 )
+REDIS_URL = env.str('REDIS_URL')
 
 EMAIL_HOST = env.str('EMAIL_HOST')
 EMAIL_PORT = env.int('EMAIL_PORT')
@@ -54,6 +55,13 @@ SERVER_EMAIL = EMAIL_HOST_USER
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 PHONE_NUMBER = env.str('PHONE_NUMBER')
 PHONE_NUMBER_READABLE = env.str('PHONE_NUMBER_READABLE')
+
+BROKER_URL = env.str('REDIS_URL')
+CELERY_RESULT_BACKEND = env.str('REDIS_URL')
+CELERY_EVENT_SERIALIZER = 'pickle'  # app.conf.event_serializer = 'pickle'
+CELERY_ACCEPT_CONTENT = ['application/x-python-serialize']  # app.conf.accept_content = ['application/json', 'application/x-python-serialize']
+CELERY_TASK_SERIALIZER = 'pickle'  # app.conf.task_serializer = 'pickle'
+CELERY_RESULT_SERIALIZER = 'pickle'  # app.conf.result_serializer = 'pickle'
 
 logger = logging.getLogger('telegram')
 logger.setLevel(logging.WARNING)
