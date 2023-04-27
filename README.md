@@ -95,6 +95,7 @@ INDEX_TITLE=<>
 SITE_TITLE=<>
 
 # Данные для Redis
+REDIS_URL=<>
 REDIS_PASSWORD=<Пароль для Redis>
 REDIS_HOST=127.0.0.1
 REDIS_PORT=6379
