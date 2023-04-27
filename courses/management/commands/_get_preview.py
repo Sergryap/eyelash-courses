@@ -24,7 +24,7 @@ def get_preview(
     height - максимальная ширина превью.
     """
 
-    if not (hasattr(obj, preview_attr) and hasattr(obj, preview_attr)):
+    if not (hasattr(obj, preview_attr) and hasattr(obj, image_attr)):
         return
     if not (getattr(obj, image_attr) and os.path.isfile(getattr(obj, image_attr).path)):
         return
