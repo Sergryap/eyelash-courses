@@ -141,10 +141,10 @@ class ParticipantsCountFilter(admin.SimpleListFilter):
 
 
 @admin.register(Program)
-class ProgramAdmin(admin.ModelAdmin, PreviewMixin):
+class ProgramAdmin(SortableAdminMixin, admin.ModelAdmin, PreviewMixin):
     inlines = [CourseProgramInline]
     prepopulated_fields = {'slug': ('title',)}
-    list_display = ['title', 'get_image_preview', 'short_description', 'description']
+    list_display = ['title', 'get_image_preview', 'short_description', 'position']
     readonly_fields = ['get_image_preview']
 
     def save_model(self, request, obj, form, change):

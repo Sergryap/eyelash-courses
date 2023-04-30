@@ -73,11 +73,13 @@ class Program(models.Model):
         null=True,
     )
     slug = models.SlugField(null=True)
+    position = models.IntegerField(default=0)
 
     def __str__(self):
         return f'{self.title}'
 
     class Meta:
+        ordering = ['position']
         verbose_name = 'программу'
         verbose_name_plural = 'программы'
 
