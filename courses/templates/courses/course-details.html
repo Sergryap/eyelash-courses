@@ -1,6 +1,7 @@
 {% extends "courses/base.html" %}
 {% load static %}
-{% block title %}Course details{% endblock %}
+{% block addmeta %}<meta name="robots" content="noindex" />{% endblock %}
+{% block title %}Oksa Studio | {{ course.name }}{% endblock %}
 {% block content %}
 
 
@@ -43,9 +44,17 @@
 
 							<div class="course-single-text">
 								<div class="course-title mt10 headline relative-position">
-									<h3><a href="/#"><b>{{ course.name }}</b></a></h3>
+									<h3><a href="/#"><b>Программа курса "{{ course.name }}"</b></a></h3>
 								</div>
-								<div class="course-details-content">
+								<div class="about-list-program mb65 ul-li-block">
+									{% autoescape off %}{{ course.program.description }}{% endautoescape %}
+								</div>
+								<div class="about-list-program mb65 ul-li-block">
+									<p>Расписание:</p>
+									<ul>
+										<li><strong>Дата курса: </strong>{{ date }}</li>
+										<li><strong>{{ start_time }}. </strong>Начало</li>
+									</ul>
 									{% autoescape off %}{{ course.description }}{% endautoescape %}
 								</div>
 							</div>

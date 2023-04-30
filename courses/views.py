@@ -171,6 +171,7 @@ def course_details(request, slug: str, lecturer: str, date: str):
         'participants': max(course_instance.get_count_participants(), 2),
         'course': course_instance,
         'date': course_instance.scheduled_at.strftime("%d.%m.%Y"),
+        'start_time': course_instance.scheduled_at.strftime("%H:%M"),
         'images': [
             {
                 'url': image.image.url, 'number': number
