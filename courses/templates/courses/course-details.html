@@ -2,6 +2,13 @@
 {% load static %}
 {% block addmeta %}<meta name="robots" content="noindex" />{% endblock %}
 {% block title %}Oksa Studio | {{ course.name }}{% endblock %}
+{% block style_override %}
+<style type="text/css">
+.breadcrumb-section {
+  background-image: url({% static 'courses/img/banner/'|add:banner %});
+  padding-bottom: 355px; }
+</style>
+{% endblock %}
 {% block content %}
 
 

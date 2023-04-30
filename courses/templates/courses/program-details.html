@@ -1,6 +1,13 @@
 {% extends "courses/base.html" %}
 {% load static %}
-{% block title %}Course details{% endblock %}
+{% block title %}Oksa Studio | {{ program.title }}{% endblock %}
+{% block style_override %}
+<style type="text/css">
+.breadcrumb-section {
+  background-image: url({% static 'courses/img/banner/'|add:banner %});
+  padding-bottom: 355px; }
+</style>
+{% endblock %}
 {% block content %}
 
 

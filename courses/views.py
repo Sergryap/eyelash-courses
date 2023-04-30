@@ -1,5 +1,6 @@
 import pickle
 import smtplib
+import random
 from textwrap import dedent
 from django.shortcuts import render, HttpResponse, get_object_or_404
 from django.conf import settings
@@ -168,6 +169,7 @@ def course_details(request, slug: str, lecturer: str, date: str):
         form = CourseForm()
     context = {
         'form': form,
+        'banner': random.choice(settings.BANNER_IMAGES),
         'participants': max(course_instance.get_count_participants(), 2),
         'course': course_instance,
         'date': course_instance.scheduled_at.strftime("%d.%m.%Y"),
@@ -222,6 +224,7 @@ def program_details(request, slug: str):
     context = {
         'form': form,
         'program': program,
+        'banner': random.choice(settings.BANNER_IMAGES),
         'courses': [
             {
                 'instance': course_ins,
