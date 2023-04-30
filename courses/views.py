@@ -121,7 +121,8 @@ def course(request):
     all_courses = get_redis_or_get_db_all_courses('all_courses')
     context = {
         'future_courses': get_courses(all_courses, future=True),
-        'past_courses': get_courses(all_courses, past=True)
+        'past_courses': get_courses(all_courses, past=True),
+        'banner': random.choice(settings.BANNER_IMAGES),
     }
     return render(request, template, context)
 
