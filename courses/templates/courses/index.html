@@ -83,6 +83,54 @@
 	<!-- End of slider section
 		============================================= -->
 
+<!-- Start popular course
+		============================================= -->
+		{% if programs %}
+		<section id="popular-course" class="popular-course-section">
+			<div class="container">
+				<div class="section-title mb20 headline text-left"  >
+					<span class="subtitle text-uppercase">НА ЛЮБОЙ ВКУС</span>
+					<h2><span>Наши </span>программы</h2>
+				</div>
+				<div id="course-slide-item" class="course-slide">
+					{% for program in programs %}
+						<div class="course-item-pic-text " >
+							<a href="{% url 'program_details' program.slug %}">
+								<div class="course-pic relative-position mb25">
+									<img src="{{ program.image.url }}" alt="">
+									<div class="course-details-btn">
+										<a href="{% url 'program_details' program.slug %}">ПОДРОБНЕЕ <i class="fas fa-arrow-right"></i></a>
+									</div>
+								</div>
+							</a>
+							<div class="course-item-text">
+								<div class="course-meta">
+									<span class="course-category bold-font"><a href="{% url 'program_details' program.slug %}">Eyelash extension</a></span>
+									<span class="course-author bold-font"><a href="{% url 'program_details' program.slug %}">Оксана Ряпина</a></span>
+									<div class="course-rate ul-li">
+										<ul>
+											<li><i class="fas fa-star"></i></li>
+											<li><i class="fas fa-star"></i></li>
+											<li><i class="fas fa-star"></i></li>
+											<li><i class="fas fa-star"></i></li>
+											<li><i class="fas fa-star"></i></li>
+										</ul>
+									</div>
+								</div>
+								<div class="course-title mt10 headline pb45 relative-position">
+									<h3><a href="{% url 'program_details' program.slug %}">{{ program.title }}</a></h3>
+								</div>
+							</div>
+						</div>
+					{% endfor %}
+				</div>
+			</div>
+		</section>
+		{% endif %}
+	<!-- End popular course
+		============================================= -->
+
+
 	<!-- Start of best course
 		============================================= -->
 		<section id="who-suits" class="best-course-section" style="padding: 125px 0px 0px 0px;">
@@ -196,54 +244,6 @@
 			</div>
 		</section>
 	<!-- End of best course
-		============================================= -->
-
-
-	<!-- Start popular course
-		============================================= -->
-		{% if programs %}
-		<section id="popular-course" class="popular-course-section">
-			<div class="container">
-				<div class="section-title mb20 headline text-left"  >
-					<span class="subtitle text-uppercase">НА ЛЮБОЙ ВКУС</span>
-					<h2><span>Наши </span>программы</h2>
-				</div>
-				<div id="course-slide-item" class="course-slide">
-					{% for program in programs %}
-						<div class="course-item-pic-text " >
-							<a href="{% url 'program_details' program.slug %}">
-								<div class="course-pic relative-position mb25">
-									<img src="{{ program.image.url }}" alt="">
-									<div class="course-details-btn">
-										<a href="{% url 'program_details' program.slug %}">ПОДРОБНЕЕ <i class="fas fa-arrow-right"></i></a>
-									</div>
-								</div>
-							</a>
-							<div class="course-item-text">
-								<div class="course-meta">
-									<span class="course-category bold-font"><a href="{% url 'program_details' program.slug %}">Eyelash extension</a></span>
-									<span class="course-author bold-font"><a href="{% url 'program_details' program.slug %}">Оксана Ряпина</a></span>
-									<div class="course-rate ul-li">
-										<ul>
-											<li><i class="fas fa-star"></i></li>
-											<li><i class="fas fa-star"></i></li>
-											<li><i class="fas fa-star"></i></li>
-											<li><i class="fas fa-star"></i></li>
-											<li><i class="fas fa-star"></i></li>
-										</ul>
-									</div>
-								</div>
-								<div class="course-title mt10 headline pb45 relative-position">
-									<h3><a href="{% url 'program_details' program.slug %}">{{ program.title }}</a></h3>
-								</div>
-							</div>
-						</div>
-					{% endfor %}
-				</div>
-			</div>
-		</section>
-		{% endif %}
-	<!-- End popular course
 		============================================= -->
 
 
