@@ -5,12 +5,15 @@ from django.db.models import Window
 from django.db.models.functions import DenseRank, Random
 from django.conf import settings
 from courses.forms import SubscribeForm
-from courses.models import CourseImage
+from courses.models import CourseImage, Program
 from django.core.mail import send_mail, BadHeaderError
 from django.contrib import messages
 from django.shortcuts import HttpResponse
 from eyelash_courses.logger import send_message as send_tg_msg
 from textwrap import dedent
+from .general_functions import set_random_images, get_redis_or_get_db
+
+
 # from .tasks import send_message_task
 
 
@@ -72,24 +75,10 @@ def get_footer_variables(request):
         'youtube_chanel_id': settings.YOUTUBE_CHANEL_ID,
         'subscribe_form': subscribe_form,
         'footer_form': footer_form,
-        'height_picture': height
+        'height_picture': height,
+        'programs': get_redis_or_get_db('programs', Program)
     }
 
     return base_data
 
 
-def set_random_images(number):
-    redis = settings.REDIS_DB
-    random_images = CourseImage.objects.annotate(number=Window(expression=DenseRank(), order_by=[Random()]))
-    end_index = min(len(random_images), number)
-    part_random_images = random_images[:end_index]
-    height = 80
-    index_height = {(0, 4): 130, (5, 8): 100, (9, 13): 80, (14, 20): 60}
-    for i, px in index_height.items():
-        if i[0] <= end_index <= i[1]:
-            height = px
-            break
-    io_random_images = pickle.dumps(part_random_images)
-    redis.set('random_images', io_random_images)
-    redis.set('height_images', height)
-    return part_random_images, height
