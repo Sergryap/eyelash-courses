@@ -2,7 +2,9 @@ import logging
 import asyncio
 
 from django.core.management import BaseCommand
-from vk_bot.async_longpoll import listen_server
+from vk_bot.async_longpoll import event_handler
+from vk_bot.longpollserver import LongPollServer
+from django.conf import settings
 
 
 class Command(BaseCommand):
@@ -18,6 +20,13 @@ def start_vk_bot():
     logger = logging.getLogger('telegram')
     logger.warning('VK-Бот "eyelash-courses" запущен')
 
+    connect = LongPollServer(
+        vk_group_token=settings.VK_TOKEN,
+        redis_db=settings.REDIS_DB,
+        group_id=settings.VK_GROUP_ID,
+        handle_event=event_handler
+    )
+
     loop = asyncio.get_event_loop()
-    asyncio.ensure_future(listen_server())
+    asyncio.ensure_future(connect.listen_server())
     loop.run_forever()
