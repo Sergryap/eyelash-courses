@@ -7,12 +7,10 @@ import re
 
 from django.conf import settings
 from textwrap import dedent
-from time import sleep
 from asgiref.sync import sync_to_async
 from more_itertools import chunked
 from courses.models import Client, Course, Office
 from django.utils import timezone
-from aiohttp import client_exceptions
 from .buttons import (
     get_start_buttons,
     get_menu_button,
@@ -475,43 +473,3 @@ async def entry_user_to_course(connect, user_id, user_info, user_instance, cours
     redis_phone = connect['redis_db'].get(f'{user_id}_phone')
     phone = redis_phone.decode('utf-8') if redis_phone else user_instance.phone_number
     logger.warning(f'Клиент {name}\n{client_vk}:\nТел: {phone}\nзаписался на курс **{course.name.upper()}**')
-
-
-async def listen_server():
-    token = settings.VK_TOKEN
-    async with aiohttp.ClientSession() as session:
-        key, server, ts = await get_long_poll_server(session, token, settings.VK_GROUP_ID)
-        connect = {'session': session, 'token': token, 'redis_db': settings.REDIS_DB}
-        while True:
-            try:
-                params = {'act': 'a_check', 'key': key, 'ts': ts, 'wait': 25}
-                async with session.get(server, params=params) as res:
-                    res.raise_for_status()
-                    response = json.loads(await res.text())
-                if 'failed' in response:
-                    if response['failed'] == 1:
-                        ts = response['ts']
-                    elif response['failed'] == 2:
-                        key, __, __ = await get_long_poll_server(session, token, settings.VK_GROUP_ID)
-                    elif response['failed'] == 3:
-                        key, __, ts = await get_long_poll_server(session, token, settings.VK_GROUP_ID)
-                    continue
-                ts = response['ts']
-                for event in response['updates']:
-                    if event['type'] != 'message_new':
-                        continue
-                    await asyncio.sleep(0.2)
-                    await event_handler(connect, event)
-            except ConnectionError as err:
-                sleep(5)
-                logger.warning(f'Соединение было прервано: {err}', stack_info=True)
-                key, server, ts = await get_long_poll_server(session, token, settings.VK_GROUP_ID)
-                continue
-            except client_exceptions.ServerTimeoutError as err:
-                logger.warning(f'Ошибка ReadTimeout: {err}', stack_info=True)
-                key, server, ts = await get_long_poll_server(session, token, settings.VK_GROUP_ID)
-                continue
-            except Exception as err:
-                logger.exception(err)
-                key, server, ts = await get_long_poll_server(session, token, settings.VK_GROUP_ID)
-        logger.critical('Бот вышел из цикла и упал:', stack_info=True)

@@ -1,15 +1,10 @@
-import asyncio
 import json
-
-import aiohttp
 import logging
 import random
 import re
 
 from courses.models import Client, Course, Office
 from django.utils import timezone
-from aiohttp import client_exceptions
-from time import sleep
 from asgiref.sync import sync_to_async
 from more_itertools import chunked
 from .keyboard import get_callback_keyboard, get_course_buttons, get_course_menu_buttons, check_phone_button
@@ -419,67 +414,3 @@ async def handle_event(connect, event):
     exist_phone = connect['redis_db'].get(f'tg_{event["chat_id"]}_phone')
     user.phone_number = exist_phone.decode('utf-8') if exist_phone else user.phone_number
     await sync_to_async(user.save)()
-
-
-async def get_cleaned_event(event):
-    if event.get('message'):
-        event_info = event['message']
-        return {
-            'user_reply': event_info['text'],
-            'chat_id': event_info['chat']['id'],
-            'first_name': event_info['chat']['first_name'],
-            'last_name': event_info['chat'].get('last_name', ''),
-            'username': event_info['chat'].get('username', ''),
-            'message_id': event_info['message_id'],
-            'message': True
-        }
-    elif event.get('callback_query'):
-        event_info = event['callback_query']
-        return {
-            'user_reply': event_info['data'],
-            'chat_id': event_info['message']['chat']['id'],
-            'first_name': event_info['message']['chat']['first_name'],
-            'last_name': event_info['message']['chat'].get('last_name', ''),
-            'username': event_info['message']['chat'].get('username', ''),
-            'callback_query_id': event_info['id'],
-            'message_id': event_info['message']['message_id'],
-            'callback_query': True
-        }
-    # При необходимости добавить новые типы событий
-    return
-
-
-async def listen_server():
-    """Получение событий сервера"""
-    tg_token = settings.TG_TOKEN
-    url = f'https://api.telegram.org/bot{tg_token}/getUpdates'
-    params = {'timeout': 25, 'limit': 1}
-    async with aiohttp.ClientSession() as session:
-        connect = {'session': session, 'token': tg_token, 'redis_db': settings.REDIS_DB}
-        while True:
-            try:
-                await asyncio.sleep(0.1)
-                async with session.get(url, params=params) as res:
-                    res.raise_for_status()
-                    updates = json.loads(await res.text())
-                if not updates.get('result') or not updates['ok']:
-                    continue
-                update = updates['result'][-1]
-                params['offset'] = update['update_id'] + 1
-                event = await get_cleaned_event(update)
-                if not event:
-                    continue
-                await handle_event(connect, event)
-            except ConnectionError:
-                sleep(5)
-                logger.warning(f'Соединение было прервано', stack_info=True)
-                continue
-            except client_exceptions.ClientResponseError as err:
-                sleep(1)
-                logger.exception(err)
-            except client_exceptions.ServerTimeoutError:
-                logger.warning(f'Ошибка ReadTimeout', stack_info=True)
-                continue
-            except Exception as err:
-                logger.exception(err)
-                print(err)
