@@ -9,7 +9,7 @@ from vk_bot.vk_api import VkApi
 logger = logging.getLogger('telegram')
 
 
-class LongPollServer:
+class VkLongPollServer:
 
     url = 'https://api.vk.com/method/groups.getLongPollServer'
 
