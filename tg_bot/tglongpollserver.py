@@ -22,23 +22,25 @@ class TgLongPollServer:
     async def get_cleaned_event(event):
         if event.get('message'):
             event_info = event['message']
+            chat_event_info = event_info['chat']
             return {
                 'user_reply': event_info['text'],
-                'chat_id': event_info['chat']['id'],
-                'first_name': event_info['chat']['first_name'],
-                'last_name': event_info['chat'].get('last_name', ''),
-                'username': event_info['chat'].get('username', ''),
+                'chat_id': chat_event_info['id'],
+                'first_name': chat_event_info['first_name'],
+                'last_name': chat_event_info.get('last_name', ''),
+                'username': chat_event_info.get('username', ''),
                 'message_id': event_info['message_id'],
                 'message': True
             }
         elif event.get('callback_query'):
             event_info = event['callback_query']
+            chat_event_info = event_info['message']['chat']
             return {
                 'user_reply': event_info['data'],
-                'chat_id': event_info['message']['chat']['id'],
-                'first_name': event_info['message']['chat']['first_name'],
-                'last_name': event_info['message']['chat'].get('last_name', ''),
-                'username': event_info['message']['chat'].get('username', ''),
+                'chat_id': chat_event_info['id'],
+                'first_name': chat_event_info['first_name'],
+                'last_name': chat_event_info.get('last_name', ''),
+                'username': chat_event_info.get('username', ''),
                 'callback_query_id': event_info['id'],
                 'message_id': event_info['message']['message_id'],
                 'callback_query': True
