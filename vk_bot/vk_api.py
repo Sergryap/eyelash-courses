@@ -11,17 +11,6 @@ class VkApi:
         self.token = vk_group_token
         self.redis_db = redis_db
 
-    async def get_long_poll_server(self, group_id: int):
-        get_album_photos_url = 'https://api.vk.com/method/groups.getLongPollServer'
-        params = {'access_token': self.token, 'v': '5.131', 'group_id': group_id}
-        async with self.session.get(get_album_photos_url, params=params) as res:
-            res.raise_for_status()
-            response = json.loads(await res.text())
-            key = response['response']['key']
-            server = response['response']['server']
-            ts = response['response']['ts']
-            return key, server, ts
-
     async def send_message(
             self,
             user_id: int,
