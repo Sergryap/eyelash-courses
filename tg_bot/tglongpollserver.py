@@ -50,6 +50,8 @@ class TgLongPollServer:
 
     async def listen_server(self):
         async with aiohttp.ClientSession() as session:
+            self.api.session = session
+            first_connect = True
             while True:
                 try:
                     await asyncio.sleep(0.1)
@@ -63,10 +65,11 @@ class TgLongPollServer:
                     event = await self.get_cleaned_event(update)
                     if not event:
                         continue
-                    self.api.session = session
                     await self.handle_event(self.api, event)
                 except ConnectionError:
-                    sleep(5)
+                    t = 0 if first_connect else 5
+                    first_connect = False
+                    sleep(t)
                     logger.warning(f'Соединение было прервано', stack_info=True)
                     continue
                 except client_exceptions.ClientResponseError as err:

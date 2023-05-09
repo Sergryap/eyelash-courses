@@ -31,6 +31,7 @@ class LongPollServer:
         async with aiohttp.ClientSession() as session:
             key, server, ts = await self.get_long_poll_server(session)
             self.api.session = session
+            first_connect = True
             while True:
                 try:
                     params = {'act': 'a_check', 'key': key, 'ts': ts, 'wait': 25}
@@ -52,7 +53,9 @@ class LongPollServer:
                         await asyncio.sleep(0.2)
                         await self.handle_event(self.api, event)
                 except ConnectionError as err:
-                    sleep(5)
+                    t = 0 if first_connect else 5
+                    first_connect = False
+                    sleep(t)
                     logger.warning(f'Соединение было прервано: {err}', stack_info=True)
                     key, server, ts = await self.get_long_poll_server(session)
                     continue
