@@ -2,21 +2,21 @@ import asyncio
 import aiohttp
 import logging
 import json
-import redis
 from aiohttp import client_exceptions
 from time import sleep
+from vk_bot.vk_api import VkApi
 
 logger = logging.getLogger('telegram')
 
 
 class LongPollServer:
-    def __init__(self, vk_group_token: str, redis_db: redis.Redis, group_id: int, handle_event: callable):
-        self.token = vk_group_token
-        self.redis_db = redis_db
-        self.group_id = group_id
+
+    url = 'https://api.vk.com/method/groups.getLongPollServer'
+
+    def __init__(self, api: VkApi, group_id: int, handle_event: callable):
+        self.api = api
         self.handle_event = handle_event
-        self.vk_api_params = {'access_token': vk_group_token, 'v': '5.131', 'group_id': group_id}
-        self.url = 'https://api.vk.com/method/groups.getLongPollServer'
+        self.vk_api_params = {'access_token': api.token, 'v': '5.131', 'group_id': group_id}
 
     async def get_long_poll_server(self, session: aiohttp.ClientSession):
         async with session.get(self.url, params=self.vk_api_params) as res:
@@ -30,7 +30,7 @@ class LongPollServer:
     async def listen_server(self):
         async with aiohttp.ClientSession() as session:
             key, server, ts = await self.get_long_poll_server(session)
-            connect = {'session': session, 'token': self.token, 'redis_db': self.redis_db}
+            self.api.session = session
             while True:
                 try:
                     params = {'act': 'a_check', 'key': key, 'ts': ts, 'wait': 25}
@@ -50,7 +50,7 @@ class LongPollServer:
                         if event['type'] != 'message_new':
                             continue
                         await asyncio.sleep(0.2)
-                        await self.handle_event(connect, event)
+                        await self.handle_event(self.api, event)
                 except ConnectionError as err:
                     sleep(5)
                     logger.warning(f'Соединение было прервано: {err}', stack_info=True)

@@ -9,6 +9,7 @@ from tg_bot.tg_bot import handle_event as tg_event_handler
 from vk_bot.longpollserver import LongPollServer
 from tg_bot.tglongpollserver import TgLongPollServer
 from tg_bot.tg_api import TgApi
+from vk_bot.vk_api import VkApi
 
 
 class Command(BaseCommand):
@@ -24,13 +25,15 @@ def start_vk_bot():
     logger = logging.getLogger('telegram')
     logger.warning('Боты VK и TG "eyelash-courses" запущены')
 
-    vk_connect = LongPollServer(
+    vk_api = VkApi(
         vk_group_token=settings.VK_TOKEN,
         redis_db=settings.REDIS_DB,
+    )
+    vk_connect = LongPollServer(
+        api=vk_api,
         group_id=settings.VK_GROUP_ID,
         handle_event=vk_event_handler
     )
-
     tg_api = TgApi(
         tg_token=settings.TG_TOKEN,
         redis_db=settings.REDIS_DB,
