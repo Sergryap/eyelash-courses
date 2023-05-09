@@ -8,6 +8,7 @@ from vk_bot.async_longpoll import event_handler as vk_event_handler
 from tg_bot.tg_bot import handle_event as tg_event_handler
 from vk_bot.longpollserver import LongPollServer
 from tg_bot.tglongpollserver import TgLongPollServer
+from tg_bot.tg_api import TgApi
 
 
 class Command(BaseCommand):
@@ -29,9 +30,13 @@ def start_vk_bot():
         group_id=settings.VK_GROUP_ID,
         handle_event=vk_event_handler
     )
-    tg_connect = TgLongPollServer(
+
+    tg_api = TgApi(
         tg_token=settings.TG_TOKEN,
         redis_db=settings.REDIS_DB,
+    )
+    tg_connect = TgLongPollServer(
+        api=tg_api,
         handle_event=tg_event_handler
     )
 

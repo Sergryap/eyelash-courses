@@ -2,20 +2,20 @@ import asyncio
 import aiohttp
 import logging
 import json
-import redis
 from aiohttp import client_exceptions
 from time import sleep
+from tg_bot.tg_api import TgApi
 
 logger = logging.getLogger('telegram')
 
 
 class TgLongPollServer:
+    """Класс для получения событий от сервера Tg и отправки их в главный обработчик событий handle_event"""
 
-    def __init__(self, tg_token: str, redis_db: redis.Redis, handle_event: callable):
-        self.token = tg_token
-        self.redis_db = redis_db
+    def __init__(self, api: TgApi, handle_event: callable):
+        self.api = api
         self.handle_event = handle_event
-        self.url = f'https://api.telegram.org/bot{tg_token}/getUpdates'
+        self.url = f'https://api.telegram.org/bot{api.token}/getUpdates'
         self.params = {'timeout': 25, 'limit': 1}
 
     @staticmethod
@@ -50,7 +50,6 @@ class TgLongPollServer:
 
     async def listen_server(self):
         async with aiohttp.ClientSession() as session:
-            connect = {'session': session, 'token': self.token, 'redis_db': self.redis_db}
             while True:
                 try:
                     await asyncio.sleep(0.1)
@@ -64,7 +63,8 @@ class TgLongPollServer:
                     event = await self.get_cleaned_event(update)
                     if not event:
                         continue
-                    await self.handle_event(connect, event)
+                    self.api.session = session
+                    await self.handle_event(self.api, event)
                 except ConnectionError:
                     sleep(5)
                     logger.warning(f'Соединение было прервано', stack_info=True)
