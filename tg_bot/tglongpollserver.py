@@ -1,20 +1,18 @@
-import asyncio
-import aiohttp
 import logging
 import json
 from aiohttp import client_exceptions
 from time import sleep
 from tg_bot.tg_api import TgApi
+from courses.general_functions import LongPollServer, StartAsyncSession
 
 logger = logging.getLogger('telegram')
 
 
-class TgLongPollServer:
+class TgLongPollServer(LongPollServer):
     """Класс для получения событий от сервера Tg и отправки их в главный обработчик событий handle_event"""
 
     def __init__(self, api: TgApi, handle_event: callable):
-        self.api = api
-        self.handle_event = handle_event
+        super().__init__(api, handle_event)
         self.url = f'https://api.telegram.org/bot{api.token}/getUpdates'
         self.params = {'timeout': 25, 'limit': 1}
 
@@ -51,12 +49,9 @@ class TgLongPollServer:
         return
 
     async def listen_server(self):
-        async with aiohttp.ClientSession() as session:
-            self.api.session = session
-            first_connect = True
+        async with StartAsyncSession(self) as session:
             while True:
                 try:
-                    await asyncio.sleep(0.1)
                     async with session.get(self.url, params=self.params) as res:
                         res.raise_for_status()
                         updates = json.loads(await res.text())
@@ -69,8 +64,8 @@ class TgLongPollServer:
                         continue
                     await self.handle_event(self.api, event)
                 except ConnectionError:
-                    t = 0 if first_connect else 5
-                    first_connect = False
+                    t = 0 if self.first_connect else 5
+                    self.first_connect = False
                     sleep(t)
                     logger.warning(f'Соединение было прервано', stack_info=True)
                     continue
@@ -83,3 +78,4 @@ class TgLongPollServer:
                 except Exception as err:
                     logger.exception(err)
                     print(err)
+                    self.first_connect = True

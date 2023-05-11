@@ -1,4 +1,5 @@
 import pickle
+import aiohttp
 
 from django.db.models import Window
 from django.db.models.functions import DenseRank, Random
@@ -9,6 +10,9 @@ from django.core.mail import send_mail
 from eyelash_courses.logger import send_message as send_tg_msg
 from textwrap import dedent
 from django.db.models import Q
+from abc import ABC, abstractmethod
+from vk_bot.vk_api import VkApi
+from tg_bot.tg_api import TgApi
 
 
 def set_random_images(number):
@@ -138,3 +142,28 @@ def set_courses_redis():
     redis.expire('future_courses', 1800)
     set_random_images(13)
     return all_courses
+
+
+class LongPollServer:
+
+    @abstractmethod
+    def __init__(self, api: TgApi | VkApi, handle_event: callable):
+        self.api = api
+        self.handle_event = handle_event
+        self.first_connect = True
+
+    @abstractmethod
+    async def listen_server(self):
+        pass
+
+
+class StartAsyncSession:
+    def __init__(self, instance: LongPollServer):
+        self.instance = instance
+
+    async def __aenter__(self):
+        self.instance.api.session = aiohttp.ClientSession()
+        return self.instance.api.session
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.instance.api.session.close()
