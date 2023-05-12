@@ -3,7 +3,7 @@ import json
 from aiohttp import client_exceptions
 from time import sleep
 from tg_bot.tg_api import TgApi
-from courses.general_functions import LongPollServer, StartAsyncSession
+from courses.general_functions import LongPollServer, StartAsyncSession, TgEvent
 
 logger = logging.getLogger('telegram')
 
@@ -48,7 +48,7 @@ class TgLongPollServer(LongPollServer):
         # return
         return
 
-    async def listen_server(self):
+    async def listen_server_old(self):
         async with StartAsyncSession(self) as session:
             while True:
                 try:
@@ -79,3 +79,18 @@ class TgLongPollServer(LongPollServer):
                     logger.exception(err)
                     print(err)
                     self.first_connect = True
+
+    async def listen_server(self):
+        async with StartAsyncSession(self):
+            while True:
+                async with TgEvent(self) as response:
+                    response.raise_for_status()
+                    updates = json.loads(await response.text())
+                if not updates.get('result') or not updates['ok']:
+                    continue
+                update = updates['result'][-1]
+                self.params['offset'] = update['update_id'] + 1
+                event = await self.get_cleaned_event(update)
+                if not event:
+                    continue
+                await self.handle_event(self.api, event)

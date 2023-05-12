@@ -4,7 +4,7 @@ import json
 from aiohttp import client_exceptions
 from time import sleep
 from vk_bot.vk_api import VkApi
-from courses.general_functions import LongPollServer, StartAsyncSession
+from courses.general_functions import LongPollServer, StartAsyncSession, VkEvent
 
 logger = logging.getLogger('telegram')
 
@@ -21,12 +21,12 @@ class VkLongPollServer(LongPollServer):
         async with session.get(self.url, params=self.vk_api_params) as res:
             res.raise_for_status()
             response = json.loads(await res.text())
-            key = response['response']['key']
-            server = response['response']['server']
-            ts = response['response']['ts']
-            return key, server, ts
+        key = response['response']['key']
+        server = response['response']['server']
+        ts = response['response']['ts']
+        return key, server, ts
 
-    async def listen_server(self):
+    async def listen_server_old(self):
         async with StartAsyncSession(self) as session:
             key, server, ts = await self.get_long_poll_server(session)
             while True:
@@ -63,3 +63,23 @@ class VkLongPollServer(LongPollServer):
                     logger.exception(err)
                     key, server, ts = await self.get_long_poll_server(session)
                     self.first_connect = True
+
+    async def listen_server(self):
+        async with StartAsyncSession(self):
+            while True:
+                async with VkEvent(self) as res:
+                    res.raise_for_status()
+                    response = json.loads(await res.text())
+                if 'failed' in response:
+                    if response['failed'] == 1:
+                        self.ts = response['ts']
+                    elif response['failed'] == 2:
+                        self.key, __, __ = await self.get_params()
+                    elif response['failed'] == 3:
+                        self.key, __, self.ts = await self.get_params()
+                    continue
+                self.ts = response['ts']
+                for event in response['updates']:
+                    if event['type'] != 'message_new':
+                        continue
+                    await self.handle_event(self.api, event)
