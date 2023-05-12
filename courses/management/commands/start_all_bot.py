@@ -15,13 +15,20 @@ from vk_bot.vk_api import VkApi
 class Command(BaseCommand):
     def handle(self, *args, **options):
         try:
-            start_vk_bot()
+            start_all_bots()
         except Exception as exc:
             print(exc)
             raise
 
 
-def start_vk_bot():
+async def get_bot_tasks(vk_connect, tg_connect):
+    tasks = []
+    for connect in [vk_connect, tg_connect]:
+        tasks.append(asyncio.ensure_future(connect.listen_server()))
+    await asyncio.gather(*tasks, return_exceptions=True)
+
+
+def start_all_bots():
     logger = logging.getLogger('telegram')
     logger.warning('Боты VK и TG "eyelash-courses" запущены')
 
@@ -43,7 +50,9 @@ def start_vk_bot():
         handle_event=tg_event_handler
     )
 
-    loop = asyncio.get_event_loop()
-    for connect in [vk_connect, tg_connect]:
-        asyncio.ensure_future(connect.listen_server())
-    loop.run_forever()
+    asyncio.run(get_bot_tasks(vk_connect, tg_connect))
+
+    # loop = asyncio.get_event_loop()
+    # for connect in [vk_connect, tg_connect]:
+    #     asyncio.ensure_future(connect.listen_server())
+    # loop.run_forever()
