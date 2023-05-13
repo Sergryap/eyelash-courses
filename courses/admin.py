@@ -12,13 +12,7 @@ from import_export import resources
 from import_export.fields import Field
 from import_export.admin import ExportMixin
 from asgiref.sync import async_to_sync
-from vk_bot.vk_lib import (
-    upload_photos_in_album,
-    delete_photos,
-    create_vk_album,
-    edit_vk_album,
-    make_main_album_photo
-)
+from bots import VkApi
 from courses.management.commands._get_preview import get_preview
 # from .tasks import course_admin_save_formset, upgrade_courses_images, upgrade_course_image
 
@@ -194,6 +188,7 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
         'short_description',
         'description'
     ]
+    vk_api = VkApi(vk_user_token=settings.VK_USER_TOKEN, vk_group_id=settings.VK_GROUP_ID)
 
     @admin.display(description='Фото из курса')
     def get_course_preview(self, obj):
@@ -217,11 +212,11 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
         super().save_model(request, obj, form, change)
         settings.REDIS_DB.set('all_courses', pickle.dumps(0))
         if not obj.vk_album_id:
-            album = async_to_sync(create_vk_album)(obj)
+            album = async_to_sync(self.vk_api.create_vk_album)(obj)
             obj.vk_album_id = album['response']['id']
             obj.save()
         else:
-            async_to_sync(edit_vk_album)(obj)
+            async_to_sync(self.vk_api.edit_vk_album)(obj)
         # upgrade_courses_images.delay(obj)
         images = obj.images.all()
         if images:
@@ -231,7 +226,7 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
             vk_album_id = obj.vk_album_id
             upload_photos = get_upload_photos(images)
             if upload_photos:
-                async_to_sync(upload_photos_in_album)(upload_photos, vk_album_id)
+                async_to_sync(self.vk_api.upload_photos_in_album)(upload_photos, vk_album_id)
 
     def delete_model(self, request, obj):
         super().delete_model(request, obj)
@@ -246,7 +241,7 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
         if formset.deleted_objects:
             for deleted_image in formset.deleted_objects:
                 if deleted_image.image_vk_id:
-                    async_to_sync(delete_photos)(deleted_image)
+                    async_to_sync(self.vk_api.delete_photos)(deleted_image)
         instances = formset.save(commit=False)
         # course_admin_save_formset.delay(instances)
         images = [image for image in instances if isinstance(image, CourseImage)]
@@ -258,7 +253,7 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
             vk_album_id = course_obj.vk_album_id
             upload_photos = get_upload_photos(images)
             if upload_photos:
-                async_to_sync(upload_photos_in_album)(upload_photos, vk_album_id)
+                async_to_sync(self.vk_api.upload_photos_in_album)(upload_photos, vk_album_id)
 
             # Установка главной фото альбома ВК
             course = list(Course.objects.filter(pk=course_obj.pk))
@@ -271,11 +266,11 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
             else:
                 main_image = images[0]
             album_main_image_id = main_image.image_vk_id.split('_')[1]
-            async_to_sync(make_main_album_photo)(vk_album_id, album_main_image_id)
+            async_to_sync(self.vk_api.make_main_album_photo)(vk_album_id, album_main_image_id)
 
         for image in images:
             if image.image_vk_id and not image.upload_vk:
-                async_to_sync(delete_photos)(image)
+                async_to_sync(self.vk_api.delete_photos)(image)
                 image.image_vk_id = None
                 image.save()
 
@@ -290,6 +285,7 @@ class ImageAdmin(SortableAdminMixin, admin.ModelAdmin, PreviewMixin):
     list_display_links = ['course']
     readonly_fields = ['get_image_preview', 'image_vk_id']
     list_filter = ['course__program', 'course']
+    vk_api = VkApi(vk_user_token=settings.VK_USER_TOKEN, vk_group_id=settings.VK_GROUP_ID)
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
@@ -297,10 +293,11 @@ class ImageAdmin(SortableAdminMixin, admin.ModelAdmin, PreviewMixin):
         get_preview(obj)
         get_preview(obj, preview_attr='big_preview', width=370, height=320)
         vk_album_id = obj.course.vk_album_id
+
         if not obj.image_vk_id and obj.upload_vk:
-            async_to_sync(upload_photos_in_album)([obj], vk_album_id)
+            async_to_sync(self.vk_api.upload_photos_in_album)([obj], vk_album_id)
         if obj.image_vk_id and not obj.upload_vk:
-            async_to_sync(delete_photos)(obj)
+            async_to_sync(self.vk_api.delete_photos)(obj)
             obj.image_vk_id = None
             obj.save()
 

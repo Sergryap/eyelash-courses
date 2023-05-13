@@ -2,10 +2,8 @@ import logging
 import asyncio
 
 from django.core.management import BaseCommand
-from vk_bot.async_longpoll import event_handler
-from vk_bot.vklongpollserver import VkLongPollServer
-from vk_bot.vk_api import VkApi
 from django.conf import settings
+from bots import vk_event_handler, VkLongPollServer, VkApi
 
 
 class Command(BaseCommand):
@@ -29,7 +27,7 @@ def start_vk_bot():
     connect = VkLongPollServer(
         api=api,
         group_id=settings.VK_GROUP_ID,
-        handle_event=event_handler
+        handle_event=vk_event_handler
     )
 
     loop = asyncio.get_event_loop()

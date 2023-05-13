@@ -3,8 +3,8 @@ import logging
 import json
 from aiohttp import client_exceptions
 from time import sleep
-from vk_bot.vk_api import VkApi
-from courses.general_functions import LongPollServer, StartAsyncSession, VkEvent
+from .vk_api import VkApi
+from bots.general import LongPollServer, StartAsyncSession, VkEvent
 
 logger = logging.getLogger('telegram')
 

@@ -4,12 +4,7 @@ import asyncio
 from django.conf import settings
 from django.core.management import BaseCommand
 
-from vk_bot.async_longpoll import event_handler as vk_event_handler
-from tg_bot.tg_bot import handle_event as tg_event_handler
-from vk_bot.vklongpollserver import VkLongPollServer
-from tg_bot.tglongpollserver import TgLongPollServer
-from tg_bot.tg_api import TgApi
-from vk_bot.vk_api import VkApi
+from bots import TgLongPollServer, VkLongPollServer, TgApi, VkApi, tg_event_handler, vk_event_handler
 
 
 class Command(BaseCommand):

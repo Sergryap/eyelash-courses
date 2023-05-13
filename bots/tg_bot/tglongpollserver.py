@@ -2,8 +2,8 @@ import logging
 import json
 from aiohttp import client_exceptions
 from time import sleep
-from tg_bot.tg_api import TgApi
-from courses.general_functions import LongPollServer, StartAsyncSession, TgEvent
+from .tg_api import TgApi
+from bots.general import LongPollServer, StartAsyncSession, TgEvent
 
 logger = logging.getLogger('telegram')
 

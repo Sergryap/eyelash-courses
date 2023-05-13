@@ -2,10 +2,8 @@ import logging
 import asyncio
 
 from django.core.management import BaseCommand
-from tg_bot.tg_bot import handle_event
-from tg_bot.tglongpollserver import TgLongPollServer
 from django.conf import settings
-from tg_bot.tg_api import TgApi
+from bots import tg_event_handler, TgLongPollServer, TgApi
 
 
 class Command(BaseCommand):
@@ -27,7 +25,7 @@ def start_tg_bot():
     )
     connect = TgLongPollServer(
         api=api,
-        handle_event=handle_event
+        handle_event=tg_event_handler
     )
 
     loop = asyncio.get_event_loop()

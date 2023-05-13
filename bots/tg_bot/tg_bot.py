@@ -10,7 +10,7 @@ from more_itertools import chunked
 from .keyboard import get_callback_keyboard, get_course_buttons, get_course_menu_buttons, check_phone_button
 from textwrap import dedent
 from django.conf import settings
-from tg_bot.tg_api import TgApi
+from .tg_api import TgApi
 
 
 logger = logging.getLogger('telegram')

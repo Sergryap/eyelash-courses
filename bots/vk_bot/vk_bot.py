@@ -4,7 +4,7 @@ import json
 import logging
 import re
 
-from vk_bot.vk_api import VkApi
+from .vk_api import VkApi
 from django.conf import settings
 from textwrap import dedent
 from asgiref.sync import sync_to_async
@@ -22,7 +22,7 @@ from .buttons import (
 logger = logging.getLogger('telegram')
 
 
-async def event_handler(api: VkApi, event: dict):
+async def handle_event(api: VkApi, event: dict):
     """Главный обработчик событий"""
 
     user_id = event['object']['message']['from_id']
