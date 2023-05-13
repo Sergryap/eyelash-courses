@@ -36,7 +36,7 @@ class StartAsyncSession:
         await self.instance.api.session.close()
 
 
-class VkEvent:
+class UpdateVkEventSession:
 
     """Класс контекстного менеджера для получения события VK"""
 
@@ -87,7 +87,7 @@ class VkEvent:
             return True
 
 
-class TgEvent:
+class UpdateTgEventSession:
 
     """Класс контекстного менеджера для получения события TG"""
 

@@ -122,3 +122,38 @@ class TgApi:
         async with self.session.get(url, params=params) as res:
             res.raise_for_status()
             return json.loads(await res.text())
+
+
+class TgEvent:
+    def __init__(self, event):
+        if event.get('message'):
+            event_info = event['message']
+            chat_event_info = event_info['chat']
+            self.user_reply = event_info['text']
+            self.chat_id = chat_event_info['id']
+            self.first_name = chat_event_info['first_name']
+            self.last_name = chat_event_info.get('last_name', '')
+            self.username = chat_event_info.get('username', '')
+            self.message_id = event_info['message_id']
+            self.callback_query = False
+            self.message = True
+
+        elif event.get('callback_query'):
+            event_info = event['callback_query']
+            chat_event_info = event_info['message']['chat']
+            self.user_reply = event_info['data']
+            self.chat_id = chat_event_info['id']
+            self.first_name = chat_event_info['first_name']
+            self.last_name = chat_event_info.get('last_name', '')
+            self.username = chat_event_info.get('username', '')
+            self.callback_query_id = event_info['id']
+            self.message_id = event_info['message']['message_id']
+            self.callback_query = True
+            self.message = False
+
+        # elif
+        # При необходимости добавить новые типы событий
+        # return
+
+        else:
+            self.unknown_event = True
