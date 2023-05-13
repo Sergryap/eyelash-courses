@@ -1,7 +1,7 @@
 from django.core.management import BaseCommand
 from courses.models import CourseImage
 from ._get_preview import get_preview
-from courses.views import set_courses_redis
+from courses.general_functions import set_courses_redis
 
 
 class Command(BaseCommand):
