@@ -15,24 +15,20 @@ class VkLongPollServer(LongPollServer):
         super().__init__(api, handle_event)
         self.vk_api_params = {'access_token': api.token, 'v': '5.131', 'group_id': group_id}
 
-    async def listen_server(self):
+    async def listen_server(self, *, loop=None):
         async with StartAsyncSession(self):
             while True:
-                async with UpdateVkEventSession(self) as response:
-                    updates = json.loads(await response.text())
-                if 'failed' in updates:
-                    if updates['failed'] == 1:
-                        self.ts = updates['ts']
-                    elif updates['failed'] == 2:
-                        self.key, __, __ = await self.get_params()
-                    elif updates['failed'] == 3:
-                        self.key, __, self.ts = await self.get_params()
-                    continue
-                self.ts = updates['ts']
-                for event in updates['updates']:
-                    if event['type'] != 'message_new':
+                async with UpdateVkEventSession(self) as updates:
+                    if 'failed' in updates:
+                        if updates['failed'] == 1:
+                            self.ts = updates['ts']
+                        elif updates['failed'] == 2:
+                            self.key, __, __ = await self.get_params()
+                        elif updates['failed'] == 3:
+                            self.key, __, self.ts = await self.get_params()
                         continue
-
-                    async def coro():
-                        await self.handle_event(self.api, event)
-                    asyncio.ensure_future(coro())
+                    self.ts = updates['ts']
+                    for event in updates['updates']:
+                        if event['type'] != 'message_new':
+                            continue
+                        await self.insert_handle_event_task(event, loop=loop)
