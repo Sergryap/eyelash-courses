@@ -1,3 +1,4 @@
+import asyncio
 import json
 import aiohttp
 import redis
@@ -25,6 +26,14 @@ class TgApi:
         async with self.session.get(url, params=params) as res:
             res.raise_for_status()
             return json.loads(await res.text())
+
+    async def send_message_later(self, chat_id, msg, *, interval, reply_markup=None, parse_mode=None):
+        """Отложенная отправка сообщения"""
+
+        async def coro():
+            await asyncio.sleep(interval)
+            await self.send_message(chat_id, msg, reply_markup=reply_markup, parse_mode=parse_mode)
+        return asyncio.ensure_future(coro())
 
     async def send_location(self, chat_id, *, lat, long, reply_markup=None):
         """Отправка локации через api TG"""

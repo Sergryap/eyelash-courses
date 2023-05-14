@@ -1,4 +1,5 @@
 import json
+import asyncio
 import aiohttp
 import requests
 import redis
@@ -55,6 +56,36 @@ class VkApi:
         async with self.session.post(send_message_url, params=params) as res:
             res.raise_for_status()
             return json.loads(await res.text())
+
+    async def send_message_later(
+            self,
+            interval: int,
+            user_id: int,
+            message: str,
+            user_ids: str = None,
+            keyboard: str = None,
+            attachment: str = None,
+            payload: str = None,
+            sticker_id: int = None,
+            lat: str = None,
+            long: str = None,
+    ):
+        """Отложенная отправка сообщения"""
+
+        async def coro():
+            await asyncio.sleep(interval)
+            await self.send_message(
+                user_id,
+                message,
+                user_ids,
+                keyboard,
+                attachment,
+                payload,
+                sticker_id,
+                lat,
+                long,
+            )
+        return asyncio.ensure_future(coro())
 
     async def get_user(self, user_ids: str):
         get_users_url = 'https://api.vk.com/method/users.get'
