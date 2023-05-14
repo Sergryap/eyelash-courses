@@ -2,6 +2,7 @@ import json
 import logging
 import random
 import re
+import asyncio
 
 from courses.models import Client, Course, Office
 from django.utils import timezone
@@ -89,6 +90,9 @@ async def send_main_menu_answer(api: TgApi, event: TgEvent):
                 parse_mode='Markdown',
                 reply_markup=json.dumps({'inline_keyboard': [[{'text': '☰ MENU', 'callback_data': 'start'}]]})
             )
+            canceled_task = globals().get(f'remind_record_tg_{event.chat_id}_{course.pk}')
+            if canceled_task:
+                canceled_task.cancel()
             await sync_to_async(course.clients.remove)(user_instance)
             await sync_to_async(course.save)()
             logger_msg = f'''
@@ -150,12 +154,35 @@ async def entry_user_to_course(api: TgApi, event: TgEvent, user, course):
          _Спасибо, что выбрали нашу школу._
          _В ближайшее время мы свяжемся с вами для подтверждения вашего участия._
          '''
+    office = await Office.objects.async_first()
+    reminder_text = f'''
+         {event.first_name}, напоминаем,
+         что вы записаны на курс:
+         *{course.name.upper()}*
+         _Дата курса: {course.scheduled_at.strftime("%d.%m.%Y")}._
+         _Время начала: {course.scheduled_at.strftime("%H:%M")}._
+         _Адрес: {office.address}_
+         _Спасибо, что выбрали нашу школу._
+         _Будем рады вас видеть!_
+         '''
+
     await api.send_message(
         chat_id=event.chat_id,
         msg=dedent(text),
         reply_markup=json.dumps({'inline_keyboard': [[{'text': '☰ MENU', 'callback_data': 'start'}]]}),
         parse_mode='Markdown'
     )
+
+    interval = (course.scheduled_at - timezone.now()).total_seconds() - 5 * 3600 - 86400 + 6 * 3600
+    if interval > 0:
+        globals()[f'remind_record_tg_{event.chat_id}_{course.pk}'] = (
+            await api.send_message_later(
+                chat_id=event.chat_id,
+                msg=dedent(reminder_text),
+                reply_markup=json.dumps({'inline_keyboard': [[{'text': '☰ MENU', 'callback_data': 'start'}]]}),
+                parse_mode='Markdown',
+                interval=interval)
+        )
     await sync_to_async(course.clients.add)(user)
     await sync_to_async(course.save)()
     redis_phone = api.redis_db.get(f'tg_{event.chat_id}_phone')

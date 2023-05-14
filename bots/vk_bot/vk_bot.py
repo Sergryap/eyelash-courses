@@ -303,6 +303,9 @@ async def send_main_menu_answer(api: VkApi, event: dict):
                 message=dedent(text),
                 keyboard=await get_menu_button(color='secondary', inline=True)
             )
+            canceled_task = globals().get(f'remind_record_vk_{user_id}_{course.pk}')
+            if canceled_task:
+                canceled_task.cancel()
             await sync_to_async(course.clients.remove)(user_instance)
             await sync_to_async(course.save)()
             logger.warning(f'Клиент https://vk.com/id{user_id} отменил запись на курс **{course.name.upper()}**')
@@ -388,11 +391,32 @@ async def entry_user_to_course(api: VkApi, user_id, user_info, user_instance, co
          Спасибо, что выбрали нашу школу.
          В ближайшее время мы свяжемся с вами для подтверждения вашего участия.
          '''
+    office = await Office.objects.async_first()
+    reminder_text = f'''
+         {name}, напоминаем,
+         что вы записаны на курс:
+         **{course.name.upper()}**
+         Дата курса: {course.scheduled_at.strftime("%d.%m.%Y")}.
+         Время начала: {course.scheduled_at.strftime("%H:%M")}.
+         Адрес: {office.address}
+         Спасибо, что выбрали нашу школу.
+         Будем рады вас видеть!
+         '''
     await api.send_message(
         user_id=user_id,
         message=dedent(text),
         keyboard=await get_menu_button(color='secondary', inline=True)
     )
+    interval = (course.scheduled_at - timezone.now()).total_seconds() - 5 * 3600 - 86400 + 6 * 3600
+    if interval > 0:
+        globals()[f'remind_record_vk_{user_id}_{course.pk}'] = (
+            await api.send_message_later(
+                interval=interval,
+                user_id=user_id,
+                message=dedent(reminder_text),
+                keyboard=await get_menu_button(color='secondary', inline=True)
+            )
+        )
     await sync_to_async(course.clients.add)(user_instance)
     await sync_to_async(course.save)()
     client_vk = f'https://vk.com/id{user_id}'
