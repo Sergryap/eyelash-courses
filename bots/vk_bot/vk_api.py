@@ -16,13 +16,15 @@ class VkApi:
             vk_user_token: str = None,
             vk_group_id: int = None,
             redis_db: redis.Redis = None,
-            session: aiohttp.ClientSession = None
+            session: aiohttp.ClientSession = None,
+            loop=None
     ):
         self.session = session
         self.token = vk_group_token
         self.user_token = vk_user_token
         self.vk_group_id = vk_group_id
         self.redis_db = redis_db
+        self.loop = loop
 
     async def send_message(
             self,
@@ -85,7 +87,7 @@ class VkApi:
                 lat,
                 long,
             )
-        return asyncio.ensure_future(coro())
+        return asyncio.ensure_future(coro(), loop=self.loop)
 
     async def get_user(self, user_ids: str):
         get_users_url = 'https://api.vk.com/method/users.get'

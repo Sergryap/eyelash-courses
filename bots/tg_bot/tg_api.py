@@ -6,10 +6,11 @@ import redis
 
 class TgApi:
     """Класс API методов Tg"""
-    def __init__(self, tg_token: str, redis_db: redis.Redis, session: aiohttp.ClientSession = None):
+    def __init__(self, tg_token: str, redis_db: redis.Redis, session: aiohttp.ClientSession = None, loop=None):
         self.session = session
         self.token = tg_token
         self.redis_db = redis_db
+        self.loop = loop
 
     async def send_message(self, chat_id, msg, *, reply_markup=None, parse_mode=None):
         """Отправка сообщения через api TG"""
@@ -33,7 +34,7 @@ class TgApi:
         async def coro():
             await asyncio.sleep(interval)
             await self.send_message(chat_id, msg, reply_markup=reply_markup, parse_mode=parse_mode)
-        return asyncio.ensure_future(coro())
+        return asyncio.ensure_future(coro(), loop=self.loop)
 
     async def send_location(self, chat_id, *, lat, long, reply_markup=None):
         """Отправка локации через api TG"""
