@@ -31,23 +31,23 @@ def start_all_bots():
         vk_group_token=settings.VK_TOKEN,
         redis_db=settings.REDIS_DB,
     )
+    tg_api = TgApi(
+        tg_token=settings.TG_TOKEN,
+        redis_db=settings.REDIS_DB,
+    )
+    loop = asyncio.get_event_loop()
+    vk_api.loop = loop
+    tg_api.loop = loop
     vk_connect = VkLongPollServer(
         api=vk_api,
         group_id=settings.VK_GROUP_ID,
         handle_event=vk_event_handler
     )
-    tg_api = TgApi(
-        tg_token=settings.TG_TOKEN,
-        redis_db=settings.REDIS_DB,
-    )
     tg_connect = TgLongPollServer(
         api=tg_api,
         handle_event=tg_event_handler
     )
-
-    asyncio.run(get_bot_tasks(vk_connect, tg_connect))
-
-    # loop = asyncio.get_event_loop()
-    # for connect in [vk_connect, tg_connect]:
-    #     asyncio.ensure_future(connect.listen_server())
-    # loop.run_forever()
+    # asyncio.run(get_bot_tasks(vk_connect, tg_connect))
+    for connect in [vk_connect, tg_connect]:
+        asyncio.ensure_future(connect.listen_server(loop=loop), loop=loop)
+    loop.run_forever()
