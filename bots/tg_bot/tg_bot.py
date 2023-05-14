@@ -179,7 +179,6 @@ async def entry_user_to_course(api: TgApi, event: TgEvent, user, course):
             await api.send_message_later(
                 chat_id=event.chat_id,
                 msg=dedent(reminder_text),
-                reply_markup=json.dumps({'inline_keyboard': [[{'text': '☰ MENU', 'callback_data': 'start'}]]}),
                 parse_mode='Markdown',
                 interval=interval)
         )
