@@ -19,8 +19,13 @@ class LongPollServer(ABC):
         self.first_connect = True
         self.start = True
 
+    async def insert_handle_event_task(self, event, *, loop=None):
+        async def additional_coro():
+            await self.handle_event(self.api, event)
+        asyncio.ensure_future(additional_coro(), loop=loop)
+
     @abstractmethod
-    async def listen_server(self):
+    async def listen_server(self, *, loop=None):
         pass
 
 
@@ -51,7 +56,9 @@ class UpdateVkEventSession:
             self.instance.start = False
             self.instance.get_params = self.get_params
         params = {'act': 'a_check', 'key': self.instance.key, 'ts': self.instance.ts, 'wait': 25}
-        return await self.instance.api.session.get(self.instance.server, params=params)
+        response = await self.instance.api.session.get(self.instance.server, params=params)
+        response.raise_for_status()
+        return json.loads(await response.text())
 
     async def get_params(self):
         async with self.instance.api.session.get(self.url, params=self.instance.vk_api_params) as res:
@@ -95,7 +102,9 @@ class UpdateTgEventSession:
         self.instance = instance
 
     async def __aenter__(self):
-        return await self.instance.api.session.get(self.instance.url, params=self.instance.params)
+        response = await self.instance.api.session.get(self.instance.url, params=self.instance.params)
+        response.raise_for_status()
+        return json.loads(await response.text())
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         if isinstance(exc_val, ConnectionError):
