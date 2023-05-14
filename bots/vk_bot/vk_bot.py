@@ -407,13 +407,16 @@ async def entry_user_to_course(api: VkApi, user_id, user_info, user_instance, co
         message=dedent(text),
         keyboard=await get_menu_button(color='secondary', inline=True)
     )
-    interval = (course.scheduled_at - timezone.now()).total_seconds() - 5 * 3600 - 86400 + 6 * 3600
+    remind_before = 86400 - 6 * 3600
+    time_offset = 5 * 3600
+    time_to_start = (course.scheduled_at - timezone.now()).total_seconds()
+    interval = time_to_start - time_offset - remind_before
     if interval > 0:
         globals()[f'remind_record_vk_{user_id}_{course.pk}'] = (
             await api.send_message_later(
+                user_id,
+                dedent(reminder_text),
                 interval=interval,
-                user_id=user_id,
-                message=dedent(reminder_text),
                 keyboard=await get_menu_button(color='secondary', inline=True)
             )
         )

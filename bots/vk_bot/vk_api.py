@@ -61,9 +61,13 @@ class VkApi:
 
     async def send_message_later(
             self,
-            interval: int,
             user_id: int,
             message: str,
+            /,
+            interval: int = None,
+            time_offset: int = None,
+            time_to_start: int = None,
+            remind_before: int = None,
             user_ids: str = None,
             keyboard: str = None,
             attachment: str = None,
@@ -74,8 +78,10 @@ class VkApi:
     ):
         """Отложенная отправка сообщения"""
 
+        timer = interval if interval else time_to_start - time_offset - remind_before
+
         async def coro():
-            await asyncio.sleep(interval)
+            await asyncio.sleep(timer)
             await self.send_message(
                 user_id,
                 message,

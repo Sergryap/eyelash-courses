@@ -172,15 +172,18 @@ async def entry_user_to_course(api: TgApi, event: TgEvent, user, course):
         reply_markup=json.dumps({'inline_keyboard': [[{'text': '☰ MENU', 'callback_data': 'start'}]]}),
         parse_mode='Markdown'
     )
-
-    interval = (course.scheduled_at - timezone.now()).total_seconds() - 5 * 3600 - 86400 + 6 * 3600
+    remind_before = 86400 - 6 * 3600
+    time_offset = 5 * 3600
+    time_to_start = (course.scheduled_at - timezone.now()).total_seconds()
+    interval = time_to_start - time_offset - remind_before
     if interval > 0:
         globals()[f'remind_record_tg_{event.chat_id}_{course.pk}'] = (
             await api.send_message_later(
-                chat_id=event.chat_id,
-                msg=dedent(reminder_text),
-                parse_mode='Markdown',
-                interval=interval)
+                event.chat_id,
+                dedent(reminder_text),
+                interval=interval,
+                parse_mode='Markdown'
+            )
         )
     await sync_to_async(course.clients.add)(user)
     await sync_to_async(course.save)()

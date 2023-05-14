@@ -28,11 +28,23 @@ class TgApi:
             res.raise_for_status()
             return json.loads(await res.text())
 
-    async def send_message_later(self, chat_id, msg, *, interval, reply_markup=None, parse_mode=None):
+    async def send_message_later(
+            self,
+            chat_id,
+            msg,
+            /,
+            interval: int = None,
+            time_offset: int = None,
+            time_to_start: int = None,
+            remind_before: int = None,
+            reply_markup=None,
+            parse_mode=None
+    ):
         """Отложенная отправка сообщения"""
+        timer = interval if interval else time_to_start - time_offset - remind_before
 
         async def coro():
-            await asyncio.sleep(interval)
+            await asyncio.sleep(timer)
             await self.send_message(chat_id, msg, reply_markup=reply_markup, parse_mode=parse_mode)
         return asyncio.ensure_future(coro(), loop=self.loop)
 
