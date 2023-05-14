@@ -1,5 +1,6 @@
 import logging
 import json
+import asyncio
 from .tg_api import TgApi, TgEvent
 from bots.general import LongPollServer, StartAsyncSession, UpdateTgEventSession
 
@@ -18,7 +19,6 @@ class TgLongPollServer(LongPollServer):
         async with StartAsyncSession(self):
             while True:
                 async with UpdateTgEventSession(self) as response:
-                    response.raise_for_status()
                     updates = json.loads(await response.text())
                 if not updates.get('result') or not updates['ok']:
                     continue
@@ -27,4 +27,7 @@ class TgLongPollServer(LongPollServer):
                 event = TgEvent(update)
                 if hasattr(event, 'unknown_event'):
                     continue
-                await self.handle_event(self.api, event)
+
+                async def coro():
+                    await self.handle_event(self.api, event)
+                asyncio.ensure_future(coro())

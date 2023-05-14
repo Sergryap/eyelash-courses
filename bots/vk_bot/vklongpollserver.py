@@ -1,5 +1,6 @@
 import logging
 import json
+import asyncio
 from .vk_api import VkApi
 from bots.general import LongPollServer, StartAsyncSession, UpdateVkEventSession
 
@@ -18,7 +19,6 @@ class VkLongPollServer(LongPollServer):
         async with StartAsyncSession(self):
             while True:
                 async with UpdateVkEventSession(self) as response:
-                    response.raise_for_status()
                     updates = json.loads(await response.text())
                 if 'failed' in updates:
                     if updates['failed'] == 1:
@@ -32,4 +32,7 @@ class VkLongPollServer(LongPollServer):
                 for event in updates['updates']:
                     if event['type'] != 'message_new':
                         continue
-                    await self.handle_event(self.api, event)
+
+                    async def coro():
+                        await self.handle_event(self.api, event)
+                    asyncio.ensure_future(coro())
