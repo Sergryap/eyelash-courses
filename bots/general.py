@@ -50,16 +50,16 @@ class UpdateVkEventSession:
         pass
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if exc_val:
+            self.instance.start = True
         if isinstance(exc_val, ConnectionError):
             t = 0 if self.instance.first_connect else 5
             self.instance.first_connect = False
             await asyncio.sleep(t)
             logger.warning(f'Соединение было прервано: {exc_val}', stack_info=True)
-            self.instance.start = True
             return True
         if isinstance(exc_val, client_exceptions.ServerTimeoutError):
             logger.warning(f'Ошибка ReadTimeout: {exc_val}', stack_info=True)
-            self.instance.start = True
             return True
         if isinstance(exc_val, client_exceptions.ClientResponseError):
             logger.warning(f'Ошибка ClientResponseError: {exc_val}', stack_info=True)
@@ -67,7 +67,6 @@ class UpdateVkEventSession:
             return True
         if isinstance(exc_val, Exception):
             logger.exception(exc_val)
-            self.instance.start = True
             self.instance.first_connect = True
             return True
 
