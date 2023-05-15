@@ -1,6 +1,5 @@
 import logging
 import json
-import asyncio
 from .vk_api import VkApi
 from bots.general import LongPollServer, StartAsyncSession, UpdateVkEventSession
 
@@ -15,19 +14,35 @@ class VkLongPollServer(LongPollServer):
         super().__init__(api, handle_event)
         self.vk_api_params = {'access_token': api.token, 'v': '5.131', 'group_id': group_id}
 
+    async def get_params(self):
+        async with self.api.session.get(self.url, params=self.vk_api_params) as res:
+            res.raise_for_status()
+            response = json.loads(await res.text())
+        key = response['response']['key']
+        server = response['response']['server']
+        ts = response['response']['ts']
+        return key, server, ts
+
     async def listen_server(self, *, loop=None):
         async with StartAsyncSession(self):
             while True:
-                async with UpdateVkEventSession(self) as updates:
+                async with UpdateVkEventSession(self):
+                    if self.start:
+                        key, server, ts = await self.get_params()
+                        self.start = False
+                    params = {'act': 'a_check', 'key': key, 'ts': ts, 'wait': 25}
+                    response = await self.api.session.get(server, params=params)
+                    response.raise_for_status()
+                    updates = json.loads(await response.text())
                     if 'failed' in updates:
                         if updates['failed'] == 1:
-                            self.ts = updates['ts']
+                            ts = updates['ts']
                         elif updates['failed'] == 2:
-                            self.key, __, __ = await self.get_params()
+                            key, __, __ = await self.get_params()
                         elif updates['failed'] == 3:
-                            self.key, __, self.ts = await self.get_params()
+                            key, __, ts = await self.get_params()
                         continue
-                    self.ts = updates['ts']
+                    ts = updates['ts']
                     for event in updates['updates']:
                         if event['type'] != 'message_new':
                             continue

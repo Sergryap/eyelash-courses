@@ -42,32 +42,13 @@ class StartAsyncSession:
 
 
 class UpdateVkEventSession:
-
     """Класс контекстного менеджера для получения события VK"""
-
-    url = 'https://api.vk.com/method/groups.getLongPollServer'
 
     def __init__(self, instance):
         self.instance = instance
 
     async def __aenter__(self):
-        if self.instance.start:
-            self.instance.key, self.instance.server, self.instance.ts = await self.get_params()
-            self.instance.start = False
-            self.instance.get_params = self.get_params
-        params = {'act': 'a_check', 'key': self.instance.key, 'ts': self.instance.ts, 'wait': 25}
-        response = await self.instance.api.session.get(self.instance.server, params=params)
-        response.raise_for_status()
-        return json.loads(await response.text())
-
-    async def get_params(self):
-        async with self.instance.api.session.get(self.url, params=self.instance.vk_api_params) as res:
-            res.raise_for_status()
-            response = json.loads(await res.text())
-        key = response['response']['key']
-        server = response['response']['server']
-        ts = response['response']['ts']
-        return key, server, ts
+        pass
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         if isinstance(exc_val, ConnectionError):
@@ -75,21 +56,19 @@ class UpdateVkEventSession:
             self.instance.first_connect = False
             await asyncio.sleep(t)
             logger.warning(f'Соединение было прервано: {exc_val}', stack_info=True)
-            self.instance.key, self.instance.server, self.instance.ts = (
-                await self.get_params()
-            )
+            self.instance.start = True
             return True
         if isinstance(exc_val, client_exceptions.ServerTimeoutError):
             logger.warning(f'Ошибка ReadTimeout: {exc_val}', stack_info=True)
-            self.instance.key, self.instance.server, self.instance.ts = (
-                await self.get_params()
-            )
+            self.instance.start = True
+            return True
+        if isinstance(exc_val, client_exceptions.ClientResponseError):
+            logger.warning(f'Ошибка ClientResponseError: {exc_val}', stack_info=True)
+            self.instance.start = True
             return True
         if isinstance(exc_val, Exception):
             logger.exception(exc_val)
-            self.instance.key, self.instance.server, self.instance.ts = (
-                await self.get_params()
-            )
+            self.instance.start = True
             self.instance.first_connect = True
             return True
 
