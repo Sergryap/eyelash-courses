@@ -18,7 +18,10 @@ class TgLongPollServer(LongPollServer):
     async def listen_server(self, *, loop=None):
         async with StartAsyncSession(self):
             while True:
-                async with UpdateTgEventSession(self) as updates:
+                async with UpdateTgEventSession(self):
+                    response = await self.api.session.get(self.url, params=self.params)
+                    response.raise_for_status()
+                    updates = json.loads(await response.text())
                     if not updates.get('result') or not updates['ok']:
                         continue
                     update = updates['result'][-1]

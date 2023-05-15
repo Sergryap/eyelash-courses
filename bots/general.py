@@ -81,9 +81,7 @@ class UpdateTgEventSession:
         self.instance = instance
 
     async def __aenter__(self):
-        response = await self.instance.api.session.get(self.instance.url, params=self.instance.params)
-        response.raise_for_status()
-        return json.loads(await response.text())
+        pass
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         if isinstance(exc_val, ConnectionError):
@@ -94,6 +92,9 @@ class UpdateTgEventSession:
             return True
         if isinstance(exc_val, client_exceptions.ServerTimeoutError):
             logger.warning(f'Ошибка ReadTimeout: {exc_val}', stack_info=True)
+            return True
+        if isinstance(exc_val, client_exceptions.ClientResponseError):
+            logger.warning(f'Ошибка ClientResponseError: {exc_val}', stack_info=True)
             return True
         if isinstance(exc_val, Exception):
             logger.exception(exc_val)
