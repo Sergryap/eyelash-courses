@@ -24,25 +24,25 @@ class VkLongPollServer(LongPollServer):
         return key, server, ts
 
     async def listen_server(self, *, loop=None):
+        params = {'act': 'a_check', 'key': None, 'ts': None, 'wait': 25}
         async with StartAsyncSession(self):
             while True:
                 async with UpdateVkEventSession(self):
                     if self.start:
-                        key, server, ts = await self.get_params()
+                        params['key'], server, params['ts'] = await self.get_params()
                         self.start = False
-                    params = {'act': 'a_check', 'key': key, 'ts': ts, 'wait': 25}
                     response = await self.api.session.get(server, params=params)
                     response.raise_for_status()
                     updates = json.loads(await response.text())
                     if 'failed' in updates:
                         if updates['failed'] == 1:
-                            ts = updates['ts']
+                            params['ts'] = updates['ts']
                         elif updates['failed'] == 2:
-                            key, __, __ = await self.get_params()
+                            params['key'], __, __ = await self.get_params()
                         elif updates['failed'] == 3:
-                            key, __, ts = await self.get_params()
+                            params['key'], __, params['ts'] = await self.get_params()
                         continue
-                    ts = updates['ts']
+                    params['ts'] = updates['ts']
                     for event in updates['updates']:
                         if event['type'] != 'message_new':
                             continue
