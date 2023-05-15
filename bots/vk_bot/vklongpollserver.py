@@ -7,6 +7,7 @@ logger = logging.getLogger('telegram')
 
 
 class VkLongPollServer(LongPollServer):
+    """Класс для получения событий от сервера Vk и отправки их в главный обработчик событий handle_event"""
 
     url = 'https://api.vk.com/method/groups.getLongPollServer'
 

@@ -1,6 +1,5 @@
 import logging
 import json
-import asyncio
 from .tg_api import TgApi, TgEvent
 from bots.general import LongPollServer, StartAsyncSession, UpdateTgEventSession
 

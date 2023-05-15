@@ -1,7 +1,6 @@
 import aiohttp
 import asyncio
 import logging
-import json
 from aiohttp import client_exceptions
 from abc import ABC, abstractmethod
 from .vk_bot import VkApi
