@@ -28,7 +28,7 @@ async def handle_event(api: VkApi, event: dict):
     if api.sending_tasks:  # Записываем отложенные задачи в глобальное пространство
         for name_task, task in api.sending_tasks.items():
             globals()[name_task] = task
-        api.vk_sending_tasks = False
+        api.sending_tasks = False
 
     user_id = event['object']['message']['from_id']
     start_buttons = ['start', '/start', 'начать', 'старт', '+']
