@@ -25,6 +25,11 @@ logger = logging.getLogger('telegram')
 async def handle_event(api: VkApi, event: dict):
     """Главный обработчик событий"""
 
+    if api.sending_tasks:  # Записываем отложенные задачи в глобальное пространство
+        for name_task, task in api.sending_tasks.items():
+            globals()[name_task] = task
+        api.vk_sending_tasks = False
+
     user_id = event['object']['message']['from_id']
     start_buttons = ['start', '/start', 'начать', 'старт', '+']
     text = event['object']['message']['text'].lower().strip()
@@ -386,22 +391,13 @@ async def send_courses(api: VkApi, event: dict, courses, msg1, msg2, msg3, /, *,
 async def entry_user_to_course(api: VkApi, user_id, user_info, user_instance, course):
     name = user_info['first_name']
     text = f'''
-         {name}, вы записаны на курс:
-         **{course.name.upper()}**
-         Спасибо, что выбрали нашу школу.
-         В ближайшее время мы свяжемся с вами для подтверждения вашего участия.
-         '''
+        {name}, вы записаны на курс:
+        **{course.name.upper()}**
+        Спасибо, что выбрали нашу школу.
+        В ближайшее время мы свяжемся с вами для подтверждения вашего участия.
+        '''
     office = await Office.objects.async_first()
-    reminder_text = f'''
-         {name}, напоминаем,
-         что вы записаны на курс:
-         **{course.name.upper()}**
-         Дата курса: {course.scheduled_at.strftime("%d.%m.%Y")}.
-         Время начала: {course.scheduled_at.strftime("%H:%M")}.
-         Адрес: {office.address}
-         Спасибо, что выбрали нашу школу.
-         Будем рады вас видеть!
-         '''
+    reminder_text = await api.create_reminder_text(name, course, office)
     await api.send_message(
         user_id=user_id,
         message=dedent(text),
