@@ -6,7 +6,7 @@ import redis
 from asgiref.sync import sync_to_async
 from django.utils import timezone
 from courses.models import Course, Office
-from typing import Dict
+from typing import Dict, Union
 from textwrap import dedent
 
 
@@ -59,9 +59,11 @@ class TgApi:
             remind_before: int = None,
             reply_markup=None,
             parse_mode=None
-    ) -> asyncio.Task:
+    ) -> Union[asyncio.Task, None]:
         """Отложенная отправка сообщения"""
         timer = interval if interval else time_to_start - time_offset - remind_before
+        if timer < 0:
+            return
 
         async def coro():
             await asyncio.sleep(timer)
@@ -82,11 +84,11 @@ class TgApi:
         office = await Office.objects.async_first()
         tasks = {}
         for course in future_courses_prefetch:
-            clients = await sync_to_async(course.clients.all)()
             time_to_start = (course.scheduled_at - timezone.now()).total_seconds()
             interval = time_to_start - time_offset - remind_before
             if interval < 0:
                 continue
+            clients = await sync_to_async(course.clients.all)()
             for client in clients:
                 if not client.telegram_id:
                     continue

@@ -9,8 +9,9 @@ from more_itertools import chunked
 from asgiref.sync import sync_to_async
 from django.utils import timezone
 from courses.models import Course, Office
-from typing import Dict
+from typing import Dict, Union
 from textwrap import dedent
+from .buttons import get_menu_button
 
 
 class VkApi:
@@ -84,9 +85,9 @@ class VkApi:
             message: str,
             /,
             interval: int = None,
-            time_offset: int = None,
+            time_offset: int = 5 * 3600,
             time_to_start: int = None,
-            remind_before: int = None,
+            remind_before: int = 86400 - 6 * 3600,
             user_ids: str = None,
             keyboard: str = None,
             attachment: str = None,
@@ -94,10 +95,12 @@ class VkApi:
             sticker_id: int = None,
             lat: str = None,
             long: str = None,
-    ) -> asyncio.Task:
+    ) -> Union[asyncio.Task, None]:
         """Отложенная отправка сообщения"""
 
         timer = interval if interval else time_to_start - time_offset - remind_before
+        if timer < 0:
+            return
 
         async def coro():
             await asyncio.sleep(timer)
@@ -128,11 +131,11 @@ class VkApi:
         office = await Office.objects.async_first()
         tasks = {}
         for course in future_courses_prefetch:
-            clients = await sync_to_async(course.clients.all)()
             time_to_start = (course.scheduled_at - timezone.now()).total_seconds()
             interval = time_to_start - time_offset - remind_before
             if interval < 0:
                 continue
+            clients = await sync_to_async(course.clients.all)()
             for client in clients:
                 if not client.vk_id:
                     continue
@@ -142,7 +145,8 @@ class VkApi:
                 task = await self.send_message_later(
                     client.vk_id,
                     dedent(msg),
-                    interval=interval
+                    interval=interval,
+                    keyboard=await get_menu_button(color='secondary', inline=True)
                 )
                 tasks.update({name_task: task})
         return tasks
