@@ -2,7 +2,6 @@ import json
 import logging
 import random
 import re
-import asyncio
 
 from courses.models import Client, Course, Office
 from django.utils import timezone
@@ -155,17 +154,7 @@ async def entry_user_to_course(api: TgApi, event: TgEvent, user, course):
          _В ближайшее время мы свяжемся с вами для подтверждения вашего участия._
          '''
     office = await Office.objects.async_first()
-    reminder_text = f'''
-         {event.first_name}, напоминаем,
-         что вы записаны на курс:
-         *{course.name.upper()}*
-         _Дата курса: {course.scheduled_at.strftime("%d.%m.%Y")}._
-         _Время начала: {course.scheduled_at.strftime("%H:%M")}._
-         _Адрес: {office.address}_
-         _Спасибо, что выбрали нашу школу._
-         _Будем рады вас видеть!_
-         '''
-
+    reminder_text = await api.create_reminder_text(event.first_name, course, office)
     await api.send_message(
         chat_id=event.chat_id,
         msg=dedent(text),
@@ -395,6 +384,12 @@ async def enter_phone(api: TgApi, event: TgEvent):
 
 async def handle_event(api: TgApi, event: TgEvent):
     """Главный обработчик событий"""
+
+    if api.sending_tasks:  # Записываем отложенные задачи в глобальное пространство
+        for name_task, task in api.sending_tasks.items():
+            globals()[name_task] = task
+        api.sending_tasks = False
+
     if event.callback_query:
         await api.delete_message(
             chat_id=event.chat_id,
