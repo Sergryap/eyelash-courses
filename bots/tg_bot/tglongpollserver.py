@@ -16,6 +16,8 @@ class TgLongPollServer(LongPollServer):
 
     async def listen_server(self, *, loop=None):
         async with StartAsyncSession(self):
+            # Обновляем список отложенных задач по отправке оповещений
+            self.api.sending_tasks = await self.api.update_message_sending_tasks()
             while True:
                 async with UpdateTgEventSession(self):
                     response = await self.api.session.get(self.url, params=self.params)
