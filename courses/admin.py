@@ -246,9 +246,9 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
     def save_formset(self, request, form, formset, change):
         super().save_formset(request, form, formset, change)
         if formset.deleted_objects:
-            for deleted_image in formset.deleted_objects:
-                if deleted_image.image_vk_id:
-                    self.vk_api.delete_photos(deleted_image)
+            for deleted_object in formset.deleted_objects:
+                if hasattr(deleted_object, 'image_vk_id') and deleted_object.image_vk_id:
+                    self.vk_api.delete_photos(deleted_object)
         instances = formset.save(commit=False)
         # course_admin_save_formset.delay(instances)
         images = [image for image in instances if isinstance(image, CourseImage)]
