@@ -206,6 +206,7 @@ class Course(models.Model):
         Timer,
         related_name='courses',
         verbose_name='напомнить за',
+        blank=True
     )
     clients = models.ManyToManyField(
         Client,
