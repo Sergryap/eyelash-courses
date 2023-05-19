@@ -21,6 +21,7 @@ class TgLongPollServer(LongPollServer):
                     response = await self.api.session.get(self.url, params=self.params)
                     response.raise_for_status()
                     updates = json.loads(await response.text())
+                    await self.api.update_tasks_triggered_admin('update_tg_tasks')
                     if not updates.get('result') or not updates['ok']:
                         continue
                     update = updates['result'][-1]

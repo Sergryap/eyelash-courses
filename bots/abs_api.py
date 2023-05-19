@@ -42,3 +42,13 @@ class AbstractAPI(ABC):
     @abstractmethod
     async def delete_message_sending_tasks(self, *args, **kwargs):
         pass
+
+    async def update_tasks_triggered_admin(self, key_trigger):
+        """Обновление отложенных задач отправки, если были изменения в админ-панели"""
+
+        if int(self.redis_db.get(key_trigger)):
+            if self.sending_tasks:
+                for __, task in self.sending_tasks.items():
+                    task.cancel()
+            self.sending_tasks = await self.update_message_sending_tasks()
+            self.redis_db.set(key_trigger, 0)

@@ -215,6 +215,9 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
         settings.REDIS_DB.set('all_courses', pickle.dumps(0))
+        if set(form.changed_data).intersection({'reminder_intervals', 'scheduled_at'}):
+            settings.REDIS_DB.set('update_vk_tasks', 1)
+            settings.REDIS_DB.set('update_tg_tasks', 1)
         if not obj.vk_album_id:
             album = self.vk_api.create_vk_album(obj)
             obj.vk_album_id = album['response']['id']
