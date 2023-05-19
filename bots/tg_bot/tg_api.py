@@ -3,21 +3,19 @@ import json
 import aiohttp
 import redis
 
+from bots.abs_api import AbstractAPI
 from asgiref.sync import sync_to_async
 from django.utils import timezone
-from courses.models import Course, Office
+from courses.models import Course, Office, Timer
 from typing import Dict, Union
 from textwrap import dedent
 
 
-class TgApi:
+class TgApi(AbstractAPI):
     """Класс API методов Tg"""
     def __init__(self, tg_token: str, redis_db: redis.Redis, session: aiohttp.ClientSession = None, loop=None):
-        self.session = session
+        super().__init__(redis_db, session, loop)
         self.token = tg_token
-        self.redis_db = redis_db
-        self.loop = loop
-        self.sending_tasks = None
 
     async def send_message(self, chat_id, msg, *, reply_markup=None, parse_mode=None):
         """Отправка сообщения через api TG"""
@@ -73,36 +71,75 @@ class TgApi:
     async def update_message_sending_tasks(
             self,
             time_offset: int = 5 * 3600,
-            remind_before: int = 86400 - 6 * 3600,
             reminder_text: str = None
     ) -> Dict[str, asyncio.Task]:
 
         """Создание отложенных задач по отправке сообщений пользователям по данным базы данных"""
 
         future_courses = await Course.objects.async_filter(scheduled_at__gt=timezone.now(), published_in_bot=True)
-        future_courses_prefetch = await sync_to_async(future_courses.prefetch_related)('clients')
+        future_courses_prefetch = await sync_to_async(future_courses.prefetch_related)('clients', 'reminder_intervals')
         office = await Office.objects.async_first()
         tasks = {}
         for course in future_courses_prefetch:
+            reminder_intervals = await sync_to_async(course.reminder_intervals.all)()
             time_to_start = (course.scheduled_at - timezone.now()).total_seconds()
-            interval = time_to_start - time_offset - remind_before
+            clients = await sync_to_async(course.clients.all)()
+            for remind_before in reminder_intervals:
+                interval = time_to_start - time_offset - remind_before.reminder_interval * 3600
+                if interval < 0:
+                    continue
+                for client in clients:
+                    if not client.telegram_id:
+                        continue
+                    text = await self.create_reminder_text(client.first_name, course, office)
+                    msg = reminder_text if reminder_text else text
+                    name_task = await self.create_key_task(client.telegram_id, course.pk, remind_before)
+                    task = await self.send_message_later(
+                        client.telegram_id,
+                        dedent(msg),
+                        interval=interval,
+                        parse_mode='Markdown'
+                    )
+                    tasks.update({name_task: task})
+        return tasks
+
+    async def delete_message_sending_tasks(self, course_pk: object, chat_id: object, *, bot_globals: dict) -> object:
+        """Удаляет отложенные задачи оповещения для заданного course_pk и chat_id"""
+
+        course = await sync_to_async(Course.objects.filter)(pk=course_pk)
+        courses_prefetch = await sync_to_async(course.prefetch_related)('reminder_intervals')
+        course_of_deletion_tasks = await sync_to_async(courses_prefetch.first)()
+        reminder_intervals = await sync_to_async(course_of_deletion_tasks.reminder_intervals.all)()
+        for remind_before in reminder_intervals:
+            canceled_task = bot_globals.get(await self.create_key_task(chat_id, course_pk, remind_before))
+            if canceled_task:
+                canceled_task.cancel()
+
+    async def create_message_sending_tasks(self, course_pk, chat_id, *, reminder_text: str, bot_globals: dict):
+        """Создает отложенные задачи оповещения для заданного course_pk и chat_id"""
+
+        course = await sync_to_async(Course.objects.filter)(pk=course_pk)
+        courses_prefetch = await sync_to_async(course.prefetch_related)('reminder_intervals')
+        course_of_creation_tasks = await sync_to_async(courses_prefetch.first)()
+        reminder_intervals = await sync_to_async(course_of_creation_tasks.reminder_intervals.all)()
+        time_to_start = (course_of_creation_tasks.scheduled_at - timezone.now()).total_seconds()
+        time_offset = 5 * 3600
+        for remind_before in reminder_intervals:
+            interval = time_to_start - time_offset - remind_before.reminder_interval * 3600
             if interval < 0:
                 continue
-            clients = await sync_to_async(course.clients.all)()
-            for client in clients:
-                if not client.telegram_id:
-                    continue
-                text = await self.create_reminder_text(client.first_name, course, office)
-                msg = reminder_text if reminder_text else text
-                name_task = f'remind_record_tg_{client.telegram_id}_{course.pk}'
-                task = await self.send_message_later(
-                    client.telegram_id,
-                    dedent(msg),
+            bot_globals[await self.create_key_task(chat_id, course_pk, remind_before)] = (
+                await self.send_message_later(
+                    chat_id,
+                    dedent(reminder_text),
                     interval=interval,
                     parse_mode='Markdown'
                 )
-                tasks.update({name_task: task})
-        return tasks
+            )
+
+    @staticmethod
+    async def create_key_task(chat_id, course_pk, remind_before: Timer) -> str:
+        return f'remind_record_tg_{chat_id}_{course_pk}_{remind_before.reminder_interval}'
 
     async def send_location(self, chat_id, *, lat, long, reply_markup=None):
         """Отправка локации через api TG"""
