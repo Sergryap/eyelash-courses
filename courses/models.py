@@ -168,6 +168,21 @@ class Client(models.Model):
         verbose_name_plural = 'клиенты'
 
 
+class Timer(models.Model):
+    reminder_interval = models.PositiveSmallIntegerField(
+        verbose_name='Напомнить за',
+        default=18
+    )
+
+    def __str__(self):
+        return f'{self.reminder_interval} ч.'
+
+    class Meta:
+        verbose_name = 'Таймер'
+        verbose_name_plural = 'Таймеры'
+        ordering = ['reminder_interval']
+
+
 class Course(models.Model):
     name = models.CharField(
         verbose_name='Название курса',
@@ -186,6 +201,11 @@ class Course(models.Model):
         related_name='courses',
         verbose_name='лектор',
         null=True
+    )
+    reminder_intervals = models.ManyToManyField(
+        Timer,
+        related_name='courses',
+        verbose_name='напомнить за',
     )
     clients = models.ManyToManyField(
         Client,

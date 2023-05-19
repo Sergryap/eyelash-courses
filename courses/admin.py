@@ -5,8 +5,10 @@ from django.conf import settings
 from django.contrib import admin
 from django import forms
 from django.utils.html import format_html
-from courses.models import Client, Course, Lecturer, Program, CourseClient, CourseImage, Office, GraduatePhoto
+from courses.models import Client, Course, Lecturer, Program, CourseClient, CourseImage, Office, GraduatePhoto, Timer
 from adminsortable2.admin import SortableAdminMixin, SortableTabularInline, SortableAdminBase
+from django.forms import CheckboxSelectMultiple
+from django.db import models
 from django.db.models import Count, Value
 from import_export import resources
 from import_export.fields import Field
@@ -178,12 +180,15 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
     prepopulated_fields = {'slug': ('name',)}
     list_editable = ['price', 'program', 'duration', 'published_in_bot']
     list_filter = ['scheduled_at', 'name', 'program', 'clients', ParticipantsCountFilter]
+    formfield_overrides = {
+        models.ManyToManyField: {'widget': CheckboxSelectMultiple},
+    }
     save_on_top = True
     form = CourseForm
     fields = [
         ('name', 'slug', 'program'),
         ('scheduled_at', 'price'),
-        ('lecture', 'duration'),
+        ('lecture', 'duration', 'reminder_intervals'),
         'short_description',
         'description'
     ]
@@ -359,3 +364,8 @@ class GraduatePhotoAdmin(admin.ModelAdmin, PreviewMixin):
     def delete_queryset(self, request, queryset):
         super().delete_queryset(request, queryset)
         settings.REDIS_DB.set('graduate_photos', pickle.dumps(0))
+
+
+@admin.register(Timer)
+class TimerAdmin(admin.ModelAdmin):
+    pass
