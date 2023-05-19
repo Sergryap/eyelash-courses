@@ -46,7 +46,7 @@ class AbstractAPI(ABC):
     async def update_tasks_triggered_admin(self, key_trigger):
         """Обновление отложенных задач отправки, если были изменения в админ-панели"""
 
-        if int(self.redis_db.get(key_trigger)):
+        if self.redis_db.get(key_trigger) and int(self.redis_db.get(key_trigger)):
             if self.sending_tasks:
                 for __, task in self.sending_tasks.items():
                     task.cancel()
