@@ -89,9 +89,7 @@ async def send_main_menu_answer(api: TgApi, event: TgEvent):
                 parse_mode='Markdown',
                 reply_markup=json.dumps({'inline_keyboard': [[{'text': '☰ MENU', 'callback_data': 'start'}]]})
             )
-            canceled_task = globals().get(f'remind_record_tg_{event.chat_id}_{course.pk}')
-            if canceled_task:
-                canceled_task.cancel()
+            await api.delete_message_sending_tasks(course_pk, event.chat_id, bot_globals=globals())
             await sync_to_async(course.clients.remove)(user_instance)
             await sync_to_async(course.save)()
             logger_msg = f'''
@@ -161,19 +159,11 @@ async def entry_user_to_course(api: TgApi, event: TgEvent, user, course):
         reply_markup=json.dumps({'inline_keyboard': [[{'text': '☰ MENU', 'callback_data': 'start'}]]}),
         parse_mode='Markdown'
     )
-    remind_before = 86400 - 6 * 3600
-    time_offset = 5 * 3600
-    time_to_start = (course.scheduled_at - timezone.now()).total_seconds()
-    interval = time_to_start - time_offset - remind_before
-    if interval > 0:
-        globals()[f'remind_record_tg_{event.chat_id}_{course.pk}'] = (
-            await api.send_message_later(
-                event.chat_id,
-                dedent(reminder_text),
-                interval=interval,
-                parse_mode='Markdown'
-            )
-        )
+    await api.create_message_sending_tasks(
+        course.pk, event.chat_id,
+        reminder_text=reminder_text,
+        bot_globals=globals()
+    )
     await sync_to_async(course.clients.add)(user)
     await sync_to_async(course.save)()
     redis_phone = api.redis_db.get(f'tg_{event.chat_id}_phone')

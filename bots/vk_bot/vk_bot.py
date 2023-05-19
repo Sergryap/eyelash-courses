@@ -308,9 +308,7 @@ async def send_main_menu_answer(api: VkApi, event: dict):
                 message=dedent(text),
                 keyboard=await get_menu_button(color='secondary', inline=True)
             )
-            canceled_task = globals().get(f'remind_record_vk_{user_id}_{course.pk}')
-            if canceled_task:
-                canceled_task.cancel()
+            await api.delete_message_sending_tasks(course_pk, user_id, bot_globals=globals())
             await sync_to_async(course.clients.remove)(user_instance)
             await sync_to_async(course.save)()
             logger.warning(f'Клиент https://vk.com/id{user_id} отменил запись на курс **{course.name.upper()}**')
@@ -403,19 +401,11 @@ async def entry_user_to_course(api: VkApi, user_id, user_info, user_instance, co
         message=dedent(text),
         keyboard=await get_menu_button(color='secondary', inline=True)
     )
-    remind_before = 86400 - 6 * 3600
-    time_offset = 5 * 3600
-    time_to_start = (course.scheduled_at - timezone.now()).total_seconds()
-    interval = time_to_start - time_offset - remind_before
-    if interval > 0:
-        globals()[f'remind_record_vk_{user_id}_{course.pk}'] = (
-            await api.send_message_later(
-                user_id,
-                dedent(reminder_text),
-                interval=interval,
-                keyboard=await get_menu_button(color='secondary', inline=True)
-            )
-        )
+    await api.create_message_sending_tasks(
+        course.pk, user_id,
+        reminder_text=reminder_text,
+        bot_globals=globals()
+    )
     await sync_to_async(course.clients.add)(user_instance)
     await sync_to_async(course.save)()
     client_vk = f'https://vk.com/id{user_id}'
