@@ -375,10 +375,10 @@ async def enter_phone(api: TgApi, event: TgEvent):
 async def handle_event(api: TgApi, event: TgEvent):
     """Главный обработчик событий"""
 
-    if api.sending_tasks:  # Записываем отложенные задачи в глобальное пространство
+    if api.emit_tasks:  # Записываем отложенные задачи в глобальное пространство
         for name_task, task in api.sending_tasks.items():
             globals()[name_task] = task
-        api.sending_tasks = False
+        api.emit_tasks = False
 
     if event.callback_query:
         await api.delete_message(

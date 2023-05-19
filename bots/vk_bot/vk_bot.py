@@ -25,10 +25,10 @@ logger = logging.getLogger('telegram')
 async def handle_event(api: VkApi, event: dict):
     """Главный обработчик событий"""
 
-    if api.sending_tasks:  # Записываем отложенные задачи в глобальное пространство
+    if api.emit_tasks:  # Записываем отложенные задачи в глобальное пространство
         for name_task, task in api.sending_tasks.items():
             globals()[name_task] = task
-        api.sending_tasks = False
+        api.emit_tasks = False
 
     user_id = event['object']['message']['from_id']
     start_buttons = ['start', '/start', 'начать', 'старт', '+']

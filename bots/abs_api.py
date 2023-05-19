@@ -12,6 +12,7 @@ class AbstractAPI(ABC):
         self.redis_db = redis_db
         self.loop = loop
         self.sending_tasks = None
+        self.emit_tasks = False
 
     @staticmethod
     @abstractmethod
@@ -52,3 +53,4 @@ class AbstractAPI(ABC):
                     task.cancel()
             self.sending_tasks = await self.update_message_sending_tasks()
             self.redis_db.delete(key_trigger)
+            self.emit_tasks = True

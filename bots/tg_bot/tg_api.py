@@ -76,6 +76,7 @@ class TgApi(AbstractAPI):
 
         """Создание отложенных задач по отправке сообщений пользователям по данным базы данных"""
 
+        self.emit_tasks = True
         future_courses = await Course.objects.async_filter(scheduled_at__gt=timezone.now(), published_in_bot=True)
         future_courses_prefetch = await sync_to_async(future_courses.prefetch_related)('clients', 'reminder_intervals')
         office = await Office.objects.async_first()
@@ -128,14 +129,18 @@ class TgApi(AbstractAPI):
             interval = time_to_start - time_offset - remind_before.reminder_interval * 3600
             if interval < 0:
                 continue
-            bot_globals[await self.create_key_task(chat_id, course_pk, remind_before)] = (
-                await self.send_message_later(
+            name_task = await self.create_key_task(chat_id, course_pk, remind_before)
+            task = await self.send_message_later(
                     chat_id,
                     dedent(reminder_text),
                     interval=interval,
                     parse_mode='Markdown'
                 )
-            )
+            bot_globals[name_task] = task
+            if self.sending_tasks:
+                if self.sending_tasks.get(name_task):
+                    self.sending_tasks[name_task].cancel()
+                self.sending_tasks[name_task] = task
 
     @staticmethod
     async def create_key_task(chat_id, course_pk, remind_before: Timer) -> str:
