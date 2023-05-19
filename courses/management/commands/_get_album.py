@@ -2,9 +2,11 @@ import pickle
 import time
 
 import requests
-from vk_bot.vk_lib import get_group_albums, get_album_photos
+from bots.vkvawe_bot.vk_lib import get_group_albums, get_album_photos
 from django.conf import settings
 from asgiref.sync import async_to_sync
+
+from courses.management.commands._get_preview import get_preview
 from courses.models import Course, CourseImage
 from django.utils import timezone
 from django.core.files.base import ContentFile
@@ -61,6 +63,12 @@ def get_albums(options: dict, albums_ids: str = None):
             CourseImage.objects.bulk_create(photo_instances)
             photo_instances.clear()
             time.sleep(2)
+        images = course.images.all()
+        if images:
+            for preview in images:
+                print(f'Создаю превью фото: {preview.image.path}')
+                get_preview(preview)
+                get_preview(preview, preview_attr='big_preview', width=370, height=320)
 
 
 def update_redis_courses():
