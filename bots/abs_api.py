@@ -51,4 +51,4 @@ class AbstractAPI(ABC):
                 for __, task in self.sending_tasks.items():
                     task.cancel()
             self.sending_tasks = await self.update_message_sending_tasks()
-            self.redis_db.set(key_trigger, 0)
+            self.redis_db.delete(key_trigger)
