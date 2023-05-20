@@ -82,6 +82,7 @@ class VkApi(AbstractAPI):
             user_id: int,
             message: str,
             /,
+            task_name,
             interval: int = None,
             time_offset: int = 5 * 3600,
             time_to_start: int = None,
@@ -113,6 +114,7 @@ class VkApi(AbstractAPI):
                 lat,
                 long,
             )
+            del self.sending_tasks[task_name]
         return asyncio.ensure_future(coro(), loop=self.loop)
 
     async def update_message_sending_tasks(
@@ -123,11 +125,12 @@ class VkApi(AbstractAPI):
 
         """Создание отложенных задач по отправке сообщений пользователям по данным базы данных"""
 
-        self.emit_tasks = True
         future_courses = await Course.objects.async_filter(scheduled_at__gt=timezone.now(), published_in_bot=True)
         future_courses_prefetch = await sync_to_async(future_courses.prefetch_related)('clients', 'reminder_intervals')
         office = await Office.objects.async_first()
-        tasks = {}
+        if self.sending_tasks:
+            self.sending_tasks.clear()
+        self.sending_tasks = {}
         for course in future_courses_prefetch:
             reminder_intervals = await sync_to_async(course.reminder_intervals.all)()
             time_to_start = (course.scheduled_at - timezone.now()).total_seconds()
@@ -141,28 +144,30 @@ class VkApi(AbstractAPI):
                         continue
                     text = await self.create_reminder_text(client.first_name, course, office)
                     msg = reminder_text if reminder_text else text
-                    name_task = f'remind_record_vk_{client.vk_id}_{course.pk}_{remind_before.reminder_interval}'
+                    task_name = f'remind_record_vk_{client.vk_id}_{course.pk}_{remind_before.reminder_interval}'
                     task = await self.send_message_later(
                         client.vk_id,
                         dedent(msg),
                         interval=interval,
-                        keyboard=await get_menu_button(color='secondary', inline=True)
+                        keyboard=await get_menu_button(color='secondary', inline=True),
+                        task_name=task_name
                     )
-                    tasks.update({name_task: task})
-        return tasks
+                    self.sending_tasks.update({task_name: task})
+        return self.sending_tasks
 
-    async def delete_message_sending_tasks(self, course_pk, user_id, *, bot_globals: dict):
+    async def delete_message_sending_tasks(self, course_pk, user_id):
         """Удаляет отложенные задачи оповещения для заданного course_pk и chat_id"""
         course = await sync_to_async(Course.objects.filter)(pk=course_pk)
         courses_prefetch = await sync_to_async(course.prefetch_related)('reminder_intervals')
         course_of_deletion_tasks = await sync_to_async(courses_prefetch.first)()
         reminder_intervals = await sync_to_async(course_of_deletion_tasks.reminder_intervals.all)()
         for remind_before in reminder_intervals:
-            canceled_task = bot_globals.get(await self.create_key_task(user_id, course_pk, remind_before))
-            if canceled_task:
-                canceled_task.cancel()
+            task_name = await self.create_key_task(user_id, course_pk, remind_before)
+            if self.sending_tasks.get(task_name):
+                self.sending_tasks[task_name].cancel()
+                del self.sending_tasks[task_name]
 
-    async def create_message_sending_tasks(self, course_pk, user_id, *, reminder_text: str, bot_globals: dict):
+    async def create_message_sending_tasks(self, course_pk, user_id, *, reminder_text: str):
         """Создает отложенные задачи оповещения для заданного course_pk и chat_id"""
         course = await sync_to_async(Course.objects.filter)(pk=course_pk)
         courses_prefetch = await sync_to_async(course.prefetch_related)('reminder_intervals')
@@ -174,17 +179,16 @@ class VkApi(AbstractAPI):
             interval = time_to_start - time_offset - remind_before.reminder_interval * 3600
             if interval < 0:
                 continue
-            name_task = await self.create_key_task(user_id, course_pk, remind_before)
+            task_name = await self.create_key_task(user_id, course_pk, remind_before)
             task = await self.send_message_later(
-                    user_id,
-                    dedent(reminder_text),
-                    interval=interval
-                )
-            bot_globals[name_task] = task
-            if self.sending_tasks:
-                if self.sending_tasks.get(name_task):
-                    self.sending_tasks[name_task].cancel()
-                self.sending_tasks[name_task] = task
+                user_id,
+                dedent(reminder_text),
+                interval=interval,
+                task_name=task_name
+            )
+            if self.sending_tasks.get(task_name):
+                self.sending_tasks[task_name].cancel()
+            self.sending_tasks[task_name] = task
 
     @staticmethod
     async def create_key_task(user_id, course_pk, remind_before: Timer) -> str:

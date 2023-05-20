@@ -89,7 +89,7 @@ async def send_main_menu_answer(api: TgApi, event: TgEvent):
                 parse_mode='Markdown',
                 reply_markup=json.dumps({'inline_keyboard': [[{'text': '☰ MENU', 'callback_data': 'start'}]]})
             )
-            await api.delete_message_sending_tasks(course_pk, event.chat_id, bot_globals=globals())
+            await api.delete_message_sending_tasks(course_pk, event.chat_id)
             await sync_to_async(course.clients.remove)(user_instance)
             await sync_to_async(course.save)()
             logger_msg = f'''
@@ -159,11 +159,7 @@ async def entry_user_to_course(api: TgApi, event: TgEvent, user, course):
         reply_markup=json.dumps({'inline_keyboard': [[{'text': '☰ MENU', 'callback_data': 'start'}]]}),
         parse_mode='Markdown'
     )
-    await api.create_message_sending_tasks(
-        course.pk, event.chat_id,
-        reminder_text=reminder_text,
-        bot_globals=globals()
-    )
+    await api.create_message_sending_tasks(course.pk, event.chat_id, reminder_text=reminder_text)
     await sync_to_async(course.clients.add)(user)
     await sync_to_async(course.save)()
     redis_phone = api.redis_db.get(f'tg_{event.chat_id}_phone')
@@ -374,11 +370,6 @@ async def enter_phone(api: TgApi, event: TgEvent):
 
 async def handle_event(api: TgApi, event: TgEvent):
     """Главный обработчик событий"""
-
-    if api.emit_tasks:  # Записываем отложенные задачи в глобальное пространство
-        for name_task, task in api.sending_tasks.items():
-            globals()[name_task] = task
-        api.emit_tasks = False
 
     if event.callback_query:
         await api.delete_message(

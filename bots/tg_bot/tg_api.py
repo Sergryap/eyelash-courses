@@ -51,12 +51,13 @@ class TgApi(AbstractAPI):
             chat_id,
             msg,
             /,
+            task_name,
             interval: int = None,
             time_offset: int = None,
             time_to_start: int = None,
             remind_before: int = None,
             reply_markup=None,
-            parse_mode=None
+            parse_mode=None,
     ) -> Union[asyncio.Task, None]:
         """Отложенная отправка сообщения"""
         timer = interval if interval else time_to_start - time_offset - remind_before
@@ -66,6 +67,7 @@ class TgApi(AbstractAPI):
         async def coro():
             await asyncio.sleep(timer)
             await self.send_message(chat_id, msg, reply_markup=reply_markup, parse_mode=parse_mode)
+            del self.sending_tasks[task_name]
         return asyncio.ensure_future(coro(), loop=self.loop)
 
     async def update_message_sending_tasks(
@@ -76,11 +78,12 @@ class TgApi(AbstractAPI):
 
         """Создание отложенных задач по отправке сообщений пользователям по данным базы данных"""
 
-        self.emit_tasks = True
         future_courses = await Course.objects.async_filter(scheduled_at__gt=timezone.now(), published_in_bot=True)
         future_courses_prefetch = await sync_to_async(future_courses.prefetch_related)('clients', 'reminder_intervals')
         office = await Office.objects.async_first()
-        tasks = {}
+        if self.sending_tasks:
+            self.sending_tasks.clear()
+        self.sending_tasks = {}
         for course in future_courses_prefetch:
             reminder_intervals = await sync_to_async(course.reminder_intervals.all)()
             time_to_start = (course.scheduled_at - timezone.now()).total_seconds()
@@ -94,17 +97,18 @@ class TgApi(AbstractAPI):
                         continue
                     text = await self.create_reminder_text(client.first_name, course, office)
                     msg = reminder_text if reminder_text else text
-                    name_task = await self.create_key_task(client.telegram_id, course.pk, remind_before)
+                    task_name = await self.create_key_task(client.telegram_id, course.pk, remind_before)
                     task = await self.send_message_later(
                         client.telegram_id,
                         dedent(msg),
                         interval=interval,
-                        parse_mode='Markdown'
+                        parse_mode='Markdown',
+                        task_name=task_name
                     )
-                    tasks.update({name_task: task})
-        return tasks
+                    self.sending_tasks.update({task_name: task})
+        return self.sending_tasks
 
-    async def delete_message_sending_tasks(self, course_pk: object, chat_id: object, *, bot_globals: dict) -> object:
+    async def delete_message_sending_tasks(self, course_pk, chat_id):
         """Удаляет отложенные задачи оповещения для заданного course_pk и chat_id"""
 
         course = await sync_to_async(Course.objects.filter)(pk=course_pk)
@@ -112,11 +116,11 @@ class TgApi(AbstractAPI):
         course_of_deletion_tasks = await sync_to_async(courses_prefetch.first)()
         reminder_intervals = await sync_to_async(course_of_deletion_tasks.reminder_intervals.all)()
         for remind_before in reminder_intervals:
-            canceled_task = bot_globals.get(await self.create_key_task(chat_id, course_pk, remind_before))
-            if canceled_task:
-                canceled_task.cancel()
+            task_name = await self.create_key_task(chat_id, course_pk, remind_before)
+            if self.sending_tasks.get(task_name):
+                self.sending_tasks[task_name].cancel()
 
-    async def create_message_sending_tasks(self, course_pk, chat_id, *, reminder_text: str, bot_globals: dict):
+    async def create_message_sending_tasks(self, course_pk, chat_id, *, reminder_text: str):
         """Создает отложенные задачи оповещения для заданного course_pk и chat_id"""
 
         course = await sync_to_async(Course.objects.filter)(pk=course_pk)
@@ -129,18 +133,17 @@ class TgApi(AbstractAPI):
             interval = time_to_start - time_offset - remind_before.reminder_interval * 3600
             if interval < 0:
                 continue
-            name_task = await self.create_key_task(chat_id, course_pk, remind_before)
+            task_name = await self.create_key_task(chat_id, course_pk, remind_before)
             task = await self.send_message_later(
-                    chat_id,
-                    dedent(reminder_text),
-                    interval=interval,
-                    parse_mode='Markdown'
-                )
-            bot_globals[name_task] = task
-            if self.sending_tasks:
-                if self.sending_tasks.get(name_task):
-                    self.sending_tasks[name_task].cancel()
-                self.sending_tasks[name_task] = task
+                chat_id,
+                dedent(reminder_text),
+                interval=interval,
+                parse_mode='Markdown',
+                task_name=task_name
+            )
+            if self.sending_tasks.get(task_name):
+                self.sending_tasks[task_name].cancel()
+            self.sending_tasks[task_name] = task
 
     @staticmethod
     async def create_key_task(chat_id, course_pk, remind_before: Timer) -> str:

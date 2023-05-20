@@ -35,7 +35,7 @@ class StartAsyncSession:
     async def __aenter__(self):
         self.instance.api.session = aiohttp.ClientSession()
         # Обновляем список отложенных задач по отправке оповещений
-        self.instance.api.sending_tasks = await self.instance.api.update_message_sending_tasks()
+        await self.instance.api.update_message_sending_tasks()
         return self.instance.api.session
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
