@@ -1,7 +1,11 @@
 import aiohttp
 import redis
+import json
 
 from abc import ABC, abstractmethod
+from asgiref.sync import sync_to_async
+from django.utils import timezone
+from courses.models import Course, Office, Client
 
 
 class AbstractAPI(ABC):
@@ -28,7 +32,7 @@ class AbstractAPI(ABC):
 
     @staticmethod
     @abstractmethod
-    async def create_reminder_text(*args, **kwargs):
+    async def create_reminder_text(first_name: str, course: Course, office: Office):
         pass
 
     @abstractmethod
@@ -53,3 +57,39 @@ class AbstractAPI(ABC):
                 self.sending_tasks.clear()
             await self.update_message_sending_tasks()
             self.redis_db.delete(key_trigger)
+
+    @abstractmethod
+    async def update_message_single_sending_task(
+            self,
+            course: Course,
+            client: Client,
+            office: Office,
+            interval,
+            remind_before
+    ):
+        pass
+
+    async def update_course_tasks_triggered_admin(self, key_trigger: str):
+        if not self.redis_db.get(key_trigger):
+            return
+        course_pks = json.loads(self.redis_db.get(key_trigger))
+        self.redis_db.delete(key_trigger)
+        for course_pk in course_pks:
+            course = await sync_to_async(Course.objects.filter)(pk=course_pk)
+            courses_prefetch = await sync_to_async(course.prefetch_related)('clients', 'reminder_intervals')
+            course_of_tasks = await sync_to_async(courses_prefetch.first)()
+            clients = await sync_to_async(course_of_tasks.clients.all)()
+            if not clients:
+                return
+            reminder_intervals = await sync_to_async(course_of_tasks.reminder_intervals.all)()
+            office = await Office.objects.async_first()
+            time_to_start = (course_of_tasks.scheduled_at - timezone.now()).total_seconds()
+            time_offset = 5 * 3600
+            for remind_before in reminder_intervals:
+                interval = time_to_start - time_offset - remind_before.reminder_interval * 3600
+                if interval < 0:
+                    continue
+                for client in clients:
+                    await self.update_message_single_sending_task(
+                        course_of_tasks, client, office, interval, remind_before
+                    )
