@@ -194,6 +194,7 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
         'description'
     ]
     vk_api = VkApi(vk_user_token=settings.VK_USER_TOKEN, vk_group_id=settings.VK_GROUP_ID)
+    redis = settings.REDIS_DB
 
     @admin.display(description='Фото из курса')
     def get_course_preview(self, obj):
@@ -213,27 +214,26 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
             .prefetch_related('clients', 'images')
         )
 
-    @staticmethod
-    def __update_bot_trigger_keys(redis, form, obj):
-        if set(form.changed_data).intersection({'reminder_intervals', 'scheduled_at'}):
-            if redis.get('update_vk_tasks') is None:
-                print('update_vk_tasks')
-                redis.set('update_vk_tasks', json.dumps([]))
-            if redis.get('update_tg_tasks') is None:
-                print('update_tg_tasks')
-                redis.set('update_tg_tasks', json.dumps([]))
-            update_vk_tasks = json.loads(redis.get('update_vk_tasks'))
-            update_tg_tasks = json.loads(redis.get('update_tg_tasks'))
-            update_vk_tasks.append(obj.pk)
-            update_tg_tasks.append(obj.pk)
-            redis.set('update_vk_tasks', json.dumps(update_vk_tasks))
-            redis.set('update_tg_tasks', json.dumps(update_tg_tasks))
+    def __update_bot_trigger_keys(self, course: Course):
+        """Обновление задач отправки для заданного курса"""
+        if self.redis.get('update_vk_tasks') is None:
+            print('update_vk_tasks')
+            self.redis.set('update_vk_tasks', json.dumps([]))
+        if self.redis.get('update_tg_tasks') is None:
+            print('update_tg_tasks')
+            self.redis.set('update_tg_tasks', json.dumps([]))
+        update_vk_tasks = json.loads(self.redis.get('update_vk_tasks'))
+        update_tg_tasks = json.loads(self.redis.get('update_tg_tasks'))
+        update_vk_tasks.append(course.pk)
+        update_tg_tasks.append(course.pk)
+        self.redis.set('update_vk_tasks', json.dumps(update_vk_tasks))
+        self.redis.set('update_tg_tasks', json.dumps(update_tg_tasks))
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
-        redis = settings.REDIS_DB
-        redis.set('all_courses', pickle.dumps(0))
-        self.__update_bot_trigger_keys(redis, form, obj)
+        self.redis.set('all_courses', pickle.dumps(0))
+        if set(form.changed_data).intersection({'reminder_intervals', 'scheduled_at'}):
+            self.__update_bot_trigger_keys(obj)
         if not obj.vk_album_id:
             album = self.vk_api.create_vk_album(obj)
             obj.vk_album_id = album['response']['id']
@@ -251,20 +251,41 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
             if upload_photos:
                 self.vk_api.upload_photos_in_album(upload_photos, vk_album_id)
 
+    def save_related(self, request, form, formsets, change):
+        super().save_related(request, form, formsets, change)
+        # Обновляем отложенные задачи, если добавлен клиент через админ-панель
+        breaker = False
+        for formset in formsets:
+            for cleaned_data in formset.cleaned_data:
+                if not cleaned_data.get('client'):
+                    break
+                if cleaned_data['id'] is None:
+                    course = cleaned_data['course']
+                    self.__update_bot_trigger_keys(course)
+                    breaker = True
+                    break
+            if breaker:
+                break
+
     def delete_model(self, request, obj):
         super().delete_model(request, obj)
-        settings.REDIS_DB.set('all_courses', pickle.dumps(0))
+        self.redis.set('all_courses', pickle.dumps(0))
 
     def delete_queryset(self, request, queryset):
         super().delete_queryset(request, queryset)
-        settings.REDIS_DB.set('all_courses', pickle.dumps(0))
+        self.redis.set('all_courses', pickle.dumps(0))
 
     def save_formset(self, request, form, formset, change):
         super().save_formset(request, form, formset, change)
         if formset.deleted_objects:
+            update_bot_trigger_keys = True
             for deleted_object in formset.deleted_objects:
                 if hasattr(deleted_object, 'image_vk_id') and deleted_object.image_vk_id:
                     self.vk_api.delete_photos(deleted_object)
+                # Обновляем отложенные задачи, если клиенты удалены с курса
+                if isinstance(deleted_object, CourseClient) and update_bot_trigger_keys:
+                    update_bot_trigger_keys = False
+                    self.__update_bot_trigger_keys(deleted_object.course)
         instances = formset.save(commit=False)
         # course_admin_save_formset.delay(instances)
         images = [image for image in instances if isinstance(image, CourseImage)]
