@@ -303,7 +303,7 @@ async def send_main_menu_answer(api: VkApi, event: dict):
                 message=dedent(text),
                 keyboard=await get_menu_button(color='secondary', inline=True)
             )
-            await api.delete_message_sending_tasks(course_pk, user_id, bot_globals=globals())
+            await api.delete_message_sending_tasks(course_pk, user_id)
             await sync_to_async(course.clients.remove)(user_instance)
             await sync_to_async(course.save)()
             logger.warning(f'Клиент https://vk.com/id{user_id} отменил запись на курс **{course.name.upper()}**')
@@ -398,8 +398,7 @@ async def entry_user_to_course(api: VkApi, user_id, user_info, user_instance, co
     )
     await api.create_message_sending_tasks(
         course.pk, user_id,
-        reminder_text=reminder_text,
-        bot_globals=globals()
+        reminder_text=reminder_text
     )
     await sync_to_async(course.clients.add)(user_instance)
     await sync_to_async(course.save)()
