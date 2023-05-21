@@ -1,5 +1,6 @@
 import pickle
 import random
+import json
 
 from django.conf import settings
 from django.contrib import admin
@@ -212,12 +213,27 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
             .prefetch_related('clients', 'images')
         )
 
+    @staticmethod
+    def __update_bot_trigger_keys(redis, form, obj):
+        if set(form.changed_data).intersection({'reminder_intervals', 'scheduled_at'}):
+            if redis.get('update_vk_tasks') is None:
+                print('update_vk_tasks')
+                redis.set('update_vk_tasks', json.dumps([]))
+            if redis.get('update_tg_tasks') is None:
+                print('update_tg_tasks')
+                redis.set('update_tg_tasks', json.dumps([]))
+            update_vk_tasks = json.loads(redis.get('update_vk_tasks'))
+            update_tg_tasks = json.loads(redis.get('update_tg_tasks'))
+            update_vk_tasks.append(obj.pk)
+            update_tg_tasks.append(obj.pk)
+            redis.set('update_vk_tasks', json.dumps(update_vk_tasks))
+            redis.set('update_tg_tasks', json.dumps(update_tg_tasks))
+
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
-        settings.REDIS_DB.set('all_courses', pickle.dumps(0))
-        if set(form.changed_data).intersection({'reminder_intervals', 'scheduled_at'}):
-            settings.REDIS_DB.set('update_vk_tasks', 1)
-            settings.REDIS_DB.set('update_tg_tasks', 1)
+        redis = settings.REDIS_DB
+        redis.set('all_courses', pickle.dumps(0))
+        self.__update_bot_trigger_keys(redis, form, obj)
         if not obj.vk_album_id:
             album = self.vk_api.create_vk_album(obj)
             obj.vk_album_id = album['response']['id']
