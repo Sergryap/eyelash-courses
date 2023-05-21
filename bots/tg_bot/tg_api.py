@@ -6,7 +6,7 @@ import redis
 from bots.abs_api import AbstractAPI
 from asgiref.sync import sync_to_async
 from django.utils import timezone
-from courses.models import Course, Office, Timer
+from courses.models import Course, Office, Timer, Client
 from typing import Dict, Union
 from textwrap import dedent
 
@@ -70,6 +70,30 @@ class TgApi(AbstractAPI):
             del self.sending_tasks[task_name]
         return asyncio.ensure_future(coro(), loop=self.loop)
 
+    async def update_message_single_sending_task(
+            self,
+            course: Course,
+            client: Client,
+            office: Office,
+            interval: int,
+            remind_before: Timer
+    ):
+        if not client.telegram_id:
+            return
+        task_name = await self.create_key_task(client.telegram_id, course.pk, remind_before)
+        text = await self.create_reminder_text(client.first_name, course, office)
+        task = await self.send_message_later(
+            client.telegram_id,
+            dedent(text),
+            interval=interval,
+            parse_mode='Markdown',
+            task_name=task_name
+        )
+        if self.sending_tasks.get(task_name):
+            self.sending_tasks[task_name].cancel()
+            del self.sending_tasks[task_name]
+        self.sending_tasks.update({task_name: task})
+
     async def update_message_sending_tasks(
             self,
             time_offset: int = 5 * 3600,
@@ -88,6 +112,8 @@ class TgApi(AbstractAPI):
             reminder_intervals = await sync_to_async(course.reminder_intervals.all)()
             time_to_start = (course.scheduled_at - timezone.now()).total_seconds()
             clients = await sync_to_async(course.clients.all)()
+            if not clients:
+                return self.sending_tasks
             for remind_before in reminder_intervals:
                 interval = time_to_start - time_offset - remind_before.reminder_interval * 3600
                 if interval < 0:
@@ -119,6 +145,7 @@ class TgApi(AbstractAPI):
             task_name = await self.create_key_task(chat_id, course_pk, remind_before)
             if self.sending_tasks.get(task_name):
                 self.sending_tasks[task_name].cancel()
+                del self.sending_tasks[task_name]
 
     async def create_message_sending_tasks(self, course_pk, chat_id, *, reminder_text: str):
         """Создает отложенные задачи оповещения для заданного course_pk и chat_id"""
