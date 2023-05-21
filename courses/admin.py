@@ -142,18 +142,19 @@ class ProgramAdmin(SortableAdminMixin, admin.ModelAdmin, PreviewMixin):
     prepopulated_fields = {'slug': ('title',)}
     list_display = ['title', 'get_image_preview', 'short_description', 'position']
     readonly_fields = ['get_image_preview']
+    redis = settings.REDIS_DB
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
-        settings.REDIS_DB.set('programs', pickle.dumps(0))
+        self.redis.set('programs', pickle.dumps(0))
 
     def delete_queryset(self, request, queryset):
         super().delete_queryset(request, queryset)
-        settings.REDIS_DB.set('programs', pickle.dumps(0))
+        self.redis.set('programs', pickle.dumps(0))
 
     def delete_model(self, request, obj):
         super().delete_model(request, obj)
-        settings.REDIS_DB.set('programs', pickle.dumps(0))
+        self.redis.set('programs', pickle.dumps(0))
 
 
 @admin.register(Office)
@@ -392,18 +393,19 @@ class GraduatePhotoAdmin(admin.ModelAdmin, PreviewMixin):
     list_display = ['id', 'title', 'get_image_preview']
     readonly_fields = ['get_image_preview']
     list_editable = ['title']
+    redis = settings.REDIS_DB
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
-        settings.REDIS_DB.set('graduate_photos', pickle.dumps(0))
+        self.redis.set('graduate_photos', pickle.dumps(0))
 
     def delete_model(self, request, obj):
         super().delete_model(request, obj)
-        settings.REDIS_DB.set('graduate_photos', pickle.dumps(0))
+        self.redis.set('graduate_photos', pickle.dumps(0))
 
     def delete_queryset(self, request, queryset):
         super().delete_queryset(request, queryset)
-        settings.REDIS_DB.set('graduate_photos', pickle.dumps(0))
+        self.redis.set('graduate_photos', pickle.dumps(0))
 
 
 @admin.register(Timer)
