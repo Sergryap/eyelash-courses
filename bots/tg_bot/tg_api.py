@@ -46,6 +46,51 @@ class TgApi(AbstractAPI):
              _Будем рады вас видеть!_
              '''
 
+    async def schedule_task(
+            self,
+            task_name: str,
+            schedule_func: callable,
+            timer: int,
+            /,
+            *args, **kwargs,
+    ) -> asyncio.Task:
+        """Создание отложенной задачи из schedule_func"""
+
+        async def coro():
+            await asyncio.sleep(timer)
+            await schedule_func(*args, **kwargs)
+            del self.sending_tasks[task_name]
+
+        return asyncio.ensure_future(coro(), loop=self.loop)
+
+    async def schedule_send_message_task(
+            self,
+            chat_id: int,
+            msg: str,
+            /,
+            task_name: str,
+            interval: int = None,
+            time_offset: int = None,
+            time_to_start: int = None,
+            remind_before: int = None,
+            reply_markup=None,
+            parse_mode=None,
+    ) -> Union[asyncio.Task, None]:
+        """Отложенная отправка сообщения с использованием schedule_task"""
+
+        timer = interval if interval else time_to_start - time_offset - remind_before
+        if timer < 0:
+            return
+        return await self.schedule_task(
+            task_name,
+            self.send_message,
+            timer,
+            chat_id,
+            msg,
+            reply_markup=reply_markup,
+            parse_mode=parse_mode
+        )
+
     async def send_message_later(
             self,
             chat_id,
