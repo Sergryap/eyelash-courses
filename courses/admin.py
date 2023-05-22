@@ -2,6 +2,7 @@ import pickle
 import random
 import json
 
+from django.utils import timezone
 from django.conf import settings
 from django.contrib import admin
 from django import forms
@@ -215,20 +216,31 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
             .prefetch_related('clients', 'images')
         )
 
-    def __update_bot_trigger_keys(self, course: Course):
+    def __update_bot_trigger_keys(self, course: Course, delete=False):
         """Обновление задач отправки для заданного курса"""
+
         if self.redis.get('update_vk_tasks') is None:
-            print('update_vk_tasks')
-            self.redis.set('update_vk_tasks', json.dumps([]))
+            self.redis.set('update_vk_tasks', json.dumps({'course_pks': []}))
         if self.redis.get('update_tg_tasks') is None:
-            print('update_tg_tasks')
-            self.redis.set('update_tg_tasks', json.dumps([]))
-        update_vk_tasks = json.loads(self.redis.get('update_vk_tasks'))
-        update_tg_tasks = json.loads(self.redis.get('update_tg_tasks'))
+            self.redis.set('update_tg_tasks', json.dumps({'course_pks': []}))
+        update_vk_tasks = json.loads(self.redis.get('update_vk_tasks'))['course_pks']
+        update_tg_tasks = json.loads(self.redis.get('update_tg_tasks'))['course_pks']
         update_vk_tasks.append(course.pk)
         update_tg_tasks.append(course.pk)
-        self.redis.set('update_vk_tasks', json.dumps(update_vk_tasks))
-        self.redis.set('update_tg_tasks', json.dumps(update_tg_tasks))
+        update_vk_tasks_labeled = {'act': 'create', 'course_pks': update_vk_tasks}
+        update_tg_tasks_labeled = {'act': 'create', 'course_pks': update_tg_tasks}
+        if delete:
+            for update_tasks_labeled in [update_vk_tasks_labeled, update_tg_tasks_labeled]:
+                update_tasks_labeled.update({
+                    'act': 'delete',
+                    'clients': [(client.telegram_id, client.vk_id) for client in course.clients.all()],
+                    'course_pk': course.pk,
+                    'reminder_intervals': [interval.reminder_interval for interval in course.reminder_intervals.all()],
+                    'time_to_start': (course.scheduled_at - timezone.now()).total_seconds()
+                })
+
+        self.redis.set('update_vk_tasks', json.dumps(update_vk_tasks_labeled))
+        self.redis.set('update_tg_tasks', json.dumps(update_tg_tasks_labeled))
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
@@ -269,6 +281,7 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
                 break
 
     def delete_model(self, request, obj):
+        self.__update_bot_trigger_keys(obj, delete=True)
         super().delete_model(request, obj)
         self.redis.set('all_courses', pickle.dumps(0))
 

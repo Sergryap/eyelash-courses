@@ -72,9 +72,32 @@ class AbstractAPI(ABC):
     async def update_course_tasks_triggered_admin(self, key_trigger: str):
         if not self.redis_db.get(key_trigger):
             return
-        course_pks = json.loads(self.redis_db.get(key_trigger))
+        data_update_tasks = json.loads(self.redis_db.get(key_trigger))
         self.redis_db.delete(key_trigger)
-        for course_pk in course_pks:
+
+        if data_update_tasks['act'] == 'delete':
+            clients = data_update_tasks['clients']
+            if not clients:
+                return
+            reminder_intervals = data_update_tasks['reminder_intervals']
+            time_to_start = data_update_tasks['time_to_start']
+            time_offset = 5 * 3600
+            for remind_before in reminder_intervals:
+                interval = time_to_start - time_offset - remind_before * 3600
+                if interval < 0:
+                    continue
+                for telegram_id, vk_id in clients:
+                    task_name = await self.create_key_task(
+                        telegram_id or vk_id,
+                        data_update_tasks['course_pk'],
+                        remind_before
+                    )
+                    if self.sending_tasks.get(task_name):
+                        self.sending_tasks[task_name].cancel()
+                        del self.sending_tasks[task_name]
+            return
+
+        for course_pk in data_update_tasks['course_pks']:
             course = await sync_to_async(Course.objects.filter)(pk=course_pk)
             courses_prefetch = await sync_to_async(course.prefetch_related)('clients', 'reminder_intervals')
             course_of_tasks = await sync_to_async(courses_prefetch.first)()

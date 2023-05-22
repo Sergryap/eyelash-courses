@@ -217,8 +217,12 @@ class VkApi(AbstractAPI):
             self.sending_tasks[task_name] = task
 
     @staticmethod
-    async def create_key_task(user_id, course_pk, remind_before: Timer) -> str:
-        return f'remind_record_vk_{user_id}_{course_pk}_{remind_before.reminder_interval}'
+    async def create_key_task(user_id, course_pk, remind_before: Timer | int) -> str:
+        if isinstance(remind_before, Timer):
+            remind_before_reminder_interval = remind_before.reminder_interval
+        else:
+            remind_before_reminder_interval = remind_before
+        return f'remind_record_vk_{user_id}_{course_pk}_{remind_before_reminder_interval}'
 
     async def get_user(self, user_ids: str):
         get_users_url = 'https://api.vk.com/method/users.get'
