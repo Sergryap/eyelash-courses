@@ -216,31 +216,43 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
             .prefetch_related('clients', 'images')
         )
 
-    def __update_bot_trigger_keys(self, course: Course, delete=False):
-        """Обновление задач отправки для заданного курса"""
+    def __update_bot_trigger_keys(
+            self,
+            course: Course = None,
+            delete_course: bool = False,
+            deleted_tasks: list = None
+    ):
+        """Тригер обновления отложенных задач отправки сообщений"""
 
         if self.redis.get('update_vk_tasks') is None:
-            self.redis.set('update_vk_tasks', json.dumps({'course_pks': []}))
+            self.redis.set('update_vk_tasks', json.dumps({'course_pks': [], 'deleted_tasks': []}))
         if self.redis.get('update_tg_tasks') is None:
-            self.redis.set('update_tg_tasks', json.dumps({'course_pks': []}))
-        update_vk_tasks = json.loads(self.redis.get('update_vk_tasks'))['course_pks']
-        update_tg_tasks = json.loads(self.redis.get('update_tg_tasks'))['course_pks']
-        update_vk_tasks.append(course.pk)
-        update_tg_tasks.append(course.pk)
-        update_vk_tasks_labeled = {'act': 'create', 'course_pks': update_vk_tasks}
-        update_tg_tasks_labeled = {'act': 'create', 'course_pks': update_tg_tasks}
-        if delete:
-            for update_tasks_labeled in [update_vk_tasks_labeled, update_tg_tasks_labeled]:
-                update_tasks_labeled.update({
-                    'act': 'delete',
-                    'clients': [(client.telegram_id, client.vk_id) for client in course.clients.all()],
-                    'course_pk': course.pk,
-                    'reminder_intervals': [interval.reminder_interval for interval in course.reminder_intervals.all()],
-                    'time_to_start': (course.scheduled_at - timezone.now()).total_seconds()
-                })
-
-        self.redis.set('update_vk_tasks', json.dumps(update_vk_tasks_labeled))
-        self.redis.set('update_tg_tasks', json.dumps(update_tg_tasks_labeled))
+            self.redis.set('update_tg_tasks', json.dumps({'course_pks': [], 'deleted_tasks': []}))
+        vk_tasks_courses = json.loads(self.redis.get('update_vk_tasks'))['course_pks']
+        tg_tasks_courses = json.loads(self.redis.get('update_tg_tasks'))['course_pks']
+        all_deleted_tasks = json.loads(self.redis.get('update_vk_tasks'))['deleted_tasks']
+        if deleted_tasks:
+            all_deleted_tasks.extend(deleted_tasks)
+        if delete_course:
+            time_offset = 5 * 3600
+            for client in course.clients.all():
+                prefix = 'remind_record_vk' if client.vk_id else 'remind_record_tg'
+                user_id = client.vk_id or client.telegram_id
+                time_to_start = (course.scheduled_at - timezone.now()).total_seconds()
+                for remind_before in course.reminder_intervals.all():
+                    interval = time_to_start - time_offset - remind_before.reminder_interval * 3600
+                    if interval < 0:
+                        continue
+                    all_deleted_tasks.append(
+                        f'{prefix}_{user_id}_{course.pk}_{remind_before.reminder_interval}'
+                    )
+        if course:
+            vk_tasks_courses.append(course.pk)
+            tg_tasks_courses.append(course.pk)
+        updated_vk_tasks = {'course_pks': vk_tasks_courses, 'deleted_tasks': all_deleted_tasks}
+        updated_tg_tasks = {'course_pks': tg_tasks_courses, 'deleted_tasks': all_deleted_tasks}
+        self.redis.set('update_vk_tasks', json.dumps(updated_vk_tasks))
+        self.redis.set('update_tg_tasks', json.dumps(updated_tg_tasks))
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
@@ -281,11 +293,13 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
                 break
 
     def delete_model(self, request, obj):
-        self.__update_bot_trigger_keys(obj, delete=True)
+        self.__update_bot_trigger_keys(obj, delete_course=True)
         super().delete_model(request, obj)
         self.redis.set('all_courses', pickle.dumps(0))
 
     def delete_queryset(self, request, queryset):
+        for course in queryset:
+            self.__update_bot_trigger_keys(course, delete_course=True)
         super().delete_queryset(request, queryset)
         self.redis.set('all_courses', pickle.dumps(0))
 
@@ -298,8 +312,15 @@ class CourseAdmin(SortableAdminBase, admin.ModelAdmin):
                     self.vk_api.delete_photos(deleted_object)
                 # Обновляем отложенные задачи, если клиенты удалены с курса
                 if isinstance(deleted_object, CourseClient) and update_bot_trigger_keys:
+                    deleted_tasks = []
+                    for remind_before in deleted_object.course.reminder_intervals.all():
+                        prefix = 'remind_record_vk' if deleted_object.client.vk_id else 'remind_record_tg'
+                        user_id = deleted_object.client.vk_id or deleted_object.client.telegram_id
+                        deleted_tasks.append(
+                            f'{prefix}_{user_id}_{deleted_object.course.pk}_{remind_before.reminder_interval}'
+                        )
                     update_bot_trigger_keys = False
-                    self.__update_bot_trigger_keys(deleted_object.course)
+                    self.__update_bot_trigger_keys(deleted_tasks=deleted_tasks)
         instances = formset.save(commit=False)
         # course_admin_save_formset.delay(instances)
         images = [image for image in instances if isinstance(image, CourseImage)]
