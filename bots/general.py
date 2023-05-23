@@ -49,7 +49,7 @@ class UpdateVkEventSession:
         self.instance = instance
 
     async def __aenter__(self):
-        pass
+        return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         if exc_val:
@@ -81,7 +81,7 @@ class UpdateTgEventSession:
         self.instance = instance
 
     async def __aenter__(self):
-        pass
+        return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         if isinstance(exc_val, ConnectionError):
