@@ -7,7 +7,9 @@ from django.conf import settings
 from django.contrib import admin
 from django import forms
 from django.utils.html import format_html
-from courses.models import Client, Course, Lecturer, Program, CourseClient, CourseImage, Office, GraduatePhoto, Timer
+from courses.models import (
+    Client, Course, Lecturer, Program, CourseClient, CourseImage, Office, GraduatePhoto, Timer, Task
+)
 from adminsortable2.admin import SortableAdminMixin, SortableTabularInline, SortableAdminBase
 from django.forms import CheckboxSelectMultiple
 from django.db import models
@@ -444,4 +446,9 @@ class GraduatePhotoAdmin(admin.ModelAdmin, PreviewMixin):
 
 @admin.register(Timer)
 class TimerAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(Task)
+class TaskAdmin(admin.ModelAdmin):
     pass

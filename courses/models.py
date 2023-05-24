@@ -183,6 +183,56 @@ class Timer(models.Model):
         ordering = ['reminder_interval']
 
 
+class Task(models.Model):
+    task_name = models.CharField(
+        verbose_name='Имя задачи',
+        max_length=255,
+    )
+    coro = models.CharField(
+        verbose_name='Имя корутины',
+        max_length=100,
+    )
+    timers = models.JSONField(
+        verbose_name='Список таймеров',
+        null=True,
+        blank=True,
+        default=list,
+    )
+    completed_timers = models.JSONField(
+        verbose_name='Список выполненных таймеров',
+        null=True,
+        blank=True,
+        default=list,
+    )
+    message = models.TextField(
+        verbose_name='Сообщение',
+        blank=True,
+        null=True,
+    )
+    args = models.JSONField(
+        verbose_name='Позиционные аргументы',
+        null=True,
+        blank=True
+    )
+    kwargs = models.JSONField(
+        verbose_name='Именованные аргументы',
+        null=True,
+        blank=True,
+    )
+    call_counter = models.PositiveSmallIntegerField(
+        verbose_name='счетчик',
+        default=0
+    )
+
+    def __str__(self):
+        return f'{self.task_name}'
+
+    class Meta:
+        verbose_name = 'задача'
+        verbose_name_plural = 'задачи'
+        ordering = ['task_name']
+
+
 class Course(models.Model):
     name = models.CharField(
         verbose_name='Название курса',
