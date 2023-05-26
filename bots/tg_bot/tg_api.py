@@ -7,7 +7,7 @@ from bots.abs_api import AbstractAPI
 from asgiref.sync import sync_to_async
 from django.utils import timezone
 from courses.models import Course, Office, Timer, Client
-from typing import Dict, Union
+from typing import Dict, Union, Tuple, List
 from textwrap import dedent
 
 
@@ -32,6 +32,38 @@ class TgApi(AbstractAPI):
         async with self.session.get(url, params=params) as res:
             res.raise_for_status()
             return json.loads(await res.text())
+
+    async def send_multiple_messages(
+            self,
+            chat_id,
+            messages: Union[List[str], Tuple[str]],
+            timers: Union[List[int], Tuple[int]],
+            reply_markups: Union[List[Union[str, None]], Tuple[Union[str, None]]] = None,
+            parse_modes: Union[List[Union[str, None]], Tuple[Union[str, None]]] = None,
+
+    ) -> None:
+        """Отправка сообщения через api TG"""
+        url = f"https://api.telegram.org/bot{self.token}/sendmessage"
+
+        iterate_data = zip(
+            messages,
+            timers,
+            reply_markups or [None] * len(timers),
+            parse_modes or [None] * len(timers)
+        )
+        for msg, timer, reply_markup, parse_mode in iterate_data:
+            params = {
+                'chat_id': chat_id,
+                'text': msg,
+                'reply_markup': reply_markup,
+                'parse_mode': parse_mode
+            }
+            await asyncio.sleep(timer)
+            for param, value in params.copy().items():
+                if value is None:
+                    del params[param]
+            async with self.session.get(url, params=params) as res:
+                res.raise_for_status()
 
     @staticmethod
     async def create_reminder_text(first_name: str, course: Course, office: Office) -> str:
