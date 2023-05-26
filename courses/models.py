@@ -212,12 +212,14 @@ class Task(models.Model):
     args = models.JSONField(
         verbose_name='Позиционные аргументы',
         null=True,
-        blank=True
+        blank=True,
+        default=list
     )
     kwargs = models.JSONField(
         verbose_name='Именованные аргументы',
         null=True,
         blank=True,
+        default=dict
     )
     call_counter = models.PositiveSmallIntegerField(
         verbose_name='счетчик',

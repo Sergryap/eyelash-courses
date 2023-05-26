@@ -50,33 +50,50 @@ class AbstractAPI(ABC):
     async def delete_message_sending_tasks(self, *args, **kwargs):
         pass
 
+    @staticmethod
+    async def __mark_task_in_db(task_name: str) -> bool:
+        """
+        Делает пометку в БД о выполнении таймера задачи.
+        task_name должна иметь формат {Task.task_name}:{Task.timers[i]}
+        """
+
+        group_task_name, timer = task_name.split(':')
+        instance_task = await Task.objects.aget(task_name=group_task_name)
+        instance_task.call_counter += 1
+        if instance_task.call_counter > len(json.loads(instance_task.timers)):
+            return False
+        completed_timers = json.loads(instance_task.completed_timers)
+        if [int(timer)] in completed_timers:
+            return False
+        instance_task.completed_timers = json.dumps(completed_timers + [int(timer)])
+        await sync_to_async(instance_task.save)()
+        return True
+
     async def schedule_task(
             self,
             task_name: str,
             schedule_func: str,
             current_timer: int,
+            mark_to_db: bool,
             /,
             *args, **kwargs,
     ) -> asyncio.Task:
         """
-        Создание отложенной задачи из schedule_func для именованной группы задач group_task_name
-        task_name должна иметь формат {Task.task_name}__{Task.timers[i]}
+        Создание отложенной задачи из schedule_func.
+        Если mark_to_db=True, то task_name должна иметь формат {Task.task_name}:{Task.timers[i]} и
+        в этом случае делается пометка в базе данных о выполнении задачи
         """
 
         async def coro() -> None:
             await asyncio.sleep(current_timer)
-            group_task_name, timer = task_name.split('__')
-            instance_task = await Task.objects.aget(task_name=group_task_name)
-            instance_task.call_counter += 1
-            if instance_task.call_counter > len(json.loads(instance_task.timers)):
+            mark_task_flag = await self.__mark_task_in_db(task_name)
+            if mark_to_db and not mark_task_flag:
                 return
-            instance_task.completed_timers = json.dumps(json.loads(instance_task.completed_timers) + [int(timer)])
-            await sync_to_async(instance_task.save)()
             await getattr(self, schedule_func)(*args, **kwargs)
             del self.sending_tasks[task_name]
         return asyncio.ensure_future(coro(), loop=self.loop)
 
-    async def get_database_bypass_timer(
+    async def __get_database_bypass_timer(
             self,
             hours: Union[List[Union[int, str]], Tuple[Union[int, str]]]
     ) -> float:
@@ -100,7 +117,8 @@ class AbstractAPI(ABC):
     async def create_tasks_from_db(
             self,
             force: bool = False,
-            timers: Union[List[Union[int, str]], Tuple[Union[int, str]]] = (1, 5, 10, 22)
+            interval: int = 0,
+            hour_timers: Union[List[Union[int, str]], Tuple[Union[int, str]]] = (1, 5, 10, 22)
     ):
         """
         Создание задач из таблицы Task базы данных
@@ -113,8 +131,8 @@ class AbstractAPI(ABC):
         """
         async def coro():
             while True:
-                start_timer = 1 if force else await self.get_database_bypass_timer(hours=timers)
-                print(f'До ближайшего обхода: {start_timer} c.')
+                start_timer = 1 if force else interval or await self.__get_database_bypass_timer(hours=hour_timers)
+                # print(f'До ближайшего обхода: {start_timer} c.')
                 await asyncio.sleep(start_timer)
                 tasks = await sync_to_async(Task.objects.all)()
                 for task in tasks:
@@ -122,7 +140,7 @@ class AbstractAPI(ABC):
                         continue
                     msg = [task.message] if task.message else []
                     for timer in json.loads(task.timers):
-                        task_name = f'{task.task_name}__{timer}'
+                        task_name = f'{task.task_name}:{timer}'
                         if self.sending_tasks.get(task_name):
                             continue
                         if timer in json.loads(task.completed_timers):
@@ -143,13 +161,12 @@ class AbstractAPI(ABC):
                             task.call_counter += 1
                             await sync_to_async(task.save)()
                             continue
-
                         real_task = await self.schedule_task(
                             task_name,
                             task.coro,
                             int(current_timer),
-                            *(args + msg),
-                            **kwargs
+                            True,
+                            *(args + msg), **kwargs,
                         )
                         self.sending_tasks.update({task_name: real_task})
                 if force:
