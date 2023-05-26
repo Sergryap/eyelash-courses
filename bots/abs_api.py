@@ -60,12 +60,12 @@ class AbstractAPI(ABC):
         group_task_name, timer = task_name.split(':')
         instance_task = await Task.objects.aget(task_name=group_task_name)
         instance_task.call_counter += 1
-        if instance_task.call_counter > len(json.loads(instance_task.timers)):
+        if instance_task.call_counter > len(instance_task.timers):
             return False
-        completed_timers = json.loads(instance_task.completed_timers)
+        completed_timers = instance_task.completed_timers
         if [int(timer)] in completed_timers:
             return False
-        instance_task.completed_timers = json.dumps(completed_timers + [int(timer)])
+        instance_task.completed_timers = completed_timers + [int(timer)]
         await sync_to_async(instance_task.save)()
         return True
 
@@ -132,21 +132,21 @@ class AbstractAPI(ABC):
         async def coro():
             while True:
                 start_timer = 1 if force else interval or await self.__get_database_bypass_timer(hours=hour_timers)
-                # print(f'До ближайшего обхода: {start_timer} c.')
+                print(f'До ближайшего обхода: {start_timer} c.')
                 await asyncio.sleep(start_timer)
                 tasks = await sync_to_async(Task.objects.all)()
                 for task in tasks:
-                    if task.call_counter >= len(json.loads(task.timers)):
+                    if task.call_counter >= len(task.timers):
+                        await sync_to_async(task.delete)()
                         continue
-                    msg = [task.message] if task.message else []
-                    for timer in json.loads(task.timers):
+                    for timer in task.timers:
                         task_name = f'{task.task_name}:{timer}'
                         if self.sending_tasks.get(task_name):
                             continue
-                        if timer in json.loads(task.completed_timers):
+                        if timer in task.completed_timers:
                             continue
-                        args = json.loads(task.args)
-                        kwargs = json.loads(task.kwargs)
+                        args = task.args
+                        kwargs = task.kwargs
                         client = (
                             await Client.objects.async_filter(telegram_id=args[0]) or
                             await Client.objects.async_filter(vk_id=args[0])
@@ -157,7 +157,7 @@ class AbstractAPI(ABC):
                         current_timer = timer - (today - registered_at).total_seconds()
                         print(current_timer)
                         if current_timer < 0:
-                            task.completed_timers = json.dumps(json.loads(task.completed_timers) + [int(timer)])
+                            task.completed_timers.append(int(timer))
                             task.call_counter += 1
                             await sync_to_async(task.save)()
                             continue
@@ -166,7 +166,7 @@ class AbstractAPI(ABC):
                             task.coro,
                             int(current_timer),
                             True,
-                            *(args + msg), **kwargs,
+                            *args, **kwargs,
                         )
                         self.sending_tasks.update({task_name: real_task})
                 if force:

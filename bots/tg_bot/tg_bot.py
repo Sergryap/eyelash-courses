@@ -2,6 +2,7 @@ import json
 import logging
 import random
 import re
+import os
 
 from courses.models import Client, Course, Office, Task
 from django.utils import timezone
@@ -386,29 +387,34 @@ async def handle_event(api: TgApi, event: TgEvent):
         }
     )
     # if create:
+    #     reply_markup = json.dumps({'inline_keyboard': [[{'text': '☰ MENU', 'callback_data': 'start'}]]})
     #     await Task.objects.async_get_or_create(
     #         task_name=f'tg_send_message_{event.chat_id}',
     #         defaults={
     #             'coro': 'send_message',
-    #             'timers': json.dumps([21, 22, 23, 24]),
-    #             'completed_timers': json.dumps([]),
-    #             'args': json.dumps([event.chat_id, f'tg{event.chat_id}']),
-    #             'kwargs': json.dumps({'parse_mode': 'Markdown'})
+    #             'timers': [21, 22, 23, 600],
+    #             'completed_timers': list(),
+    #             'args': [event.chat_id, f'tg{event.chat_id}'],
+    #             'kwargs': {
+    #                 'parse_mode': 'Markdown',
+    #                 'reply_markup': reply_markup
+    #             }
     #         }
     #     )
-    #
+    #     with open(os.path.join(os.getcwd(), 'bots', 'step_messages.json')) as file:
+    #         step_1 = json.load(file)['step_1']
     #     await Task.objects.async_get_or_create(
     #         task_name=f'tg_send_multiple_messages_{event.chat_id}',
     #         defaults={
     #             'coro': 'send_multiple_messages',
-    #             'timers': json.dumps([15, 30]),
-    #             'completed_timers': json.dumps([]),
-    #             'args': json.dumps([
+    #             'timers': [15, 600],
+    #             'completed_timers': list(),
+    #             'args': [
     #                 event.chat_id,
-    #                 ['test1', 'test2', 'test3'],
-    #                 [1, 3, 5]
-    #             ]),
-    #             'kwargs': json.dumps({'parse_mode': 'Markdown'}),
+    #                 [step_1[0], step_1[1], step_1[2]],
+    #                 [10, 11, 15],
+    #             ],
+    #             'kwargs': dict()
     #         }
     #     )
 
