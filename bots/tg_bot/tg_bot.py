@@ -3,7 +3,7 @@ import logging
 import random
 import re
 
-from courses.models import Client, Course, Office
+from courses.models import Client, Course, Office, Task
 from django.utils import timezone
 from asgiref.sync import sync_to_async
 from more_itertools import chunked
@@ -377,13 +377,41 @@ async def handle_event(api: TgApi, event: TgEvent):
             message_id=event.message_id
         )
     start_buttons = ['start', '/start', '/admin', 'начать', 'старт', '+', '☰ menu', '/menu']
-    user, _ = await Client.objects.async_get_or_create(
+    user, create = await Client.objects.async_get_or_create(
         telegram_id=event.chat_id,
         defaults={
             'first_name': event.first_name,
             'last_name': event.last_name,
+            'registered_at': timezone.now() + timezone.timedelta(hours=api.hour_offset)
         }
     )
+    # if create:
+    #     await Task.objects.async_get_or_create(
+    #         task_name=f'tg_send_message_{event.chat_id}',
+    #         defaults={
+    #             'coro': 'send_message',
+    #             'timers': json.dumps([21, 22, 23, 24]),
+    #             'completed_timers': json.dumps([]),
+    #             'args': json.dumps([event.chat_id, f'tg{event.chat_id}']),
+    #             'kwargs': json.dumps({'parse_mode': 'Markdown'})
+    #         }
+    #     )
+    #
+    #     await Task.objects.async_get_or_create(
+    #         task_name=f'tg_send_multiple_messages_{event.chat_id}',
+    #         defaults={
+    #             'coro': 'send_multiple_messages',
+    #             'timers': json.dumps([15, 30]),
+    #             'completed_timers': json.dumps([]),
+    #             'args': json.dumps([
+    #                 event.chat_id,
+    #                 ['test1', 'test2', 'test3'],
+    #                 [1, 3, 5]
+    #             ]),
+    #             'kwargs': json.dumps({'parse_mode': 'Markdown'}),
+    #         }
+    #     )
+
     if event.user_reply.lower() in start_buttons:
         user_state = 'START'
     else:
