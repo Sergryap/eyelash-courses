@@ -17,6 +17,7 @@ class TgLongPollServer(LongPollServer):
     async def listen_server(self, *, loop=None):
         async with StartAsyncSession(self):
             # await self.api.create_tasks_from_db(interval=5)
+            # await self.api.bypass_users_to_create_tasks(interval=7)
             while True:
                 async with UpdateTgEventSession(self):
                     response = await self.api.session.get(self.url, params=self.params)
