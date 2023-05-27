@@ -3,13 +3,14 @@ import random
 import json
 import logging
 import re
+import os
 
 from .vk_api import VkApi
 from django.conf import settings
 from textwrap import dedent
 from asgiref.sync import sync_to_async
 from more_itertools import chunked
-from courses.models import Client, Course, Office
+from courses.models import Client, Course, Office, Task
 from django.utils import timezone
 from .buttons import (
     get_start_buttons,
@@ -34,14 +35,41 @@ async def handle_event(api: VkApi, event: dict):
         if user_data:
             api.redis_db.set(f'{user_id}_first_name', user_data[0].get('first_name'))
             api.redis_db.set(f'{user_id}_last_name', user_data[0].get('last_name'))
-    user, _ = await Client.objects.async_get_or_create(
+    user, create = await Client.objects.async_get_or_create(
         vk_id=user_id,
         defaults={
             'first_name': api.redis_db.get(f'{user_id}_first_name').decode('utf-8'),
             'last_name': api.redis_db.get(f'{user_id}_last_name').decode('utf-8'),
             'vk_profile': f'https://vk.com/id{user_id}',
+            'registered_at': timezone.now() + timezone.timedelta(hours=api.hour_offset)
         }
     )
+    # if create:
+    #     with open(os.path.join(os.getcwd(), 'bots', 'step_messages.json')) as file:
+    #         message_templates = json.load(file)['register']
+    #     messages = []
+    #     msg_timers = []
+    #     for msg in message_templates:
+    #         messages.append(
+    #             await api.convert_template_to_message(msg['msg'], {"first_name": user.first_name})
+    #         )
+    #         msg_timers.append(msg['timer'])
+    #     args = [
+    #         user_id,
+    #         messages,
+    #         msg_timers,
+    #         [await get_menu_button(color='secondary', inline=True) for __ in msg_timers]
+    #     ]
+    #     await Task.objects.async_get_or_create(
+    #         task_name=f'vk_register_{user_id}',
+    #         defaults={
+    #             'coro': 'send_multiple_messages',
+    #             'timers': [random.randint(40, 60)],
+    #             'completed_timers': list(),
+    #             'args': args,
+    #             'kwargs': dict()
+    #         }
+    #     )
     if text in start_buttons or payload.get('button') == 'start':
         user_state = 'START'
     else:

@@ -13,6 +13,7 @@ from courses.models import Course, Office, Timer, Client
 from typing import Dict, Union
 from textwrap import dedent
 from .buttons import get_menu_button
+from typing import Dict, Union, Tuple, List
 
 
 class VkApi(AbstractAPI):
@@ -63,6 +64,34 @@ class VkApi(AbstractAPI):
         async with self.session.post(send_message_url, params=params) as res:
             res.raise_for_status()
             return json.loads(await res.text())
+
+    async def send_multiple_messages(
+            self,
+            user_id,
+            messages: Union[List[str], Tuple[str]],
+            timers: Union[List[int], Tuple[int]],
+            keyboards: Union[List[Union[str, None]], Tuple[Union[str, None]]] = None,
+    ) -> None:
+        send_message_url = 'https://api.vk.com/method/messages.send'
+        iterate_data = zip(
+            messages,
+            timers,
+            keyboards or [None] * len(timers)
+        )
+        for msg, timer, keyboard in iterate_data:
+            params = {
+                'access_token': self.token, 'v': '5.131',
+                'user_id': user_id,
+                'random_id': random.randint(0, 1000),
+                'message': msg,
+                'keyboard': keyboard,
+            }
+            for param, value in params.copy().items():
+                if value is None:
+                    del params[param]
+            await asyncio.sleep(timer)
+            async with self.session.get(send_message_url, params=params) as res:
+                res.raise_for_status()
 
     @staticmethod
     async def create_reminder_text(name: str, course: Course, office: Office) -> str:

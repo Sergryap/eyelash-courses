@@ -27,6 +27,8 @@ class VkLongPollServer(LongPollServer):
     async def listen_server(self, *, loop=None):
         params = {'act': 'a_check', 'key': None, 'ts': None, 'wait': 25}
         async with StartAsyncSession(self):
+            # await self.api.create_tasks_from_db(interval=37)
+            # await self.api.bypass_users_to_create_tasks(interval=17)
             while True:
                 async with UpdateVkEventSession(self):
                     if self.start:

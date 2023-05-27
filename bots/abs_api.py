@@ -157,8 +157,8 @@ class AbstractAPI(ABC):
                         )
                         current_client = await sync_to_async(client.first)()
                         registered_at = current_client.registered_at
-                        today = timezone.now() + timezone.timedelta(hours=self.hour_offset)
-                        current_timer = timer - (today - registered_at).total_seconds()
+                        current_time = timezone.now() + timezone.timedelta(hours=self.hour_offset)
+                        current_timer = timer - (current_time - registered_at).total_seconds()
                         print(current_timer)
                         if current_timer < 0:
                             task.completed_timers.append(int(timer))
@@ -183,9 +183,9 @@ class AbstractAPI(ABC):
         for key, value in convert_keys.items():
             keys = ['{' + key + '}', '{ ' + key + '}', '{' + key + ' }', '{ ' + key + ' }']
             for real_key in keys:
-                if real_key not in message:
+                if real_key in message:
+                    message = message.replace(real_key, value)
                     continue
-                message = message.replace(real_key, value)
         return message
 
     async def bypass_users_to_create_tasks(
@@ -214,10 +214,10 @@ class AbstractAPI(ABC):
                     task_name = f'{task_prefix[user.telegram_id or user.vk_id]}_{user.telegram_id or user.vk_id}'
                     if not await sync_to_async(user.courses.all)():
                         registered_at = user.registered_at
-                        today = timezone.now() + timezone.timedelta(hours=self.hour_offset)
+                        current_time = timezone.now() + timezone.timedelta(hours=self.hour_offset)
                         timers = []
-                        for timer in [15]:
-                            timers.append(int((today - registered_at).total_seconds() + timer))
+                        for timer in [100]:
+                            timers.append(int((current_time - registered_at).total_seconds() + timer))
                         with open(os.path.join(os.getcwd(), 'bots', 'step_messages.json')) as file:
                             message_templates = json.load(file)['No_courses']
                         messages = []
@@ -227,17 +227,23 @@ class AbstractAPI(ABC):
                                 await self.convert_template_to_message(msg['msg'], {"first_name": user.first_name})
                             )
                             msg_timers.append(msg['timer'])
+                        args = [
+                            user.telegram_id or user.vk_id,
+                            messages,
+                            msg_timers,
+                        ]
+                        if user.vk_id:
+                            button = [[{'action': {'type': 'text', 'payload': {'button': 'start'}, 'label': '☰ MENU'},
+                                        'color': 'secondary'}]]
+                            keyboard = {'inline': True, 'buttons': button}
+                            args.append([json.dumps(keyboard, ensure_ascii=False) for __ in msg_timers])
                         await Task.objects.async_get_or_create(
                             task_name=task_name,
                             defaults={
                                 'coro': 'send_multiple_messages',
                                 'timers': timers,
                                 'completed_timers': list(),
-                                'args': [
-                                    user.telegram_id or user.vk_id,
-                                    messages,
-                                    msg_timers,
-                                ],
+                                'args': args,
                                 'kwargs': dict()
                             }
                         )

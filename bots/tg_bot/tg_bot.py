@@ -414,7 +414,7 @@ async def handle_event(api: TgApi, event: TgEvent):
         #     task_name=f'tg_register_{event.chat_id}',
         #     defaults={
         #         'coro': 'send_multiple_messages',
-        #         'timers': [10],
+        #         'timers': [random.randint(40, 60)],
         #         'completed_timers': list(),
         #         'args': [
         #             event.chat_id,
