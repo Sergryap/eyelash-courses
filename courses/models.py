@@ -155,6 +155,12 @@ class Client(models.Model):
         help_text="Стейт-машина бота",
         default='START'
     )
+    completed_tasks = models.JSONField(
+        verbose_name='Выполненные задачи',
+        null=True,
+        blank=True,
+        default=list
+    )
 
     @admin.display(description='Дата регистрации')
     def get_registry_date(self):

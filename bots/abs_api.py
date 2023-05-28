@@ -144,8 +144,6 @@ class AbstractAPI(ABC):
                 tasks = await sync_to_async(Task.objects.all)()
                 for task in tasks:
                     if task.call_counter >= len(task.timers):
-                        if task.task_name.split('_')[0] == 'stop':
-                            continue
                         await sync_to_async(task.delete)()
                         continue
                     for timer in task.timers:
@@ -225,10 +223,12 @@ class AbstractAPI(ABC):
                 past_courses_prefetch = await sync_to_async(past_courses.prefetch_related)('clients')
                 for user in users_prefetch_queryset:
                     task_prefix = {
-                        user.telegram_id: 'stop_tg_send_no_courses',
-                        user.vk_id: 'stop_vk_send_no_courses'
+                        user.telegram_id: 'tg_send_no_courses',
+                        user.vk_id: 'vk_send_no_courses'
                     }
                     task_name = f'{task_prefix[user.telegram_id or user.vk_id]}_{user.telegram_id or user.vk_id}'
+                    if task_name in user.completed_tasks:
+                        continue
                     if not await sync_to_async(user.courses.all)():
                         await self.create_single_step_task(user, task_name, 'No_courses', 120)
                     else:
@@ -283,6 +283,8 @@ class AbstractAPI(ABC):
                     'kwargs': kwargs
                 }
             )
+        user.completed_tasks.append(task_name)
+        await sync_to_async(user.save)()
 
     @staticmethod
     async def get_or_create_task_to_db(

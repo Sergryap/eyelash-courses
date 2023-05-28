@@ -393,7 +393,8 @@ class ClientAdmin(ExportMixin, admin.ModelAdmin):
     fields = [
         'first_name', 'last_name', 'phone_number',
         ('telegram_id', 'vk_profile'),
-        'registered_at', 'comment'
+        'registered_at',
+        ('comment', 'completed_tasks')
     ]
 
     @staticmethod
