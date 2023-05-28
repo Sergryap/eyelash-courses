@@ -118,8 +118,9 @@ class AbstractAPI(ABC):
     async def create_tasks_from_db(
             self,
             force: bool = False,
-            interval: int = 0,
-            hour_timers: Union[List[Union[int, str]], Tuple[Union[int, str]]] = (1, 5, 10, 22)
+            hour_interval: int = 0,
+            hours: Union[List[Union[int, str]], Tuple[Union[int, str]]] = (1, 5, 10, 22),
+            minute_offset: int = 0
     ):
         """
         Создание задач из таблицы Task базы данных
@@ -132,9 +133,13 @@ class AbstractAPI(ABC):
         timer берет отсчет от момента регистрации пользователя
         """
         async def coro():
+            second_offset = minute_offset * 60
             while True:
-                start_timer = 1 if force else interval or await self.__get_database_bypass_timer(hours=hour_timers)
-                print(f'До ближайшего обхода: {start_timer} c.')
+                start_timer = 1 if force else hour_interval * 3600 or await self.__get_database_bypass_timer(hours=hours)
+                if second_offset and hour_interval:
+                    start_timer += second_offset
+                    second_offset = 0
+                # print(f'До ближайшего обхода: {start_timer} c.')
                 await asyncio.sleep(start_timer)
                 tasks = await sync_to_async(Task.objects.all)()
                 for task in tasks:
@@ -155,7 +160,14 @@ class AbstractAPI(ABC):
                             await Client.objects.async_filter(telegram_id=args[0]) or
                             await Client.objects.async_filter(vk_id=args[0])
                         )
+                        if not client:
+                            continue
                         current_client = await sync_to_async(client.first)()
+                        if not (
+                            current_client.vk_id and hasattr(self, 'vk_group_id') or
+                            current_client.telegram_id and not hasattr(self, 'vk_group_id')
+                        ):
+                            continue
                         registered_at = current_client.registered_at
                         current_time = timezone.now() + timezone.timedelta(hours=self.hour_offset)
                         current_timer = timer - (current_time - registered_at).total_seconds()
@@ -191,16 +203,21 @@ class AbstractAPI(ABC):
     async def bypass_users_to_create_tasks(
             self,
             force: bool = False,
-            interval: int = 0,
-            hour_timers: Union[List[Union[int, str]], Tuple[Union[int, str]]] = (10, 23)
+            hour_interval: int = 0,
+            hours: Union[List[Union[int, str]], Tuple[Union[int, str]]] = (10, 23),
+            minute_offset: int = 0
     ):
         """
         Создает задачи для пользователей, в зависимости от их записей на курсы,
         создавая или удаляя записи в таблице Task БД
         """
         async def coro():
+            second_offset = minute_offset * 60
             while True:
-                start_timer = 1 if force else interval or await self.__get_database_bypass_timer(hours=hour_timers)
+                start_timer = 1 if force else hour_interval * 3600 or await self.__get_database_bypass_timer(hours=hours)
+                if second_offset and hour_interval:
+                    start_timer += second_offset
+                    second_offset = 0
                 await asyncio.sleep(start_timer)
                 users = await Client.objects.async_all()
                 users_prefetch_queryset = await sync_to_async(users.prefetch_related)('courses')
