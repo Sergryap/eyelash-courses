@@ -386,45 +386,9 @@ async def handle_event(api: TgApi, event: TgEvent):
             'registered_at': timezone.now() + timezone.timedelta(hours=api.hour_offset)
         }
     )
-    # if create:
-        # reply_markup = json.dumps({'inline_keyboard': [[{'text': '☰ MENU', 'callback_data': 'start'}]]})
-        # await Task.objects.async_get_or_create(
-        #     task_name=f'tg_send_message_{event.chat_id}',
-        #     defaults={
-        #         'coro': 'send_message',
-        #         'timers': [21, 22, 23, 600],
-        #         'completed_timers': list(),
-        #         'args': [event.chat_id, f'tg{event.chat_id}'],
-        #         'kwargs': {
-        #             'parse_mode': 'Markdown',
-        #             'reply_markup': reply_markup
-        #         }
-        #     }
-        # )
-        # with open(os.path.join(os.getcwd(), 'bots', 'step_messages.json')) as file:
-        #     message_templates = json.load(file)['register']
-        # messages = []
-        # msg_timers = []
-        # for msg in message_templates:
-        #     messages.append(
-        #         await api.convert_template_to_message(msg['msg'], {"first_name": user.first_name})
-        #     )
-        #     msg_timers.append(msg['timer'])
-        # await Task.objects.async_get_or_create(
-        #     task_name=f'tg_register_{event.chat_id}',
-        #     defaults={
-        #         'coro': 'send_multiple_messages',
-        #         'timers': [random.randint(40, 60)],
-        #         'completed_timers': list(),
-        #         'args': [
-        #             event.chat_id,
-        #             messages,
-        #             msg_timers,
-        #         ],
-        #         'kwargs': dict()
-        #     }
-        # )
-
+    if create:
+        task_name = f'tg_register_{event.chat_id}'
+        await api.create_single_step_task(user, task_name, 'register', 200)
     if event.user_reply.lower() in start_buttons:
         user_state = 'START'
     else:

@@ -44,32 +44,9 @@ async def handle_event(api: VkApi, event: dict):
             'registered_at': timezone.now() + timezone.timedelta(hours=api.hour_offset)
         }
     )
-    # if create:
-    #     with open(os.path.join(os.getcwd(), 'bots', 'step_messages.json')) as file:
-    #         message_templates = json.load(file)['register']
-    #     messages = []
-    #     msg_timers = []
-    #     for msg in message_templates:
-    #         messages.append(
-    #             await api.convert_template_to_message(msg['msg'], {"first_name": user.first_name})
-    #         )
-    #         msg_timers.append(msg['timer'])
-    #     args = [
-    #         user_id,
-    #         messages,
-    #         msg_timers,
-    #         [await get_menu_button(color='secondary', inline=True) for __ in msg_timers]
-    #     ]
-    #     await Task.objects.async_get_or_create(
-    #         task_name=f'vk_register_{user_id}',
-    #         defaults={
-    #             'coro': 'send_multiple_messages',
-    #             'timers': [random.randint(40, 60)],
-    #             'completed_timers': list(),
-    #             'args': args,
-    #             'kwargs': dict()
-    #         }
-    #     )
+    if create:
+        task_name = f'vk_register_{user_id}'
+        await api.create_single_step_task(user, task_name, 'register', 200)
     if text in start_buttons or payload.get('button') == 'start':
         user_state = 'START'
     else:

@@ -134,7 +134,7 @@ class AbstractAPI(ABC):
         async def coro():
             while True:
                 start_timer = 1 if force else interval or await self.__get_database_bypass_timer(hours=hour_timers)
-                # print(f'До ближайшего обхода: {start_timer} c.')
+                print(f'До ближайшего обхода: {start_timer} c.')
                 await asyncio.sleep(start_timer)
                 tasks = await sync_to_async(Task.objects.all)()
                 for task in tasks:
@@ -213,40 +213,7 @@ class AbstractAPI(ABC):
                     }
                     task_name = f'{task_prefix[user.telegram_id or user.vk_id]}_{user.telegram_id or user.vk_id}'
                     if not await sync_to_async(user.courses.all)():
-                        registered_at = user.registered_at
-                        current_time = timezone.now() + timezone.timedelta(hours=self.hour_offset)
-                        timers = []
-                        for timer in [100]:
-                            timers.append(int((current_time - registered_at).total_seconds() + timer))
-                        with open(os.path.join(os.getcwd(), 'bots', 'step_messages.json')) as file:
-                            message_templates = json.load(file)['No_courses']
-                        messages = []
-                        msg_timers = []
-                        for msg in message_templates:
-                            messages.append(
-                                await self.convert_template_to_message(msg['msg'], {"first_name": user.first_name})
-                            )
-                            msg_timers.append(msg['timer'])
-                        args = [
-                            user.telegram_id or user.vk_id,
-                            messages,
-                            msg_timers,
-                        ]
-                        if user.vk_id:
-                            button = [[{'action': {'type': 'text', 'payload': {'button': 'start'}, 'label': '☰ MENU'},
-                                        'color': 'secondary'}]]
-                            keyboard = {'inline': True, 'buttons': button}
-                            args.append([json.dumps(keyboard, ensure_ascii=False) for __ in msg_timers])
-                        await Task.objects.async_get_or_create(
-                            task_name=task_name,
-                            defaults={
-                                'coro': 'send_multiple_messages',
-                                'timers': timers,
-                                'completed_timers': list(),
-                                'args': args,
-                                'kwargs': dict()
-                            }
-                        )
+                        await self.create_single_step_task(user, task_name, 'No_courses', 120)
                     else:
                         queryset_task = await Task.objects.async_filter(task_name=task_name)
                         if queryset_task:
@@ -263,6 +230,42 @@ class AbstractAPI(ABC):
                 if force:
                     break
         asyncio.ensure_future(coro(), loop=self.loop)
+
+    async def create_single_step_task(
+            self,
+            user: Client,
+            task_name: str,
+            type_task_name: str,
+            start_timer: int
+    ):
+        registered_at = user.registered_at
+        current_time = timezone.now() + timezone.timedelta(hours=self.hour_offset)
+        with open(os.path.join(os.getcwd(), 'bots', 'step_messages.json')) as file:
+            message_templates = json.load(file)[type_task_name]
+        for msg in message_templates:
+            timer = int((current_time - registered_at).total_seconds() + msg['timer'] + start_timer)
+            args = [
+                user.telegram_id or user.vk_id,
+                await self.convert_template_to_message(msg['msg'], {"first_name": user.first_name})
+            ]
+            kwargs = dict()
+            if user.vk_id:
+                button = [[{
+                    'action': {'type': 'text', 'payload': {'button': 'start'}, 'label': '☰ MENU'},
+                    'color': 'secondary'
+                }]]
+                keyboard = {'inline': True, 'buttons': button}
+                kwargs.update(keyboard=json.dumps(keyboard, ensure_ascii=False))
+            await Task.objects.async_get_or_create(
+                task_name=f'{task_name}_{msg["timer"]}',
+                defaults={
+                    'coro': 'send_message',
+                    'timers': [timer],
+                    'completed_timers': list(),
+                    'args': args,
+                    'kwargs': kwargs
+                }
+            )
 
     @staticmethod
     async def get_or_create_task_to_db(
