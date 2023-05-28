@@ -451,4 +451,8 @@ class TimerAdmin(admin.ModelAdmin):
 
 @admin.register(Task)
 class TaskAdmin(admin.ModelAdmin):
-    pass
+    fields = [
+        'task_name', 'coro', 'call_counter',
+        ('timers', 'completed_timers'),
+        ('args', 'kwargs')
+    ]
