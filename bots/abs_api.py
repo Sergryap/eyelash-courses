@@ -343,6 +343,8 @@ class AbstractAPI(ABC):
             course = await sync_to_async(Course.objects.filter)(pk=course_pk)
             courses_prefetch = await sync_to_async(course.prefetch_related)('clients', 'reminder_intervals')
             course_of_tasks = await sync_to_async(courses_prefetch.first)()
+            if not course_of_tasks:
+                continue
             clients = await sync_to_async(course_of_tasks.clients.all)()
             if not clients:
                 return
