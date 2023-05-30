@@ -41,6 +41,11 @@ async def get_menu_button(color, inline):
 
 async def get_course_buttons(course_instances, back):
     buttons = []
+    months = {
+        1: 'января', 2: 'февраля', 3: 'марта', 4: 'апреля',
+        5: 'мая', 6: 'июня', 7: 'июля', 8: 'августа',
+        9: 'сентября', 10: 'октября', 11: 'ноября', 12: 'декабря'
+    }
     gallery_payload = None
     for course in course_instances:
         if course.name == 'Фотогалерея':
@@ -52,7 +57,7 @@ async def get_course_buttons(course_instances, back):
                     'action': {
                         'type': 'text',
                         'payload': {'course_pk': course.pk, 'button': back},
-                        'label': course.name
+                        'label': f'{course.name} - {course.scheduled_at.day} {months[course.scheduled_at.month]}'
                     },
                     'color': 'secondary'
                 }

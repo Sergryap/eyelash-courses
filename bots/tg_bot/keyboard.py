@@ -88,12 +88,19 @@ async def get_callback_keyboard(buttons: list[tuple[str, str]], column: int, inl
 
 async def get_course_buttons(course_instances, back):
     buttons = []
+    months = {
+        1: 'января', 2: 'февраля', 3: 'марта', 4: 'апреля',
+        5: 'мая', 6: 'июня', 7: 'июля', 8: 'августа',
+        9: 'сентября', 10: 'октября', 11: 'ноября', 12: 'декабря'
+    }
     for course in course_instances:
         if course.name == 'Фотогалерея':
             buttons.append(('ГАЛЕРЕЯ', f'c:{course.pk}:{back}'))
             continue
-        buttons.append((course.name, f'c:{course.pk}:{back}'))
-    return await get_callback_keyboard(buttons, column=2)
+        buttons.append(
+            (f'{course.name} - {course.scheduled_at.day} {months[course.scheduled_at.month]}', f'c:{course.pk}:{back}')
+        )
+    return await get_callback_keyboard(buttons, column=1)
 
 
 async def get_course_menu_buttons(back, course, chat_id):
