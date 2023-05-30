@@ -122,6 +122,7 @@ async def handle_course_info(api: VkApi, event: dict):
         course_pk = payload['course_pk']
         course = await Course.objects.async_get(pk=course_pk)
         course_date = await sync_to_async(course.scheduled_at.strftime)("%d.%m.%Y")
+        course_time = await sync_to_async(course.scheduled_at.strftime)("%H:%M")
         course_images = await sync_to_async(course.images.all)()
         attachment = None
 
@@ -150,15 +151,13 @@ async def handle_course_info(api: VkApi, event: dict):
             {course.name.upper()}:
 
             Дата: {course_date}
+            Время: {course_time}
             Программа: {await sync_to_async(lambda: course.program)()}
             Лектор: {await sync_to_async(lambda: course.lecture)()}            
             Продолжительность: {course.duration} д.
 
             О ПРОГРАММЕ КУРСА:
             {await sync_to_async(lambda: course.program.short_description)()}
-
-            РАСПИСАНИЕ КУРСА:
-            {await sync_to_async(lambda: course.short_description)()}
             '''
 
         await api.send_message(

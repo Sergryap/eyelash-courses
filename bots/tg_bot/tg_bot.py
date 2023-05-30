@@ -263,6 +263,7 @@ async def handle_course_info(api: TgApi, event: TgEvent):
         back = event.user_reply.split(':')[2]
         course = await Course.objects.async_get(pk=course_pk)
         course_date = await sync_to_async(course.scheduled_at.strftime)("%d.%m.%Y")
+        course_time = await sync_to_async(course.scheduled_at.strftime)("%H:%M")
         course_images = await sync_to_async(course.images.all)()
         attachment_sequence = []
         if await sync_to_async(bool)(course_images):
@@ -288,6 +289,7 @@ async def handle_course_info(api: TgApi, event: TgEvent):
             <b>{course.name.upper()}:</b>
 
             Дата: <b><i>{course_date}</i></b>
+            Время: <b><i>{course_time}</i></b>
             Программа: <b><i>{await sync_to_async(lambda: course.program)()}</i></b>
             Лектор: <b><i>{await sync_to_async(lambda: course.lecture)()}   </i></b>     
             Продолжительность: <b><i>{course.duration} д.</i></b>
@@ -295,9 +297,7 @@ async def handle_course_info(api: TgApi, event: TgEvent):
             <b>О ПРОГРАММЕ КУРСА:</b>
             '''
         text_2 = await sync_to_async(lambda: course.program.short_description)()
-        text_3 = '<b>РАСПИСАНИЕ КУРСА:</b>'
-        text_4 = await sync_to_async(lambda: course.short_description)()
-        text = dedent(text_1) + '\n' + text_2 + '\n\n' + text_3 + '\n' + text_4
+        text = dedent(text_1) + '\n' + text_2
         await api.send_photo(
             chat_id=event.chat_id,
             photo=f'https://vk.com/{random.choice(attachment_sequence)}',
