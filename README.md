@@ -209,3 +209,21 @@ OnUnitActiveSec=1w
 [Install]
 WantedBy=multi-user.target
 ```
+
+```sh
+server {
+     server_name oksa-studio-school.ru 95.163.233.229;     
+     listen 80;
+
+     location /media/ {
+         alias /opt/eyelash-courses/media/;
+     }
+     location /static/ {
+         alias /opt/eyelash-courses/static/;
+     }
+     location / {
+         include '/etc/nginx/proxy_params';
+         proxy_pass http://127.0.0.1:8005/;
+     }
+}
+```
