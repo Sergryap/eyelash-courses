@@ -242,9 +242,8 @@ class AbstractAPI(ABC):
                     if not await sync_to_async(user.courses.all)():
                         await self.create_single_step_task(user, task_name, 'No_courses', 120)
                     else:
-                        queryset_task = await Task.objects.async_filter(task_name=task_name)
-                        if queryset_task:
-                            task = await sync_to_async(queryset_task.first)()
+                        queryset_task = await Task.objects.async_filter(task_name__istartswith=task_name)
+                        for task in queryset_task:
                             for real_task_name in [f'{task_name}:{timer}' for timer in task.timers]:
                                 if self.sending_tasks.get(real_task_name):
                                     self.sending_tasks[real_task_name].cancel()
