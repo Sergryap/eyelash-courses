@@ -3,6 +3,7 @@ import redis
 import json
 import asyncio
 import os
+import random
 
 from abc import ABC, abstractmethod
 from asgiref.sync import sync_to_async
@@ -134,12 +135,16 @@ class AbstractAPI(ABC):
         """
         async def coro():
             second_offset = minute_offset * 60
+            first_timer = random.randint(10, 20)
             while True:
-                start_timer = 1 if force else hour_interval * 3600 or await self.__get_database_bypass_timer(hours=hours)
-                if second_offset and hour_interval:
+                start_timer = hour_interval * 3600 or await self.__get_database_bypass_timer(hours=hours)
+                if first_timer:
+                    start_timer = first_timer
+                    first_timer = 0
+                elif second_offset and hour_interval:
                     start_timer += second_offset
                     second_offset = 0
-                # print(f'До ближайшего обхода: {start_timer} c.')
+                print(f'До ближайшего обхода таблицы Task: {start_timer} c.')
                 await asyncio.sleep(start_timer)
                 tasks = await sync_to_async(Task.objects.all)()
                 for task in tasks:
@@ -211,11 +216,16 @@ class AbstractAPI(ABC):
         """
         async def coro():
             second_offset = minute_offset * 60
+            first_timer = 2
             while True:
                 start_timer = 1 if force else hour_interval * 3600 or await self.__get_database_bypass_timer(hours=hours)
-                if second_offset and hour_interval:
+                if first_timer:
+                    start_timer = first_timer
+                    first_timer = 0
+                elif second_offset and hour_interval:
                     start_timer += second_offset
                     second_offset = 0
+                print(f'До ближайшего обхода таблицы Client: {start_timer} c.')
                 await asyncio.sleep(start_timer)
                 users = await Client.objects.async_all()
                 users_prefetch_queryset = await sync_to_async(users.prefetch_related)('courses')
