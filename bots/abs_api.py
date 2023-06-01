@@ -228,29 +228,37 @@ class AbstractAPI(ABC):
                 print(f'До ближайшего обхода таблицы Client: {start_timer} c.')
                 await asyncio.sleep(start_timer)
                 users = await Client.objects.async_all()
-                users_prefetch_queryset = await sync_to_async(users.prefetch_related)('courses')
-                past_courses = await Course.objects.async_filter(scheduled_at__lte=timezone.now(), published_in_bot=True)
-                past_courses_prefetch = await sync_to_async(past_courses.prefetch_related)('clients')
-                for user in users_prefetch_queryset:
-                    task_prefix = {
+                users_prefetch_courses = await sync_to_async(users.prefetch_related)('courses')
+                past_courses = await Course.objects.async_filter(
+                    scheduled_at__lte=timezone.now() + timezone.timedelta(hours=self.hour_offset),
+                    published_in_bot=True
+                )
+                past_courses_prefetch_clients = await sync_to_async(past_courses.prefetch_related)('clients')
+                with open(os.path.join(os.getcwd(), 'bots', 'step_messages.json')) as file:
+                    msg_steps = json.load(file)
+                for user in users_prefetch_courses:
+                    task_name_prefix = {
                         user.telegram_id: 'tg_send_no_courses',
                         user.vk_id: 'vk_send_no_courses'
                     }
-                    task_name = f'{task_prefix[user.telegram_id or user.vk_id]}_{user.telegram_id or user.vk_id}'
-                    if task_name in user.completed_tasks:
-                        continue
+                    user_id = user.telegram_id or user.vk_id
+                    task_name_start = f'{task_name_prefix[user_id]}_{user_id}'
                     if not await sync_to_async(user.courses.all)():
-                        await self.create_single_step_task(user, task_name, 'No_courses', 120)
+                        await self.create_single_step_task(user, task_name_start, msg_steps['No_courses'])
                     else:
-                        queryset_task = await Task.objects.async_filter(task_name__istartswith=task_name)
-                        for task in queryset_task:
-                            for real_task_name in [f'{task_name}:{timer}' for timer in task.timers]:
+                        task_queryset = await Task.objects.async_filter(task_name__istartswith=task_name_start)
+                        for db_task in task_queryset:
+                            real_tasks = (
+                                f'{task_name_start}_{msg["timer"]}:{timer}'
+                                for timer in db_task.timers
+                                for msg in msg_steps['No_courses']
+                            )
+                            for real_task_name in real_tasks:
                                 if self.sending_tasks.get(real_task_name):
                                     self.sending_tasks[real_task_name].cancel()
                                     del self.sending_tasks[real_task_name]
-                            await sync_to_async(task.delete)()
-
-                        for course in past_courses_prefetch:
+                            await sync_to_async(db_task.delete)()
+                        for course in past_courses_prefetch_clients:
                             if user in await sync_to_async(course.clients.all)():
                                 print('Задача для пользователей, которые проходили курсы')
                 if force:
@@ -260,15 +268,13 @@ class AbstractAPI(ABC):
     async def create_single_step_task(
             self,
             user: Client,
-            task_name: str,
-            type_task_name: str,
-            start_timer: int
+            task_name_start: str,
+            step_messages: List[Dict[str, Union[str, int]]],
+            start_timer: int = 200
     ):
         registered_at = user.registered_at
         current_time = timezone.now() + timezone.timedelta(hours=self.hour_offset)
-        with open(os.path.join(os.getcwd(), 'bots', 'step_messages.json')) as file:
-            message_templates = json.load(file)[type_task_name]
-        for msg in message_templates:
+        for msg in step_messages:
             timer = int((current_time - registered_at).total_seconds() + msg['timer'] + start_timer)
             args = [
                 user.telegram_id or user.vk_id,
@@ -283,7 +289,7 @@ class AbstractAPI(ABC):
                 keyboard = {'inline': True, 'buttons': button}
                 kwargs.update(keyboard=json.dumps(keyboard, ensure_ascii=False))
             await Task.objects.async_get_or_create(
-                task_name=f'{task_name}_{msg["timer"]}',
+                task_name=f'{task_name_start}_{msg["timer"]}',
                 defaults={
                     'coro': 'send_message',
                     'timers': [timer],
@@ -292,8 +298,9 @@ class AbstractAPI(ABC):
                     'kwargs': kwargs
                 }
             )
-        user.completed_tasks.append(task_name)
-        await sync_to_async(user.save)()
+        if task_name_start not in user.completed_tasks:
+            user.completed_tasks.append(task_name_start)
+            await sync_to_async(user.save)()
 
     @staticmethod
     async def get_or_create_task_to_db(
