@@ -8,7 +8,8 @@ from django.contrib import admin
 from django import forms
 from django.utils.html import format_html
 from courses.models import (
-    Client, Course, Lecturer, Program, CourseClient, CourseImage, Office, GraduatePhoto, Timer, Task
+    Client, Course, Lecturer, Program, CourseClient, CourseImage,
+    Office, GraduatePhoto, Timer, Task, ScheduledMessage
 )
 from adminsortable2.admin import SortableAdminMixin, SortableTabularInline, SortableAdminBase
 from django.forms import CheckboxSelectMultiple
@@ -457,3 +458,8 @@ class TaskAdmin(admin.ModelAdmin):
         ('timers', 'completed_timers'),
         ('args', 'kwargs')
     ]
+
+
+@admin.register(ScheduledMessage)
+class ScheduledMessageAdmin(admin.ModelAdmin):
+    pass

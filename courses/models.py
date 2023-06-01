@@ -241,6 +241,60 @@ class Task(models.Model):
         ordering = ['task_name']
 
 
+class ScheduledMessage(models.Model):
+    status = [
+        ('all', 'Для всех'),
+        ('no_courses', 'Не проходили курсов'),
+        ('past_courses', 'Проходили курсы'),
+        ('future_courses', 'Записаны на курсы'),
+        ('past_courses_no_future', 'Проходили но не записаны на курсы'),
+        ('fresh_register', 'Недавно зарегистрировались')
+    ]
+    title = models.CharField(
+        verbose_name='Заголовок',
+        max_length=150,
+        blank=True,
+        null=True,
+    )
+    message = models.TextField(
+        verbose_name='Сообщение',
+        null=True,
+    )
+    client_status = models.CharField(
+        verbose_name='Сообщения для клиентов',
+        choices=status,
+        default='all',
+        db_index=True,
+        max_length=50,
+        blank=True,
+        null=True
+    )
+    client = models.ForeignKey(
+        Client,
+        on_delete=models.CASCADE,
+        related_name='scheduled_messages',
+        verbose_name='Сообщение для клиента',
+        null=True,
+        blank=True
+    )
+    scheduled_at = models.DateTimeField(
+        verbose_name='Дата и время отправки',
+    )
+    repeat_interval = models.PositiveSmallIntegerField(
+        verbose_name='Повторять через, мин.',
+        null=True,
+        blank=True
+    )
+
+    def __str__(self):
+        return f'{self.client_status or self.client} "{self.title}": {self.scheduled_at.strftime("%d.%m.%Y: %H:%M")}'
+
+    class Meta:
+        verbose_name = 'Сообщение'
+        verbose_name_plural = 'Отправка сообщений'
+        ordering = ['-scheduled_at']
+
+
 class Course(models.Model):
     name = models.CharField(
         verbose_name='Название курса',
