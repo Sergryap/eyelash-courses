@@ -247,6 +247,9 @@ class AbstractAPI(ABC):
                         await self.create_single_step_task(user, task_name_start, msg_steps['No_courses'])
                     else:
                         task_queryset = await Task.objects.async_filter(task_name__istartswith=task_name_start)
+                        if task_name_start in user.completed_tasks:
+                            user.completed_tasks.remove(task_name_start)
+                            await sync_to_async(user.save)()
                         for db_task in task_queryset:
                             real_tasks = (
                                 f'{task_name_start}_{msg["timer"]}:{timer}'
