@@ -387,8 +387,10 @@ async def handle_event(api: TgApi, event: TgEvent):
         }
     )
     if create:
-        task_name = f'tg_register_{event.chat_id}'
-        await api.create_single_step_task(user, task_name, 'register', 200)
+        with open(os.path.join(os.getcwd(), 'bots', 'step_messages.json')) as file:
+            msg_steps = json.load(file)
+        task_name_start = f'tg_register_{event.chat_id}'
+        await api.create_single_step_task(user, task_name_start, msg_steps['register'])
     if event.user_reply.lower() in start_buttons:
         user_state = 'START'
     else:

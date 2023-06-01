@@ -45,8 +45,10 @@ async def handle_event(api: VkApi, event: dict):
         }
     )
     if create:
-        task_name = f'vk_register_{user_id}'
-        await api.create_single_step_task(user, task_name, 'register', 200)
+        with open(os.path.join(os.getcwd(), 'bots', 'step_messages.json')) as file:
+            msg_steps = json.load(file)
+        task_name_start = f'vk_register_{user_id}'
+        await api.create_single_step_task(user, task_name_start, msg_steps['register'])
     if text in start_buttons or payload.get('button') == 'start':
         user_state = 'START'
     else:
