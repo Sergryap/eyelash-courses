@@ -11,6 +11,7 @@ from django.utils import timezone
 from courses.models import Course, Office, Client, Task
 from typing import Tuple, List, Dict, Union
 from asyncio.subprocess import create_subprocess_exec
+from django.conf import settings
 
 
 class AbstractAPI(ABC):
@@ -391,8 +392,9 @@ class AbstractAPI(ABC):
 
         async def create_tasks():
             self.redis_db.delete(key_trigger)
+            command = 'python3' if settings.DEBUG else '/opt/eyelash-courses/venv/bin/python3'
             await create_subprocess_exec(
-                'python3', 'manage.py', 'create_db_entries_scheduled_messages'
+                command, 'manage.py', 'create_db_entries_scheduled_messages'
             )
             await self.create_tasks_from_db(force=True)
         asyncio.ensure_future(create_tasks(), loop=self.loop)
