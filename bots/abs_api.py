@@ -393,11 +393,12 @@ class AbstractAPI(ABC):
         async def create_tasks():
             self.redis_db.delete(key_trigger)
             command = 'python3' if settings.DEBUG else '/opt/eyelash-courses/venv/bin/python3'
-            # if not settings.DEBUG:
-            #     await create_subprocess_exec(
-            #         'source', '/opt/eyelash-courses/venv/bin/activate'
-            #     )
             cwd = '/opt/eyelash-courses/' if not settings.DEBUG else None
+            if not settings.DEBUG:
+                await create_subprocess_exec(
+                    'source', 'venv/bin/activate',
+                    cwd=cwd
+                )
             await create_subprocess_exec(
                 command, 'manage.py', 'create_db_entries_scheduled_messages',
                 cwd=cwd
