@@ -37,6 +37,7 @@ class VkLongPollServer(LongPollServer):
                     response.raise_for_status()
                     updates = json.loads(await response.text())
                     await self.api.update_course_tasks_triggered_admin('update_vk_tasks')
+                    await self.api.create_message_tasks('vk_create_message')
                     if 'failed' in updates:
                         if updates['failed'] == 1:
                             params['ts'] = updates['ts']

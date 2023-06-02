@@ -10,6 +10,7 @@ from asgiref.sync import sync_to_async
 from django.utils import timezone
 from courses.models import Course, Office, Client, Task
 from typing import Tuple, List, Dict, Union
+from asyncio.subprocess import create_subprocess_exec
 
 
 class AbstractAPI(ABC):
@@ -379,3 +380,15 @@ class AbstractAPI(ABC):
                     await self.update_message_single_sending_task(
                         course_of_tasks, client, office, interval, remind_before
                     )
+
+    async def create_message_tasks(self, key_trigger):
+        if not self.redis_db.get(key_trigger):
+            return
+
+        async def create_tasks():
+            self.redis_db.delete(key_trigger)
+            await create_subprocess_exec(
+                'python3', 'manage.py', 'create_db_entries_scheduled_messages'
+            )
+            await self.create_tasks_from_db(force=True)
+        asyncio.ensure_future(create_tasks(), loop=self.loop)

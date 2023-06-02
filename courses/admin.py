@@ -462,4 +462,9 @@ class TaskAdmin(admin.ModelAdmin):
 
 @admin.register(ScheduledMessage)
 class ScheduledMessageAdmin(admin.ModelAdmin):
-    pass
+    redis = settings.REDIS_DB
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        self.redis.set('tg_create_message', 1)
+        self.redis.set('vk_create_message', 1)
