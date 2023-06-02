@@ -392,9 +392,10 @@ class AbstractAPI(ABC):
 
         async def create_tasks():
             self.redis_db.delete(key_trigger)
-            command = 'python3' if settings.DEBUG else '/opt/eyelash-courses/venv/bin/python3'
+            command_1 = 'python3' if settings.DEBUG else '/opt/eyelash-courses/venv/bin/python3'
+            command_2 = 'manage.py' if settings.DEBUG else '/opt/eyelash-courses/manage.py'
             await create_subprocess_exec(
-                command, 'manage.py', 'create_db_entries_scheduled_messages'
+                command_1, command_2, 'create_db_entries_scheduled_messages'
             )
             await self.create_tasks_from_db(force=True)
         asyncio.ensure_future(create_tasks(), loop=self.loop)
