@@ -65,6 +65,12 @@ class VkApi(AbstractAPI):
             res.raise_for_status()
             return json.loads(await res.text())
 
+    async def loop_send_message(self, user_id: int, message: str, *, keyboard: str = None, interval: int):
+
+        while True:
+            await self.send_message(user_id, message, keyboard=keyboard)
+            await asyncio.sleep(interval * 60)
+
     async def send_multiple_messages(
             self,
             user_id,

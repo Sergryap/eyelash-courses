@@ -54,7 +54,8 @@ def create_db_task(
     user: Union[Client, CourseClient],
     task_name: str,
     message_template: str,
-    start_timer: int
+    start_timer: int,
+    repeat: int = None
 ):
     client = user.client if isinstance(user, CourseClient) else user
     args = [
@@ -69,10 +70,13 @@ def create_db_task(
         }]]
         keyboard = {'inline': True, 'buttons': button}
         kwargs.update(keyboard=json.dumps(keyboard, ensure_ascii=False))
+    if repeat:
+        kwargs.update(interval=repeat)
+    coro = 'loop_send_message' if repeat else 'send_message'
     Task.objects.get_or_create(
         task_name=task_name,
         defaults={
-            'coro': 'send_message',
+            'coro': coro,
             'timers': [start_timer],
             'completed_timers': list(),
             'args': args,
@@ -96,7 +100,9 @@ def create_task_name(client: Client, message: ScheduledMessage):
     start_timer = int((message.scheduled_at - client.registered_at).total_seconds())
     task_name_prefix = {client.telegram_id: 'tg', client.vk_id: 'vk'}
     user_id = client.telegram_id or client.vk_id
-    task_name = f'{task_name_prefix[user_id]}_{message.client_status}_{user_id}_{message.scheduled_at.timestamp()}'
+    task_name = f'{task_name_prefix[user_id]}_{message.client_status}_{user_id}_{int(message.scheduled_at.timestamp())}'
+    if message.repeat_interval:
+        task_name += '_loop'
     return task_name, start_timer
 
 
@@ -111,5 +117,6 @@ def create_db_tasks_for_clients(clients: Union[QuerySet, set[Client]], message: 
             user=client,
             task_name=task_name,
             message_template=message.message,
-            start_timer=start_timer
+            start_timer=start_timer,
+            repeat=message.repeat_interval
         )

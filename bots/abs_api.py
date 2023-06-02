@@ -33,6 +33,10 @@ class AbstractAPI(ABC):
         pass
 
     @abstractmethod
+    async def loop_send_message(self, *args, **kwargs):
+        pass
+
+    @abstractmethod
     async def send_message_later(self, *args, **kwargs):
         pass
 

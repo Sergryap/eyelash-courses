@@ -33,6 +33,12 @@ class TgApi(AbstractAPI):
             res.raise_for_status()
             return json.loads(await res.text())
 
+    async def loop_send_message(self, chat_id, msg, *, reply_markup=None, parse_mode=None, interval: int):
+
+        while True:
+            await self.send_message(chat_id, msg, reply_markup=reply_markup, parse_mode=parse_mode)
+            await asyncio.sleep(interval * 60)
+
     async def send_multiple_messages(
             self,
             chat_id,
