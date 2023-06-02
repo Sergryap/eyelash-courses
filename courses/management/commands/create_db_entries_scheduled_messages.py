@@ -107,6 +107,9 @@ def create_task_name(client: Client, message: ScheduledMessage):
 
 
 def create_db_tasks_for_clients(clients: Union[QuerySet, set[Client]], message: ScheduledMessage):
+    current_time = timezone.now() + timezone.timedelta(hours=5)
+    if current_time > message.scheduled_at:
+        return
     for client in clients:
         if isinstance(client, CourseClient):
             user = client.client
