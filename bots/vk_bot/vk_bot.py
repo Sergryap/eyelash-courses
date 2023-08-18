@@ -10,7 +10,7 @@ from django.conf import settings
 from textwrap import dedent
 from asgiref.sync import sync_to_async
 from more_itertools import chunked
-from courses.models import Client, Course, Office, Task
+from courses.models import Client, Course, Office
 from django.utils import timezone
 from .buttons import (
     get_start_buttons,
@@ -19,17 +19,18 @@ from .buttons import (
     check_phone_button,
     get_course_menu_buttons
 )
+from .vk_types import Message
 
 logger = logging.getLogger('telegram')
 
 
-async def handle_event(api: VkApi, event: dict):
+async def handle_event(api: VkApi, event: Message):
     """Главный обработчик событий"""
 
-    user_id = event['object']['message']['from_id']
+    user_id = event.from_id
     start_buttons = ['start', '/start', 'начать', 'старт', '+']
-    text = event['object']['message']['text'].lower().strip()
-    payload = json.loads(event['object']['message'].get('payload', '{}'))
+    text = event.text.lower().strip()
+    payload = event.payload
     if not api.redis_db.get(f'{user_id}_first_name'):
         user_data = await api.get_user(user_id)
         if user_data:
@@ -67,10 +68,10 @@ async def handle_event(api: VkApi, event: dict):
     await sync_to_async(user.save)()
 
 
-async def start(api: VkApi, event: dict):
-    user_id = event['object']['message']['from_id']
+async def start(api: VkApi, event: Message):
+    user_id = event.from_id
     first_name = api.redis_db.get(f'{user_id}_first_name').decode('utf-8')
-    text = event['object']['message']['text'].lower().strip()
+    text = event.text.lower().strip()
     start_buttons = ['start', '/start', 'начать', 'старт', '+']
     msg = 'MENU:'
     if text in start_buttons:
@@ -109,17 +110,17 @@ async def start(api: VkApi, event: dict):
     return 'MAIN_MENU'
 
 
-async def main_menu_handler(api: VkApi, event: dict):
-    payload = json.loads(event['object']['message'].get('payload', '{}'))
+async def main_menu_handler(api: VkApi, event: Message):
+    payload = event.payload
     if payload:
         return await send_main_menu_answer(api, event)
     else:
         return await answer_arbitrary_text(api, event)
 
 
-async def handle_course_info(api: VkApi, event: dict):
-    user_id = event['object']['message']['from_id']
-    payload = json.loads(event['object']['message'].get('payload', '{}'))
+async def handle_course_info(api: VkApi, event: Message):
+    user_id = event.from_id
+    payload = event.payload
     if payload and payload.get('course_pk'):
         course_pk = payload['course_pk']
         course = await Course.objects.async_get(pk=course_pk)
@@ -179,9 +180,9 @@ async def handle_course_info(api: VkApi, event: dict):
     return 'MAIN_MENU'
 
 
-async def enter_phone(api: VkApi, event: dict):
-    user_id = event['object']['message']['from_id']
-    payload = json.loads(event['object']['message'].get('payload', '{}'))
+async def enter_phone(api: VkApi, event: Message):
+    user_id = event.from_id
+    payload = event.payload
     user_instance = await Client.objects.async_get(vk_id=user_id)
     course_pk = api.redis_db.get(f'{user_id}_current_course')
     course = await Course.objects.async_get(pk=course_pk)
@@ -215,7 +216,7 @@ async def enter_phone(api: VkApi, event: dict):
         )
         return 'MAIN_MENU'
     else:
-        phone = event['object']['message']['text']
+        phone = event.text
         pattern = re.compile(r'^(\+7|7|8)?[\s\-]?\(?[489][0-9]{2}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}$')
         if pattern.findall(phone):
             api.redis_db.delete(f'{user_id}_current_course')
@@ -241,9 +242,9 @@ async def enter_phone(api: VkApi, event: dict):
 #######################################
 
 
-async def send_main_menu_answer(api: VkApi, event: dict):
-    user_id = event['object']['message']['from_id']
-    payload = json.loads(event['object']['message'].get('payload', '{}'))
+async def send_main_menu_answer(api: VkApi, event: Message):
+    user_id = event.from_id
+    payload = event.payload
     user_instance = await Client.objects.async_get(vk_id=user_id)
     user_info = {
         'first_name': api.redis_db.get(f'{user_id}_first_name').decode('utf-8'),
@@ -338,14 +339,14 @@ async def send_main_menu_answer(api: VkApi, event: dict):
     return 'MAIN_MENU'
 
 
-async def answer_arbitrary_text(api: VkApi, event: dict):
-    user_id = event['object']['message']['from_id']
+async def answer_arbitrary_text(api: VkApi, event: Message):
+    user_id = event.from_id
     user_instance = await Client.objects.async_get(vk_id=user_id)
     vk_profile = user_instance.vk_profile
     admin_msg = f'''
             Сообщение от {vk_profile}
             в чате https://vk.com/gim{settings.VK_GROUP_ID}:
-            "{event['object']['message']['text']}"
+            "{event.text}"
             '''
     user_msg = f'''
         Ваше сообщение отправлено.
@@ -366,8 +367,8 @@ async def answer_arbitrary_text(api: VkApi, event: dict):
     return 'MAIN_MENU'
 
 
-async def send_courses(api: VkApi, event: dict, courses, msg1, msg2, msg3, /, *, back):
-    user_id = event['object']['message']['from_id']
+async def send_courses(api: VkApi, event: Message, courses, msg1, msg2, msg3, /, *, back):
+    user_id = event.from_id
     i = 0
     for client_courses_part in await sync_to_async(chunked)(courses, 5):
         i += 1

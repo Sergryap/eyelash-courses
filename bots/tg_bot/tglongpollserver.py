@@ -1,6 +1,7 @@
 import logging
-import json
-from .tg_api import TgApi, TgEvent
+
+from . import tg_types
+from .tg_api import TgApi
 from bots.general import LongPollServer, StartAsyncSession, UpdateTgEventSession
 
 logger = logging.getLogger('telegram')
@@ -22,14 +23,14 @@ class TgLongPollServer(LongPollServer):
                 async with UpdateTgEventSession(self):
                     response = await self.api.session.get(self.url, params=self.params)
                     response.raise_for_status()
-                    updates = json.loads(await response.text())
+                    updates = tg_types.Response.parse_raw(await response.text())
                     await self.api.update_course_tasks_triggered_admin('update_tg_tasks')
                     await self.api.create_message_tasks('tg_create_message')
-                    if not updates.get('result') or not updates['ok']:
+                    if not updates.result or not updates.ok:
                         continue
-                    update = updates['result'][-1]
-                    self.params['offset'] = update['update_id'] + 1
-                    event = TgEvent(update)
-                    if hasattr(event, 'unknown_event'):
+                    update = updates.result[-1]
+                    self.params['offset'] = update.update_id + 1
+                    event = tg_types.Update.parse_obj(update)
+                    if not update.message and not update.callback_query:
                         continue
                     await self.insert_handle_event_task(event, loop=loop)
