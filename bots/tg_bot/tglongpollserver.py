@@ -1,11 +1,42 @@
+import asyncio
 import logging
 
+from aiohttp import client_exceptions
 from typing import Callable, Awaitable
 from . import tg_types
 from .tg_api import TgApi
-from bots.general import LongPollServer, StartAsyncSession, UpdateTgEventSession
+from bots.general import LongPollServer, StartAsyncSession
 
 logger = logging.getLogger('telegram')
+
+
+class UpdateTgEventSession:
+
+    """Класс контекстного менеджера для получения события TG"""
+
+    def __init__(self, instance):
+        self.instance = instance
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if isinstance(exc_val, ConnectionError):
+            t = 0 if self.instance.first_connect else 5
+            self.instance.first_connect = False
+            await asyncio.sleep(t)
+            logger.warning(f'Соединение было прервано: {exc_val}', stack_info=True)
+            return True
+        if isinstance(exc_val, client_exceptions.ServerTimeoutError):
+            logger.warning(f'Ошибка ReadTimeout: {exc_val}', stack_info=True)
+            return True
+        if isinstance(exc_val, client_exceptions.ClientResponseError):
+            logger.warning(f'Ошибка ClientResponseError: {exc_val}', stack_info=True)
+            return True
+        if isinstance(exc_val, Exception):
+            logger.exception(exc_val)
+            self.instance.first_connect = True
+            return True
 
 
 class TgLongPollServer(LongPollServer):
@@ -20,7 +51,7 @@ class TgLongPollServer(LongPollServer):
         self.url = f'https://api.telegram.org/bot{api.token}/getUpdates'
         self.params = {'timeout': 25, 'limit': 1}
 
-    async def listen_server(self, *, loop=None):
+    async def listen_server(self, *, loop=None) -> Awaitable[None]:
         async with StartAsyncSession(self):
             await self.api.create_tasks_from_db(hour_interval=2)
             await self.api.bypass_users_to_create_tasks(hour_interval=8)

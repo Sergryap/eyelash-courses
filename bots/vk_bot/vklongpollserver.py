@@ -1,12 +1,45 @@
+import asyncio
 import logging
+
 from typing import Callable, Awaitable
 from pydantic import ValidationError
-
+from aiohttp import client_exceptions
 from .vk_api import VkApi
-from bots.general import LongPollServer, StartAsyncSession, UpdateVkEventSession
+from bots.general import LongPollServer, StartAsyncSession
 from . import vk_types
 
 logger = logging.getLogger('telegram')
+
+
+class UpdateVkEventSession:
+    """Класс контекстного менеджера для получения события VK"""
+
+    def __init__(self, instance):
+        self.instance = instance
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if exc_val:
+            self.instance.start = True
+        if isinstance(exc_val, ConnectionError):
+            t = 0 if self.instance.first_connect else 5
+            self.instance.first_connect = False
+            await asyncio.sleep(t)
+            logger.warning(f'Соединение было прервано: {exc_val}', stack_info=True)
+            return True
+        if isinstance(exc_val, client_exceptions.ServerTimeoutError):
+            logger.warning(f'Ошибка ReadTimeout: {exc_val}', stack_info=True)
+            return True
+        if isinstance(exc_val, client_exceptions.ClientResponseError):
+            logger.warning(f'Ошибка ClientResponseError: {exc_val}', stack_info=True)
+            self.instance.start = True
+            return True
+        if isinstance(exc_val, Exception):
+            logger.exception(exc_val)
+            self.instance.first_connect = True
+            return True
 
 
 class VkLongPollServer(LongPollServer):
@@ -29,7 +62,7 @@ class VkLongPollServer(LongPollServer):
             response = vk_types.ServerResponse.parse_raw(await res.text())
         return response.response
 
-    async def listen_server(self, *, loop=None):
+    async def listen_server(self, *, loop=None) -> Awaitable[None]:
         async with StartAsyncSession(self):
             await self.api.create_tasks_from_db(hour_interval=2, minute_offset=10)
             while True:
