@@ -79,9 +79,11 @@ class VkLongPollServer(LongPollServer):
                         if update.failed == 1:
                             params.ts = update.ts
                         elif update.failed == 2:
-                            params.key, __, __ = await self.get_params()
+                            res = await self.get_params()
+                            params.key = res.key
                         elif update.failed == 3:
-                            params.key, __, params.ts = await self.get_params()
+                            res = await self.get_params()
+                            params.key, params.ts = res.key, res.ts
                         continue
                     await self.api.update_course_tasks_triggered_admin('update_vk_tasks')
                     await self.api.create_message_tasks('vk_create_message')
