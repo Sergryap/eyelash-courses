@@ -1,10 +1,12 @@
 import aiohttp
 import asyncio
 import logging
+
 from aiohttp import client_exceptions
 from abc import ABC, abstractmethod
-from .vk_bot import VkApi
-from .tg_bot import TgApi
+from typing import Callable, Awaitable
+from .vk_bot import VkApi, vk_types
+from .tg_bot import TgApi, tg_types
 
 logger = logging.getLogger('telegram')
 
@@ -12,7 +14,11 @@ logger = logging.getLogger('telegram')
 class LongPollServer(ABC):
 
     @abstractmethod
-    def __init__(self, api: TgApi | VkApi, handle_event: callable):
+    def __init__(
+            self,
+            api: TgApi | VkApi,
+            handle_event: Callable[[VkApi | TgApi, vk_types.Message | tg_types.Update], Awaitable[None]],
+    ):
         self.api = api
         self.handle_event = handle_event
         self.first_connect = True

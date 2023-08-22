@@ -1,5 +1,6 @@
 import logging
 
+from typing import Callable, Awaitable
 from . import tg_types
 from .tg_api import TgApi
 from bots.general import LongPollServer, StartAsyncSession, UpdateTgEventSession
@@ -10,7 +11,11 @@ logger = logging.getLogger('telegram')
 class TgLongPollServer(LongPollServer):
     """Класс для получения событий от сервера Tg и отправки их в главный обработчик событий handle_event"""
 
-    def __init__(self, api: TgApi, handle_event: callable):
+    def __init__(
+            self,
+            api: TgApi,
+            handle_event: Callable[[TgApi, tg_types.Update], Awaitable[None]]
+    ):
         super().__init__(api, handle_event)
         self.url = f'https://api.telegram.org/bot{api.token}/getUpdates'
         self.params = {'timeout': 25, 'limit': 1}
