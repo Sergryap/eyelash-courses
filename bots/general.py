@@ -34,8 +34,17 @@ class LongPollServer(ABC):
         asyncio.ensure_future(additional_coro(), loop=loop)
 
     @abstractmethod
-    async def listen_server(self, *, loop=None) -> Awaitable[None]:
+    async def init_tasks(self):
         pass
+
+    @abstractmethod
+    async def update_event(self, loop=None):
+        pass
+
+    async def listen_server(self, *, loop=None) -> Awaitable[None]:
+        async with StartAsyncSession(self):
+            await self.init_tasks()
+            await self.update_event(loop)
 
 
 class StartAsyncSession:

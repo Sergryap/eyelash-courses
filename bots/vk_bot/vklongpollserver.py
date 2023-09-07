@@ -62,34 +62,35 @@ class VkLongPollServer(LongPollServer):
             response = vk_types.ServerResponse.parse_raw(await res.text())
         return response.response
 
-    async def listen_server(self, *, loop=None) -> Awaitable[None]:
-        async with StartAsyncSession(self):
-            await self.api.create_tasks_from_db(hour_interval=2, minute_offset=10)
-            while True:
-                async with UpdateVkEventSession(self):
-                    if self.start:
-                        params = await self.get_params()
-                        self.start = False
-                    response = await self.api.session.get(params.server, params=params.dict(exclude={'server'}))
-                    response.raise_for_status()
-                    try:
-                        update = vk_types.ServerUpdates.parse_raw(await response.text())
-                    except ValidationError:
-                        update = vk_types.ServerFailedUpdate.parse_raw(await response.text())
-                        if update.failed == 1:
-                            params.ts = update.ts
-                        elif update.failed == 2:
-                            res = await self.get_params()
-                            params.key = res.key
-                        elif update.failed == 3:
-                            res = await self.get_params()
-                            params.key, params.ts = res.key, res.ts
+    async def init_tasks(self):
+        await self.api.create_tasks_from_db(hour_interval=2, minute_offset=10)
+
+    async def update_event(self, loop=None):
+        while True:
+            async with UpdateVkEventSession(self):
+                if self.start:
+                    params = await self.get_params()
+                    self.start = False
+                response = await self.api.session.get(params.server, params=params.dict(exclude={'server'}))
+                response.raise_for_status()
+                try:
+                    update = vk_types.ServerUpdates.parse_raw(await response.text())
+                except ValidationError:
+                    update = vk_types.ServerFailedUpdate.parse_raw(await response.text())
+                    if update.failed == 1:
+                        params.ts = update.ts
+                    elif update.failed == 2:
+                        res = await self.get_params()
+                        params.key = res.key
+                    elif update.failed == 3:
+                        res = await self.get_params()
+                        params.key, params.ts = res.key, res.ts
+                    continue
+                await self.api.update_course_tasks_triggered_admin('update_vk_tasks')
+                await self.api.create_message_tasks('vk_create_message')
+                params.ts = update.ts
+                for event in update.updates:
+                    if event.type != 'message_new':
                         continue
-                    await self.api.update_course_tasks_triggered_admin('update_vk_tasks')
-                    await self.api.create_message_tasks('vk_create_message')
-                    params.ts = update.ts
-                    for event in update.updates:
-                        if event.type != 'message_new':
-                            continue
-                        msg_event = vk_types.NewMessageUpdate.parse_obj(event).object.message
-                        await self.insert_handle_event_task(msg_event, loop=loop)
+                    msg_event = vk_types.NewMessageUpdate.parse_obj(event).object.message
+                    await self.insert_handle_event_task(msg_event, loop=loop)
