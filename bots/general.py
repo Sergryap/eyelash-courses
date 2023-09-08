@@ -2,12 +2,44 @@ import aiohttp
 import asyncio
 import logging
 
+from aiohttp import client_exceptions
 from abc import ABC, abstractmethod
 from typing import Callable, Awaitable
 from .vk_bot import VkApi, vk_types
 from .tg_bot import TgApi, tg_types
 
 logger = logging.getLogger('telegram')
+
+
+class UpdateEventSession:
+    """Класс контекстного менеджера для получения события VK"""
+
+    def __init__(self, instance):
+        self.instance = instance
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if exc_val:
+            self.instance.start = True
+        if isinstance(exc_val, ConnectionError):
+            t = 0 if self.instance.first_connect else 5
+            self.instance.first_connect = False
+            await asyncio.sleep(t)
+            logger.warning(f'Соединение было прервано: {exc_val}', stack_info=True)
+            return True
+        if isinstance(exc_val, client_exceptions.ServerTimeoutError):
+            logger.warning(f'Ошибка ReadTimeout: {exc_val}', stack_info=True)
+            return True
+        if isinstance(exc_val, client_exceptions.ClientResponseError):
+            logger.warning(f'Ошибка ClientResponseError: {exc_val}', stack_info=True)
+            self.instance.start = True
+            return True
+        if isinstance(exc_val, Exception):
+            logger.exception(exc_val)
+            self.instance.first_connect = True
+            return True
 
 
 class LongPollServer(ABC):
@@ -38,13 +70,23 @@ class LongPollServer(ABC):
         pass
 
     @abstractmethod
-    async def update_event(self, loop=None):
+    async def update_tasks(self):
+        pass
+
+    @abstractmethod
+    async def get_event(self, loop=None) -> Awaitable[tg_types.Update | vk_types.NewMessageUpdate | None]:
         pass
 
     async def listen_server(self, *, loop=None) -> Awaitable[None]:
         async with StartAsyncSession(self):
             await self.init_tasks()
-            await self.update_event(loop)
+            while True:
+                async with UpdateEventSession(self):
+                    event = await self.get_event(loop)
+                    await self.update_tasks()
+                    if not event:
+                        continue
+                    asyncio.ensure_future(self.handle_event(self.api, event), loop=loop)
 
 
 class StartAsyncSession:
