@@ -37,7 +37,9 @@ class LongPollServer(ABC):
     async def listen_server(self) -> Awaitable[None]:
         async with AsyncSession(self):
             while True:
-                async with UpdateEvent(self) as event:
+                async with UpdateEvent(self):
+                    event = await self.get_event()
+                    await self.update_tasks()
                     if not event:
                         continue
                     asyncio.ensure_future(self.handle_event(self.api, event), loop=self.api.loop)
@@ -50,8 +52,7 @@ class UpdateEvent:
         self.instance = instance
 
     async def __aenter__(self):
-        await self.instance.update_tasks()
-        return await self.instance.get_event()
+        return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         if exc_val:
@@ -68,11 +69,6 @@ class UpdateEvent:
         if isinstance(exc_val, client_exceptions.ClientResponseError):
             logger.warning(f'Ошибка ClientResponseError: {exc_val}', stack_info=True)
             self.instance.start = True
-            return True
-        if isinstance(exc_val, client_exceptions.ServerDisconnectedError):
-            logger.warning(f'Ошибка ServerDisconnectedError: {exc_val}', stack_info=True)
-            await self.instance.api.session.close()
-            self.instance.api.session = aiohttp.ClientSession()
             return True
         if isinstance(exc_val, Exception):
             logger.exception(exc_val)
