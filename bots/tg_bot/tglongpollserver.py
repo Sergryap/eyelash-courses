@@ -28,7 +28,7 @@ class TgLongPollServer(LongPollServer):
         await self.api.update_course_tasks_triggered_admin('update_tg_tasks')
         await self.api.create_message_tasks('tg_create_message')
 
-    async def get_event(self, loop=None) -> Awaitable[tg_types.Update | None]:
+    async def get_event(self) -> Awaitable[tg_types.Update | None]:
         response = await self.api.session.get(self.url, params=self.params)
         response.raise_for_status()
         updates = tg_types.Response.parse_raw(await response.text())
